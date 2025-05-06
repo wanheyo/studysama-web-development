@@ -27,12 +27,15 @@ class LessonController extends Controller
                     $query->where('status', 1);
                 }])
                 ->with(['comments' => function ($query) {
-                    $query->where('status', 1);
+                    $query->where('status', 1)
+                    ->with(['userCourse.user']);
                 }]);
             }])
             ->where('course_id', $course_id)
             ->where('status', 1)
             ->get();
+
+        // dd($lessons);
 
         // $resourceFiles = Resource::with(['resourceFile'])
         //     ->where('status', 1)

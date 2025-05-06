@@ -324,9 +324,20 @@
                                                             <span><i class="ti ti-download"></i> {{ $resource->resourceFile->total_download ?? 0 }}</span>
                                                             <span><i class="ti ti-message"></i> {{ $resource->comments->count() }}</span>
                                                         </div>
-                                                        <button type="button" class="btn btn-light-primary icon-btn b-r-22 hover-icon-white"> 
-                                                            <i class="ti ti-chevron-up text-{{ $resource->category == 1 ? 'info' : 'success' }}"></i>
-                                                        </button>
+                                                        <button type="button" class="btn btn-light-primary icon-btn b-r-22 hover-icon-white" 
+                                                            data-bs-target="#resourceDetailModal" 
+                                                            data-bs-toggle="modal"
+                                                            data-resource-id="{{ $resource->id }}"
+                                                            data-resource-name="{{ $resource->name }}"
+                                                            data-resource-description="{{ $resource->description ?? 'No description available' }}"
+                                                            data-resource-type="{{ $resource->resourceFile ? $resource->resourceFile->type : 'link' }}"
+                                                            data-resource-path="{{ $resource->resourceFile ? asset('storage/uploads/resource_file/' . $resource->resourceFile->name) : $resource->link }}"
+                                                            data-resource-views="{{ $resource->total_visit ?? 0 }}"
+                                                            data-resource-downloads="{{ $resource->resourceFile->total_download ?? 0 }}"
+                                                            data-resource-comments="{{ $resource->comments->count() }}"
+                                                            data-resource-created="{{ $resource->created_at->format('M d, Y') }}">
+                                                        <i class="ti ti-chevron-up text-primary"></i>
+                                                    </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -336,163 +347,292 @@
                                 </div>
                             </div>
 
-                            <!-- rename modal  -->
-                            <div aria-hidden="true" aria-labelledby="renameModalLabel" class="modal fade"
-                                id="renameModal"
-                                tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-primary">
-                                            <h1 class="modal-title fs-5 text-white" id="renameModalLabel">Folder
-                                                Rename</h1>
-                                            <button aria-label="Close" class="btn-close m-0"
-                                                    data-bs-dismiss="modal"
-                                                    type="button"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="rename-form">
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <form id="renameForm">
-                                                            <div class="mb-3">
-                                                                <label class="form-label">Folder Name</label>
-                                                                <input class="form-control" id="titlename"
-                                                                    placeholder="Title" type="text">
-                                                            </div>
-                                                        </form>
-
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                    type="button">Close
-                                            </button>
-                                            <button class="btn btn-light-primary" id="renamekey" type="button">
-                                                Save
-                                                changes
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- rename modal end  -->
-
-                            <!--new-folder-add modal start-->
-                            <div aria-hidden="true" aria-labelledby="folderModalLabel" class="modal fade"
-                                id="folderModal" tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-primary">
-                                            <h1 class="modal-title fs-5 text-white" id="folderModalLabel">New
-                                                Folder</h1>
-                                            <button aria-label="Close" class="btn-close m-0"
-                                                    data-bs-dismiss="modal"
-                                                    type="button"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="resent-form">
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <form>
-                                                            <div class="mb-3">
-                                                                <label class="form-label">Folder Name</label>
-                                                                <input class="form-control" id="title"
-                                                                    placeholder="Title" type="text">
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                    type="button">Close
-                                            </button>
-                                            <button class="btn btn-light-primary" id="folderadd" type="button">
-                                                Add New
-                                                Folder
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!--new-folder-add modal end -->
-
-                            <!-- delete-modal start  -->
-                            <div aria-hidden="true" class="modal fade" id="apiDeletModal" tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-body">
-                                            <img alt="" class="img-fluid"
-                                                src="{{asset('../assets/images/icons/delete-icon.png')}}">
-                                            <div class="text-center">
-                                                <h4 class="text-danger f-w-600">Are You Sure?</h4>
-                                                <p class="text-secondary f-s-16">You won't be able to revert
-                                                    this!</p>
-                                            </div>
-
-                                            <div class="text-center mt-3">
-                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                        type="button">Close
-                                                </button>
-                                                <button class="btn btn-light-primary" id="confirmDelete"
-                                                        type="button">Yes,Delet it
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- delete-modal-end-->
-
-                            <!-- recent modal start  -->
-                            <div aria-hidden="true" aria-labelledby="resentModalLabel" class="modal fade"
-                                id="resentModal" tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-primary">
-                                            <h1 class="modal-title fs-5 text-white" id="resentModalLabel">New
-                                                File</h1>
-                                            <button aria-label="Close" class="btn-close m-0"
-                                                    data-bs-dismiss="modal"
-                                                    type="button"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="resent-form">
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <form id="resentForm">
-                                                            <div class="mb-3">
-                                                                <label class="form-label">File Name</label>
-                                                                <input class="form-control" id="recentname"
-                                                                    placeholder="Title" type="text">
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                    type="button">Close
-                                            </button>
-                                            <button class="btn btn-light-primary" id="resentkey" type="button">
-                                                Add New
-                                                File
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- recent modal end  -->
+                            
 
                         </div>
                     @endforeach
 
-                    
+                    <!-- resourceDetailModal start -->
+                    <div aria-hidden="true" aria-labelledby="resourceDetailModalLabel" class="modal fade" id="resourceDetailModal" tabindex="-1">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary">
+                                    <h5 class="modal-title text-white" id="resourceDetailModalLabel">Resource Details</h5>
+                                    <button aria-label="Close" class="btn-close m-0" data-bs-dismiss="modal" type="button"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <div class="row">
+                                        <!-- Left Column - Preview and Actions -->
+                                        <div class="col-md-5">
+                                            <div class="card mb-4">
+                                                <div class="card-body text-center">
+                                                    <div id="resourcePreview" class="mb-3" style="min-height: 250px;">
+                                                        <!-- Preview will be inserted here by JavaScript -->
+                                                    </div>
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <a id="downloadBtn" href="#" class="btn btn-primary" download>
+                                                            <i class="ti ti-download me-1"></i> Download
+                                                        </a>
+                                                        <button class="btn btn-light-primary">
+                                                            <i class="ti ti-share me-1"></i> Share
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Stats Card -->
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <div class="row text-center">
+                                                        <div class="col-4">
+                                                            <div class="p-2">
+                                                                <i class="ti ti-eye fs-5 text-primary"></i>
+                                                                <h6 class="mt-2 mb-0" id="viewsCount">0</h6>
+                                                                <p class="text-muted mb-0 fs-11">Views</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="p-2">
+                                                                <i class="ti ti-download fs-5 text-success"></i>
+                                                                <h6 class="mt-2 mb-0" id="downloadsCount">0</h6>
+                                                                <p class="text-muted mb-0 fs-11">Downloads</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <div class="p-2">
+                                                                <i class="ti ti-message fs-5 text-info"></i>
+                                                                <h6 class="mt-2 mb-0" id="commentsCount">0</h6>
+                                                                <p class="text-muted mb-0 fs-11">Comments</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Right Column - Details and Comments -->
+                                        <div class="col-md-7">
+                                            <div class="card mb-4">
+                                                <div class="card-body">
+                                                    <h4 id="resourceName" class="mb-2">Resource Name</h4>
+                                                    <p class="text-muted mb-3" id="resourceCreated">Uploaded on Jan 1, 2023</p>
+                                                    <div class="mb-3">
+                                                        <h6 class="mb-2">Description</h6>
+                                                        <p id="resourceDescription" class="text-muted">No description available</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Comments Section -->
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h5 class="mb-0">Comments</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <!-- Comment Form -->
+                                                    <div class="d-flex mb-4">
+                                                        <img src="{{ auth()->user()->image ? asset('storage/uploads/profile_picture/' . auth()->user()->image) : asset('assets/images/avtar/woman.jpg') }}" 
+                                                            class="rounded-circle me-3" width="40" height="40" alt="User">
+                                                        <div class="flex-grow-1">
+                                                            <div class="input-group">
+                                                                <input type="text" class="form-control" placeholder="Add a comment...">
+                                                                <button class="btn btn-primary" type="button">Post</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Comments List -->
+                                                    <div id="commentsList" class="overflow-auto" style="max-height: 300px;">
+                                                        @if($resource->comments->count() > 0)
+                                                            @foreach($resource->comments as $comment)
+                                                            <div class="d-flex mb-3">
+                                                                <img src="{{ $comment->userCourse->user->image ? asset('storage/uploads/profile_picture/' . $comment->userCourse->user->image) : asset('assets/images/avtar/woman.jpg') }}" 
+                                                                    class="rounded-circle me-3" width="40" height="40" alt="User">
+                                                                <div>
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <h6 class="mb-1">{{ $comment->userCourse->user->name }}</h6>
+                                                                        <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
+                                                                    </div>
+                                                                    <p class="mb-1">{{ $comment->comment_text }}</p>
+                                                                    <div class="d-flex gap-2">
+                                                                        <a href="#" class="text-muted fs-12">Like</a>
+                                                                        <a href="#" class="text-muted fs-12">Reply</a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            @endforeach
+                                                        @else
+                                                            <div class="text-center py-3" id="noComments">
+                                                                <i class="ti ti-message-off fs-5 text-muted"></i>
+                                                                <p class="text-muted mt-2">No comments yet</p>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                            
+                    <!-- Full screen modal end  -->
 
+                    <!-- rename modal  -->
+                    <div aria-hidden="true" aria-labelledby="renameModalLabel" class="modal fade"
+                        id="renameModal"
+                        tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary">
+                                    <h1 class="modal-title fs-5 text-white" id="renameModalLabel">Folder
+                                        Rename</h1>
+                                    <button aria-label="Close" class="btn-close m-0"
+                                            data-bs-dismiss="modal"
+                                            type="button"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="rename-form">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <form id="renameForm">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Folder Name</label>
+                                                        <input class="form-control" id="titlename"
+                                                            placeholder="Title" type="text">
+                                                    </div>
+                                                </form>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-bs-dismiss="modal"
+                                            type="button">Close
+                                    </button>
+                                    <button class="btn btn-light-primary" id="renamekey" type="button">
+                                        Save
+                                        changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- rename modal end  -->
+
+                    <!--new-folder-add modal start-->
+                    <div aria-hidden="true" aria-labelledby="folderModalLabel" class="modal fade"
+                        id="folderModal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary">
+                                    <h1 class="modal-title fs-5 text-white" id="folderModalLabel">New
+                                        Folder</h1>
+                                    <button aria-label="Close" class="btn-close m-0"
+                                            data-bs-dismiss="modal"
+                                            type="button"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="resent-form">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <form>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Folder Name</label>
+                                                        <input class="form-control" id="title"
+                                                            placeholder="Title" type="text">
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-bs-dismiss="modal"
+                                            type="button">Close
+                                    </button>
+                                    <button class="btn btn-light-primary" id="folderadd" type="button">
+                                        Add New
+                                        Folder
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--new-folder-add modal end -->
+
+                    <!-- delete-modal start  -->
+                    <div aria-hidden="true" class="modal fade" id="apiDeletModal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    <img alt="" class="img-fluid"
+                                        src="{{asset('../assets/images/icons/delete-icon.png')}}">
+                                    <div class="text-center">
+                                        <h4 class="text-danger f-w-600">Are You Sure?</h4>
+                                        <p class="text-secondary f-s-16">You won't be able to revert
+                                            this!</p>
+                                    </div>
+
+                                    <div class="text-center mt-3">
+                                        <button class="btn btn-secondary" data-bs-dismiss="modal"
+                                                type="button">Close
+                                        </button>
+                                        <button class="btn btn-light-primary" id="confirmDelete"
+                                                type="button">Yes,Delet it
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- delete-modal-end-->
+
+                    <!-- recent modal start  -->
+                    <div aria-hidden="true" aria-labelledby="resentModalLabel" class="modal fade"
+                        id="resentModal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary">
+                                    <h1 class="modal-title fs-5 text-white" id="resentModalLabel">New
+                                        File</h1>
+                                    <button aria-label="Close" class="btn-close m-0"
+                                            data-bs-dismiss="modal"
+                                            type="button"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="resent-form">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <form id="resentForm">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">File Name</label>
+                                                        <input class="form-control" id="recentname"
+                                                            placeholder="Title" type="text">
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-bs-dismiss="modal"
+                                            type="button">Close
+                                    </button>
+                                    <button class="btn btn-light-primary" id="resentkey" type="button">
+                                        Add New
+                                        File
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- recent modal end  -->
+                    
                     <!-- tab-2  -->
                     <div class="tabs-content" id="tab-2">
                         <div class="card documents-section">
@@ -994,11 +1134,168 @@
                 align-items: center;
                 gap: 3px;
             }
+
+
+            /* Modal styles */
+            .web-preview {
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                padding: 20px;
+                text-align: center;
+            }
+            
+            #resourcePreview {
+                border: 1px solid #e9ecef;
+                border-radius: 8px;
+                background-color: #f8f9fa;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            #commentsList {
+                scrollbar-width: thin;
+                scrollbar-color: #dee2e6 #f8f9fa;
+            }
+            
+            #commentsList::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            #commentsList::-webkit-scrollbar-track {
+                background: #f8f9fa;
+            }
+            
+            #commentsList::-webkit-scrollbar-thumb {
+                background-color: #dee2e6;
+                border-radius: 6px;
+            }
         </style>
+
     </div>
 @endsection
 
 @section('script')
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const resourceModal = document.getElementById('resourceDetailModal');
+        
+        resourceModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            
+            // Extract all data attributes
+            const resourceData = {
+                id: button.getAttribute('data-resource-id'),
+                name: button.getAttribute('data-resource-name'),
+                description: button.getAttribute('data-resource-description'),
+                type: button.getAttribute('data-resource-type'),
+                path: button.getAttribute('data-resource-path'),
+                views: button.getAttribute('data-resource-views'),
+                downloads: button.getAttribute('data-resource-downloads'),
+                comments: button.getAttribute('data-resource-comments'),
+                created: button.getAttribute('data-resource-created')
+            };
+            
+            // Update modal header
+            resourceModal.querySelector('.modal-title').textContent = resourceData.name;
+            
+            // Update stats
+            document.getElementById('viewsCount').textContent = resourceData.views;
+            document.getElementById('downloadsCount').textContent = resourceData.downloads;
+            document.getElementById('commentsCount').textContent = resourceData.comments;
+            
+            // Update resource info
+            document.getElementById('resourceName').textContent = resourceData.name;
+            document.getElementById('resourceDescription').textContent = resourceData.description;
+            document.getElementById('resourceCreated').textContent = `Uploaded on ${resourceData.created}`;
+            
+            // Set download link
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.href = resourceData.path;
+            downloadBtn.download = resourceData.name + '.' + resourceData.type;
+            downloadBtn.innerHTML = `<i class="ti ti-download me-1"></i> Download`;
+            
+            
+            // Handle preview based on type
+            const previewContainer = document.getElementById('resourcePreview');
+            previewContainer.innerHTML = '';
+            
+            if (resourceData.type === 'link') {
+                if (resourceData.path.includes('youtube.com') || resourceData.path.includes('youtu.be')) {
+                    // YouTube embed
+                    const videoId = resourceData.path.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)[1];
+                    previewContainer.innerHTML = `
+                        <div class="ratio ratio-16x9">
+                            <iframe src="https://www.youtube.com/embed/${videoId}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen></iframe>
+                        </div>
+                    `;
+
+                    downloadBtn.innerHTML = '<i class="ti ti-link me-1"></i> Open On YouTube';
+                } else {
+                    // Regular website link
+                    previewContainer.innerHTML = `
+                        <div class="web-preview h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded" 
+                            style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                            <i class="ph-bold ph-globe text-primary mb-2" style="font-size: 3rem;"></i>
+                            <h5 class="mb-2">External Link</h5>
+                            <a href="${resourceData.path}" 
+                            target="_blank" 
+                            class="text-truncate d-block px-2 w-100 text-center small"
+                            style="max-width: 100%; color: #0d6efd; text-decoration: none;">
+                            ${resourceData.path}
+                            </a>
+                            <small class="text-muted mt-2">Click to open in new tab</small>
+                        </div>
+                    `;
+
+                    downloadBtn.innerHTML = '<i class="ti ti-link me-1"></i> Open Link';
+                }
+            } else if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(resourceData.type.toLowerCase())) {
+                // Image preview
+                previewContainer.innerHTML = `
+                    <div class="text-center">
+                        <img src="${resourceData.path}" 
+                             class="img-fluid rounded" 
+                             style="max-height: 250px;"
+                             alt="${resourceData.name}">
+                    </div>
+                `;
+            } else if (resourceData.type.toLowerCase() === 'pdf') {
+                // PDF preview
+                previewContainer.innerHTML = `
+                    <div class="ratio ratio-16x9">
+                        <iframe src="${resourceData.path}#view=fitH" 
+                                class="w-100 h-100"></iframe>
+                    </div>
+                `;
+            } else {
+                // Default file preview
+                previewContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="ph-bold ph-file text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-2">${resourceData.name}</h5>
+                        <p class="text-muted">${resourceData.type.toUpperCase()} File</p>
+                    </div>
+                `;
+            }
+            
+            // Handle comments display - just show/hide based on count
+            const commentsList = document.getElementById('commentsList');
+            const noComments = document.getElementById('noComments');
+
+            if (parseInt(resourceData.comments) > 0) {
+                noComments.style.display = 'none';
+            } else {
+                noComments.style.display = 'block';
+            }
+        });
+    });
+    </script>    
+
     <!--customizer-->
     <div id="customizer"></div>
 
