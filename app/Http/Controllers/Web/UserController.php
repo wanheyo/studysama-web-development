@@ -23,6 +23,16 @@ class UserController extends Controller
 
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
+
+            // For API requests, return a token
+            if ($request->wantsJson()) {
+                $token = $request->user()->createToken('api-token')->plainTextToken;
+                return response()->json([
+                    'token' => $token,
+                    'user' => Auth::user()
+                ]);
+            }
+
             return redirect()->intended('/');
         }
 

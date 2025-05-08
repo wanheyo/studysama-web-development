@@ -508,7 +508,7 @@
                             </div>
                             <div class="offcanvas-body app-scroll p-0">
                                 <div class="head-container">
-                                    <div class="head-box">
+                                    {{-- <div class="head-box">
                                         <img alt="cart" class="h-50 me-3 b-r-10"
                                              src="../assets/images/ecommerce/19.jpg">
                                         <div class="flex-grow-1">
@@ -614,10 +614,10 @@
                                             <i class="iconoir-xmark close-btn"></i>
                                             <p class="text-success f-w-500 mb-0">$450.00 x 1</p>
                                         </div>
-                                    </div>
+                                    </div> --}}
                                     <div class="hidden-massage py-4 px-3">
                                         <img alt="cart" class="img-fluid mb-3"
-                                             src="../assets/images/header/cart_empty.gif">
+                                             src="{{ asset('assets/images/header/cart_empty.gif') }}">
                                         <div>
                                             <h6 class="mb-0">Your Cart is Empty</h6>
                                             <p class="text-secondary mb-0">Add some items :)</p>
@@ -683,7 +683,7 @@
                                                           <span
                                                               class="bg-secondary h-35 w-35 d-flex-center b-r-10 position-relative">
                                                             <img alt="avtar" class="img-fluid b-r-10"
-                                                                 src="../assets/images/ai_avtar/6.jpg">
+                                                                 src="{{ asset('assets/images/ai_avtar/6.jpg') }}">
                                                             <span
                                                                 class="position-absolute bottom-30 end-0 p-1 bg-secondary border border-light rounded-circle notification-avtar"></span>
                                                           </span>
@@ -735,7 +735,7 @@
                                                        <span
                                                            class="bg-secondary h-35 w-35 d-flex-center b-r-10 position-relative">
                                                          <img alt="" class="img-fluid b-r-10"
-                                                              src="../assets/images/ai_avtar/2.jpg">
+                                                              src="{{ asset('assets/images/ai_avtar/2.jpg') }}">
                                                          <span
                                                              class="position-absolute  end-0 p-1 bg-secondary border border-light rounded-circle notification-avtar"></span>
                                                        </span>
@@ -758,7 +758,7 @@
                                                        <span
                                                            class="bg-secondary h-35 w-35 d-flex-center b-r-10 position-relative">
                                                          <img alt="" class="img-fluid b-r-10"
-                                                              src="../assets/images/ai_avtar/5.jpg">
+                                                              src="{{ asset('assets/images/ai_avtar/5.jpg') }}">
                                                          <span
                                                              class="position-absolute end-0 p-1 bg-secondary border border-light rounded-circle notification-avtar"></span>
                                                        </span>
@@ -780,7 +780,7 @@
                                                         <span
                                                             class="bg-secondary h-35 w-35 d-flex-center b-r-10 position-relative">
                                                           <img alt="" class="img-fluid b-r-10"
-                                                               src="../assets/images/ai_avtar/1.jpg">
+                                                               src="{{ asset('assets/images/ai_avtar/1.jpg') }}">
                                                           <span
                                                               class="position-absolute  end-0 p-1 bg-secondary border border-light rounded-circle notification-avtar"></span>
                                                         </span>
@@ -807,7 +807,7 @@
                                     <div class="hidden-massage py-4 px-3">
                                         <img alt=""
                                              class="w-50 h-50 mb-3 mt-2"
-                                             src="../assets/images/icons/bell.png">
+                                             src="{{ asset('assets/images/icons/bell.png') }}">
                                         <div>
                                             <h6 class="mb-0">Notification Not Found</h6>
                                             <p class="text-secondary">When you have any notifications added

@@ -35,14 +35,92 @@ class LessonController extends Controller
             ->where('status', 1)
             ->get();
 
-        // dd($lessons);
+        $totalLessons = $lessons->count();
+        $totalResources = 0;
+        $totalComments = 0;
 
-        // $resourceFiles = Resource::with(['resourceFile'])
-        //     ->where('status', 1)
-        //     ->get();
+        foreach($lessons as $lesson) {
+            
+            $totalResources = $lesson->resources->count() + $totalResources;
+            $totalComments = $lesson->resources->sum(function ($resource) {
+                return $resource->comments->count();
+            }) + $totalComments;
+        }
 
-        // dd($lessons);
+        return view('course.lesson.lesson_list', compact('course', 'lessons', 'totalLessons', 'totalResources', 'totalComments'));
+    }
 
-        return view('course.lesson.lesson_list', compact('course', 'lessons'));
+    public function add_lesson(Request $request, $course_id)
+    {
+        $course = Course::where('id', $course_id)
+            ->where('status', 1)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:128',
+            'desc' => 'nullable|string',
+            'learn_outcome' => 'nullable|string',
+        ]);
+
+        $lesson = new Lesson();
+        $lesson->course_id = $course_id;
+        $lesson->name = $validated['name'];
+        $lesson->desc = $validated['desc'];
+        $lesson->learn_outcome = $validated['learn_outcome'];
+        $lesson->status = 1;
+        $lesson->created_at = now();
+        $lesson->updated_at = now();
+        $lesson->save();
+
+        // return response()->json([
+        //     'success' => true,
+        //     'message' => 'Lesson added successfully!',
+        //     'lesson' => $lesson
+        // ]);
+        return redirect()->back()->with('success', 'Lesson added successfully!');
+    }
+
+    public function update_lesson(Request $request, $lesson_id)
+    {
+        $lesson = Lesson::where('id', $lesson_id)
+            ->where('status', 1)
+            ->firstOrFail();
+
+        // // If deletion is triggered
+        // if ($request->delete == '1') {
+        //     $lesson->status = 0; // Soft delete
+        //     $lesson->updated_at = now();
+        //     $lesson->save();
+
+        //     return redirect()->back()->with('success', 'Lesson deleted successfully!');
+        // }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:128',
+            'desc' => 'nullable|string',
+            'learn_outcome' => 'nullable|string',
+        ]);
+
+        $lesson->name = $validated['name'] ?? $lesson->name;
+        $lesson->desc = $validated['desc'] ?? $lesson->desc;
+        $lesson->learn_outcome = $validated['learn_outcome'] ?? $lesson->learn_outcome;
+        $lesson->updated_at = now();
+        $lesson->save();
+
+        return redirect()->back()->with('success', 'Lesson updated successfully!');
+    }
+
+    public function delete_lesson(Request $request, $lesson_id)
+    {
+        $lesson = Lesson::where('id', $lesson_id)
+            ->where('status', 1)
+            ->firstOrFail();
+
+        // Soft delete the lesson
+        $lesson->status = 0;
+        $lesson->updated_at = now();
+        $lesson->save();
+
+        return redirect()->back()->with('success', 'Lesson deleted successfully!');
     }
 }

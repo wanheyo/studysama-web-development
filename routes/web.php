@@ -2,12 +2,13 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\CourseController;
 use App\Http\Controllers\Web\LessonController;
+use App\Http\Controllers\Web\ResourceController;
 
-// Route::get('/sign_in', [UserController::class, 'showLoginForm'])->name('login');
-
+// Test routes
 Route::get('/test-auth', function () {
     return 'Protected content';
 })->middleware('auth:web');
@@ -16,7 +17,7 @@ Route::get('/check-auth', function () {
     return auth()->check() ? 'Logged in' : 'Logged out';
 });
 
-// Auth
+// Auth routes
 Route::get('/sign_in', function () {
     return view('auth.sign_in');
 })->name('login');
@@ -27,10 +28,6 @@ Route::get('/sign_up', function () {
 })->name('register');
 Route::post('/sign_up', [UserController::class, 'sign_up'])->name('register.post');
 Route::get('/check_username', [UserController::class, 'check_username'])->name('register.check_username');
-
-
-// Public routes
-// Route::get('course/course_detail/{id}', [CourseController::class, 'course_detail'])->name('course.course_detail');
 
 // Protected routes
 Route::middleware(['auth:web'])->group(function () {
@@ -61,6 +58,16 @@ Route::middleware(['auth:web'])->group(function () {
 
         // Course->Lesson
         Route::get('course_detail/{course_id}/lesson_list', [LessonController::class, 'lesson_list'])->name('course.lesson.lesson_list');
+        Route::post('course_detail/{course_id}/add_lesson', [LessonController::class, 'add_lesson'])->name('course.lesson.add_lesson.post');
+        Route::post('course_detail/update_lesson/{lesson_id}', [LessonController::class, 'update_lesson'])->name('course.lesson.update_lesson');
+        Route::post('course_detail/delete_lesson/{lesson_id}', [LessonController::class, 'delete_lesson'])->name('course.lesson.delete_lesson');
+
+        // Course->Lesson->Resource->Comments
+        Route::group(['prefix' => 'comment'], function () {
+            Route::get('resource/{resource_id}', [ResourceController::class, 'get_comments']);
+            Route::post('store_comment', [ResourceController::class, 'store_comment']);
+            // Add other routes as needed
+        });
     });
 
     
@@ -75,10 +82,7 @@ Route::get('/debug-auth', function() {
     ];
 });
 
-// // Fallback route (redirect unauthenticated users to login)
-// Route::fallback(function () {
-//     return redirect()->route('login');
-// });
+// Fallback route
 Route::fallback(function () {
     if (Auth::check()) {
         // For logged-in users, show a 404 page

@@ -50,7 +50,7 @@
                     </div>
                     <div class="card-body">
                         <div class="horizontal-tab-wrapper">
-                            <ul class="filemenu-list mt-3 tabs">
+                            <ul id="lesson-list" class="filemenu-list mt-3 tabs">
                                 @foreach ($lessons as $index => $lesson)
                                     <li class="tab-link {{ $index == 0 ? 'active' : '' }}" data-tab="{{ $lesson->id }}">
                                         <i class="ti ti-folder-filled fs-5 pe-2"></i> <span class="flex-grow-1">{{ $lesson->name }}</span>
@@ -70,16 +70,16 @@
                                         class="flex-grow-1"> Recent</span></li> --}}
 
                                 <li class="app-divider-v dashed p-0 m-2"></li>
-                                <li>
-                                    <i class="ti ti-send fs-5 pe-2"></i>
-                                    <span class="flex-grow-1">Shared File</span>
+                                <li data-bs-target="#lessonAddModal" data-bs-toggle="modal" class="my-3 border border-dashed rounded-pill hover-effect">
+                                    <i class="ti ti-folder-plus fs-5 pe-2"></i>
+                                    <span class="flex-grow-1">Create New Lesson</span>
                                 </li>
                                 <li><i class="ti ti-help fs-5 pe-2"></i><span
                                         class="flex-grow-1">Help</span>
                                 </li>
-                                <li><i class="ti ti-adjustments-alt fs-5 pe-2"></i> <span
+                                {{-- <li><i class="ti ti-adjustments-alt fs-5 pe-2"></i> <span
                                         class="flex-grow-1">Settings</span>
-                                </li>
+                                </li> --}}
                             </ul>
                         </div>
                     </div>
@@ -91,18 +91,18 @@
 
                     <div class="card-body">
                         <div class="mb-3">
-                            <div id="polar2"></div>
+                            {{-- <div id="polar2"></div> --}}
                         </div>
                         <div class="file-manager-sidebar mb-4"> 
                             <div class="d-flex align-items-center position-relative">
                         <span class="text-light-primary h-40 w-40 d-flex-center b-r-10 position-absolute">
-                          <i class="ph-bold ph-folder f-s-20"></i>
+                            <i class="ph-bold ph-folder f-s-20"></i>
                         </span>
-                                <div class="flex-grow-1 ms-5">
-                                    <h6 class="mb-0">Lesson</h6>
-                                    <p class="text-secondary mb-0">{{ $lessons->count() ?? 0}} Lessons</p>
-                                </div>
-                                <p class="text-secondary f-w-500 mb-0">37.2GB</p>
+                            <div class="flex-grow-1 ms-5">
+                                <h6 class="mb-0">Lesson</h6>
+                                {{-- <p class="text-secondary mb-0">{{ $totalLessons ?? 0}} Created</p> --}}
+                            </div>
+                            <p class="text-secondary f-w-500 mb-0">{{ $totalLessons ?? 0}} Created</p>
                             </div>
                         </div>
                         <div class="file-manager-sidebar mb-4">
@@ -112,27 +112,28 @@
                         </span>
                                 <div class="flex-grow-1 ms-5  ">
                                     <h6 class="mb-0">Resource</h6>
-                                    <p class="text-secondary mb-0">53 Files</p>
+                                    {{-- <p class="text-secondary mb-0">{{ $totalResources ?? 0 }} Shared</p> --}}
                                 </div>
-                                <p class="text-secondary f-w-500 mb-0">19.1 GB</p>
+                                <p class="text-secondary f-w-500 mb-0">{{ $totalResources ?? 0 }} Shared</p>
                             </div>
                         </div>
-                        <div class="file-manager-sidebar">
+                        <div class="file-manager-sidebar mb-4">
                             <div class="d-flex align-items-center position-relative">
                         <span class="text-light-danger h-40 w-40 d-flex-center b-r-10 position-absolute">
                           <i class="ph-bold  ph-chat-circle-dots f-s-20"></i>
                         </span>
                                 <div class="flex-grow-1 ms-5  ">
                                     <h6 class="mb-0">Comment</h6>
-                                    <p class="text-secondary mb-0">486 Chit Chat</p>
+                                    
+                                    {{-- <p class="text-secondary mb-0">{{ $totalComments ?? 0 }} Chit Chat</p> --}}
                                 </div>
-                                <p class="text-secondary f-w-500 mb-0">23.5 MB</p>
+                                <p class="text-secondary f-w-500 mb-0">{{ $totalComments ?? 0 }} Chit Chat</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
+                {{-- <div class="card">
                     <div class="card-header">
                         <h5>File Upload</h5>
                     </div>
@@ -183,7 +184,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
             <div class="col-lg-8 col-xxl-9">
                 <div class="content-wrapper">
@@ -193,16 +194,45 @@
                             <div class="card">
                                 <div class="card-header">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        <h5>Resources - {{ $lesson->name }}</h5>
-                                        <button class="btn btn-light-primary b-r-22"
-                                                data-bs-target="#folderModal"
-                                                data-bs-toggle="modal"
-                                                type="button">Create Folder
-                                        </button>
+                                        <h5>Resources</h5>
+                                        <div class="d-flex flex-column flex-md-row gap-2">
+                                            <button class="btn btn-light-primary b-r-22"
+                                                    data-bs-target="#lessonEditModal"
+                                                    data-bs-toggle="modal"
+                                                    data-lesson-id="{{ $lesson->id }}"
+                                                    data-lesson-name="{{ $lesson->name }}"
+                                                    data-lesson-desc="{{ $lesson->desc }}"
+                                                    data-lesson-learn-outcome="{{ $lesson->learn_outcome }}"
+                                                    type="button"><i class="ti ti-edit"></i> Edit Lesson
+                                            </button>
+                                            <button class="btn btn-primary b-r-22"
+                                                    data-bs-target="#folderModal"
+                                                    data-bs-toggle="modal"
+                                                    type="button"><i class="ti ti-file-upload"></i> Add New Resource
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="card-body" id="newFolder">
+                                
+                                <div class="card-body p-4" id="newFolder">
                                     <div class="row">
+                                        <div class="col-12 mb-3">
+                                            <div class="card card-light-primary">
+                                                <div class ="card-header">
+                                                    <h4 class="mb-0">{{ $lesson->name }}</h4>
+                                                </div>
+                                                <div class="card-body resource-details-content">
+                                                    <div class="mb-3">
+                                                        <h6>Description</h6>
+                                                        <p class="text-secondary f-s-16">{{ $lesson->desc ?? 'This is lesson ' . $lesson->name }}</p>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <h6>Learning Outcome</h6>
+                                                        <p class="text-secondary f-s-16">{{ $lesson->learn_outcome ?? 'No learning outcome included' }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                         @foreach ($lesson->resources as $resource)
                                             <div class="col-sm-6 col-xl-4 col-xxl-3">
@@ -215,10 +245,10 @@
                                                             </a>
                                                             <ul class="dropdown-menu">
                                                                 <li><a class="dropdown-item view-item-btn" href="#">
-                                                                    <i class="ti ti-file-export text-primary"></i> view</a>
+                                                                    <i class="ti ti-file-export text-primary"></i> View</a>
                                                                 </li>
                                                                 <li><a class="dropdown-item edit-folder-list" data-bs-toggle="modal" href="#" role="button">
-                                                                    <i class="ti ti-edit text-success"></i> Rename</a>
+                                                                    <i class="ti ti-edit text-success"></i> Edit</a>
                                                                 </li>
                                                             </ul>
                                                         </div>
@@ -324,20 +354,20 @@
                                                             <span><i class="ti ti-download"></i> {{ $resource->resourceFile->total_download ?? 0 }}</span>
                                                             <span><i class="ti ti-message"></i> {{ $resource->comments->count() }}</span>
                                                         </div>
-                                                        <button type="button" class="btn btn-light-primary icon-btn b-r-22 hover-icon-white" 
-                                                            data-bs-target="#resourceDetailModal" 
-                                                            data-bs-toggle="modal"
-                                                            data-resource-id="{{ $resource->id }}"
-                                                            data-resource-name="{{ $resource->name }}"
-                                                            data-resource-description="{{ $resource->description ?? 'No description available' }}"
-                                                            data-resource-type="{{ $resource->resourceFile ? $resource->resourceFile->type : 'link' }}"
-                                                            data-resource-path="{{ $resource->resourceFile ? asset('storage/uploads/resource_file/' . $resource->resourceFile->name) : $resource->link }}"
-                                                            data-resource-views="{{ $resource->total_visit ?? 0 }}"
-                                                            data-resource-downloads="{{ $resource->resourceFile->total_download ?? 0 }}"
-                                                            data-resource-comments="{{ $resource->comments->count() }}"
-                                                            data-resource-created="{{ $resource->created_at->format('M d, Y') }}">
-                                                        <i class="ti ti-chevron-up text-primary"></i>
-                                                    </button>
+                                                        <button type="button" class="btn btn-light-{{ $resource->category == 1 ? 'info' : 'success' }} icon-btn b-r-22 hover-icon-white" 
+                                                                data-bs-target="#resourceDetailModal" 
+                                                                data-bs-toggle="modal"
+                                                                data-resource-id="{{ $resource->id }}"
+                                                                data-resource-name="{{ $resource->name }}"
+                                                                data-resource-description="{{ $resource->desc ?? 'No description available' }}"
+                                                                data-resource-type="{{ $resource->resourceFile ? $resource->resourceFile->type : 'link' }}"
+                                                                data-resource-path="{{ $resource->resourceFile ? asset('storage/uploads/resource_file/' . $resource->resourceFile->name) : $resource->link }}"
+                                                                data-resource-views="{{ $resource->total_visit ?? 0 }}"
+                                                                data-resource-downloads="{{ $resource->resourceFile->total_download ?? 0 }}"
+                                                                data-resource-comments="{{ $resource->comments->count() }}"
+                                                                data-resource-created="{{ $resource->created_at->format('M d, Y') }}">
+                                                            <i class="ti ti-chevron-up text-{{ $resource->category == 1 ? 'info' : 'success' }}"></i>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -374,7 +404,7 @@
                                                             <i class="ti ti-download me-1"></i> Download
                                                         </a>
                                                         <button class="btn btn-light-primary">
-                                                            <i class="ti ti-share me-1"></i> Share
+                                                            <i class="ti ti-edit"></i> Edit
                                                         </button>
                                                     </div>
                                                 </div>
@@ -430,43 +460,27 @@
                                                 </div>
                                                 <div class="card-body">
                                                     <!-- Comment Form -->
-                                                    <div class="d-flex mb-4">
-                                                        <img src="{{ auth()->user()->image ? asset('storage/uploads/profile_picture/' . auth()->user()->image) : asset('assets/images/avtar/woman.jpg') }}" 
-                                                            class="rounded-circle me-3" width="40" height="40" alt="User">
-                                                        <div class="flex-grow-1">
-                                                            <div class="input-group">
-                                                                <input type="text" class="form-control" placeholder="Add a comment...">
-                                                                <button class="btn btn-primary" type="button">Post</button>
+                                                    <form id="commentForm">
+                                                        @csrf
+                                                        <input type="hidden" name="resource_id" id="commentResourceId">
+                                                        <div class="d-flex mb-4">
+                                                            <img src="{{ auth()->user()->image ? asset('storage/uploads/profile_picture/' . auth()->user()->image) : asset('assets/images/avtar/woman.jpg') }}" 
+                                                                class="rounded-circle me-3" width="40" height="40" alt="User">
+                                                            <div class="flex-grow-1">
+                                                                <div class="input-group">
+                                                                    <input type="text" name="content" class="form-control" placeholder="Add a comment..." required>
+                                                                    <button class="btn btn-primary" type="submit">Post</button>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    </form>
                                                     
                                                     <!-- Comments List -->
                                                     <div id="commentsList" class="overflow-auto" style="max-height: 300px;">
-                                                        @if($resource->comments->count() > 0)
-                                                            @foreach($resource->comments as $comment)
-                                                            <div class="d-flex mb-3">
-                                                                <img src="{{ $comment->userCourse->user->image ? asset('storage/uploads/profile_picture/' . $comment->userCourse->user->image) : asset('assets/images/avtar/woman.jpg') }}" 
-                                                                    class="rounded-circle me-3" width="40" height="40" alt="User">
-                                                                <div>
-                                                                    <div class="d-flex justify-content-between">
-                                                                        <h6 class="mb-1">{{ $comment->userCourse->user->name }}</h6>
-                                                                        <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-                                                                    </div>
-                                                                    <p class="mb-1">{{ $comment->comment_text }}</p>
-                                                                    <div class="d-flex gap-2">
-                                                                        <a href="#" class="text-muted fs-12">Like</a>
-                                                                        <a href="#" class="text-muted fs-12">Reply</a>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            @endforeach
-                                                        @else
-                                                            <div class="text-center py-3" id="noComments">
-                                                                <i class="ti ti-message-off fs-5 text-muted"></i>
-                                                                <p class="text-muted mt-2">No comments yet</p>
-                                                            </div>
-                                                        @endif
+                                                        <div class="text-center py-3" id="noComments">
+                                                            <i class="ti ti-message-off fs-5 text-muted"></i>
+                                                            <p class="text-muted mt-2">No comments yet</p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -479,7 +493,113 @@
                             </div>
                         </div>
                     </div>                            
-                    <!-- Full screen modal end  -->
+                    <!-- resourceDetailModal end  -->
+
+                    <!--new-lesson-add modal start-->
+                    <div aria-hidden="true" aria-labelledby="lessonAddModalLabel" class="modal fade"
+                        id="lessonAddModal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary">
+                                    <h1 class="modal-title fs-5 text-white" id="lessonAddModalLabel">New
+                                        Lesson</h1>
+                                    <button aria-label="Close" class="btn-close m-0"
+                                            data-bs-dismiss="modal"
+                                            type="button"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="resent-form">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <!-- Updated Form inside Modal -->
+                                                <form id="lessonForm" method="POST" action="{{ route('course.lesson.add_lesson.post', $course->id) }}">
+                                                    @csrf
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Lesson Name</label>
+                                                        <input class="form-control" name="name" placeholder="Title" type="text" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Description</label>
+                                                        <textarea class="form-control" name="desc" placeholder="Optional description"></textarea>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Learning Outcome</label>
+                                                        <textarea class="form-control" name="learn_outcome" placeholder="Optional learning outcomes"></textarea>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        {{-- <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button> --}}
+                                                        <button class="btn btn-light-primary" id="lessonadd" type="submit">Add New Lesson</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--new-lesson-add modal end -->
+
+                    <!--edit-lesson modal start-->
+                    <div aria-hidden="true" aria-labelledby="lessonEditModalLabel" class="modal fade"
+                    id="lessonEditModal" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary">
+                                <h1 class="modal-title fs-5 text-white" id="lessonEditModalLabel">Edit Lesson</h1>
+                                <button aria-label="Close" class="btn-close m-0"
+                                        data-bs-dismiss="modal"
+                                        type="button"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="resent-form">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <!-- Updated Form inside Modal -->
+                                            <form id="updateLessonForm" method="POST">
+                                                @csrf <!-- CSRF token for Laravel -->
+                                                <div id="formFieldsWrapper">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Lesson Name</label>
+                                                        <input class="form-control" id="editLessonName" name="name" placeholder="Title" type="text" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Description</label>
+                                                        <textarea class="form-control" id="editLessonDesc" name="desc" placeholder="Optional description"></textarea>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Learning Outcome</label>
+                                                        <textarea class="form-control" id="editLessonLearnOutcome" name="learn_outcome" placeholder="Optional learning outcomes"></textarea>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Delete confirmation section - updated -->
+                                                <div id="deleteConfirmWrapper" class="w-100 d-none mb-3">
+                                                    <label class="form-label">Type the lesson name to confirm deletion:</label>
+                                                    <input type="text" id="deleteConfirmInput" class="form-control" placeholder="Type lesson name here...">
+                                                    <small class="text-danger d-none" id="deleteConfirmError">Name does not match. Try again.</small>
+                                                    <!-- The Confirm Delete button will be added here programmatically -->
+                                                </div>
+                                                                                
+                                                <div class="modal-footer">
+                                                    <!-- The Confirm Delete button will be added here programmatically -->
+                                                    <button type="button" class="btn btn-danger d-none" id="confirmDeleteBtn">Confirm Delete</button>
+                                                    <button type="button" class="btn btn-danger" id="deleteLessonBtn">Delete Lesson</button>
+                                                    <button type="button" class="btn btn-secondary d-none" id="cancelDeleteBtn">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary" id="saveChangesBtn">Save Changes</button>
+                                                </div>
+                                                
+                                                <!-- Hidden delete flag field -->
+                                                {{-- <input type="hidden" name="delete" id="deleteFlag" value="0"> --}}
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <!--edit-lesson modal end -->
 
                     <!-- rename modal  -->
                     <div aria-hidden="true" aria-labelledby="renameModalLabel" class="modal fade"
@@ -633,413 +753,6 @@
                     </div>
                     <!-- recent modal end  -->
                     
-                    <!-- tab-2  -->
-                    <div class="tabs-content" id="tab-2">
-                        <div class="card documents-section">
-                            <div class="card-header">
-                                <h5>Starred Documents & Files</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm-6 col-xl-4 col-xxl-3">
-                                        <div class="card quick-access">
-                                            <div class="card-body">
-                                                <div class="d-flex justify-content-between">
-                                                    <div class="starreddiv favBtn">
-                                                        <i class="ph-bold  ph-star text-warning f-s-18 fav-icon"></i>
-                                                    </div>
-
-                                                    <div class="dropdown folder-dropdown">
-                                                        <a aria-expanded="true" class=""
-                                                           data-bs-toggle="dropdown"
-                                                           role="button">
-                                                            <i class="ti ti-dots-vertical"></i>
-                                                        </a>
-                                                        <ul class="dropdown-menu">
-                                                            <li><a class="dropdown-item view-item-btn"
-                                                                   href="#"><i
-                                                                        class="ti ti-file-export text-primary"></i>
-                                                                    view</a></li>
-                                                            <li><a class="dropdown-item edit-folder-list"
-                                                                   data-bs-toggle="modal" href="#"
-                                                                   role="button"><i
-                                                                        class="ti ti-edit text-success"></i>
-                                                                    Rename</a></li>
-                                                            <li><a class="dropdown-item delete-btn"
-                                                                   data-bs-toggle="modal"
-                                                                   href="#" role="button"><i
-                                                                        class="ti ti-trash text-danger"></i>
-                                                                    Delete</a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <span class="d-block text-center mb-3">
-                                                                      <img alt="" class="img-fluid"
-                                                                           src="{{asset('../assets/images/icons/zip.png')}}">
-                                                            </span>
-                                                <p class="text-center f-w-600 mb-0">3d illustration pack</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-4 col-xxl-3">
-                                        <div class="card">
-                                            <div class="card-body folder-card">
-                                                <div class="starreddiv favBtn">
-                                                    <i class="ph-star text-warning f-s-18 fav-icon ph-fill"></i>
-                                                </div>
-
-                                                <div class="dropdown folder-dropdown">
-                                                    <a aria-expanded="true" class=""
-                                                       data-bs-toggle="dropdown"
-                                                       role="button">
-                                                        <i class="ti ti-dots-vertical"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a class="dropdown-item view-item-btn"
-                                                               href="#"><i
-                                                                    class="ti ti-file-export text-primary"></i>
-                                                                view</a></li>
-                                                        <li><a class="dropdown-item edit-folder-list"
-                                                               data-bs-toggle="modal" href="#"
-                                                               role="button"><i
-                                                                    class="ti ti-edit text-success"></i> Rename</a>
-                                                        </li>
-                                                        <li><a class="dropdown-item delete-btn"
-                                                               data-bs-toggle="modal"
-                                                               href="#" role="button"><i
-                                                                    class="ti ti-trash text-danger"></i> Delete</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <div class="fileimage">
-                                                    <img alt="" class="img-fluid"
-                                                         src="{{asset('../assets/images/icons/folder.png')}}">
-                                                    <p class="mb-0 f-s-16 text-center">Graduation</p>
-                                                </div>
-                                                <div class="d-flex justify-content-between mt-2">
-                                                    <p class="text-secondary mb-0 f-w-500">25.67GB</p>
-                                                    <p class="text-secondary mb-0 f-w-500 text-end">50GB</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                    <!-- tab-3  -->
-                    <div class="tabs-content" id="tab-3">
-                        <div class="card documents-sections">
-                            <div class="card-header">
-                                <h5>Deleted Flies</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm-6 col-xl-4 col-xxl-3">
-                                        <div class="card">
-                                            <div class="card-body folder-card">
-                                                <div class="starreddiv favBtn">
-                                                    <i class="ph-bold  ph-star text-warning f-s-18 fav-icon"></i>
-                                                </div>
-
-                                                <div class="dropdown folder-dropdown">
-                                                    <a aria-expanded="true" class=""
-                                                       data-bs-toggle="dropdown"
-                                                       role="button">
-                                                        <i class="ti ti-dots-vertical"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a class="dropdown-item view-item-btn"
-                                                               href="#"><i
-                                                                    class="ti ti-file-export text-primary"></i>
-                                                                view</a></li>
-                                                        <li><a class="dropdown-item edit-folder-list"
-                                                               data-bs-toggle="modal" href="#"
-                                                               role="button"><i
-                                                                    class="ti ti-edit text-success"></i> Rename</a>
-                                                        </li>
-                                                        <li><a class="dropdown-item delete-btn"
-                                                               data-bs-toggle="modal"
-                                                               href="#" role="button"><i
-                                                                    class="ti ti-trash text-danger"></i> Delete</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <div class="fileimage">
-                                                    <img alt="" class="img-fluid"
-                                                         src="{{asset('../assets/images/icons/folder.png')}}">
-                                                    <p class="mb-0 f-s-16 text-center">My Work</p>
-                                                </div>
-                                                <div class="d-flex justify-content-between mt-2">
-                                                    <p class="text-secondary mb-0 f-w-500">25.67GB</p>
-                                                    <p class="text-secondary mb-0 f-w-500 text-end">50GB</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-4 col-xxl-3">
-                                        <div class="card  quick-access">
-                                            <div class="card-body">
-
-                                                <div class="d-flex justify-content-between">
-                                                    <div class="starreddiv favBtn">
-                                                        <i class="ph-bold  ph-star text-warning f-s-18 fav-icon"></i>
-                                                    </div>
-
-                                                    <div class="dropdown folder-dropdown">
-                                                        <a aria-expanded="true" class=""
-                                                           data-bs-toggle="dropdown"
-                                                           role="button">
-                                                            <i class="ti ti-dots-vertical"></i>
-                                                        </a>
-                                                        <ul class="dropdown-menu">
-                                                            <li><a class="dropdown-item view-item-btn"
-                                                                   href="#"><i
-                                                                        class="ti ti-file-export text-primary"></i>
-                                                                    view</a></li>
-                                                            <li><a class="dropdown-item edit-folder-list"
-                                                                   data-bs-toggle="modal" href="#"
-                                                                   role="button"><i
-                                                                        class="ti ti-edit text-success"></i>
-                                                                    Rename</a></li>
-                                                            <li><a class="dropdown-item delete-btn"
-                                                                   data-bs-toggle="modal"
-                                                                   href="#"
-                                                                   role="button"><i
-                                                                        class="ti ti-trash text-danger"></i>
-                                                                    Delete</a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <span class="d-block text-center mb-3">
-                                  <img alt="" class="img-fluid" src="{{asset('../assets/images/icons/file.png')}}">
-                                </span>
-                                                <p class="text-center f-w-600 mb-0">Product.docx</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-4 col-xxl-3">
-                                        <div class="card">
-                                            <div class="card-body folder-card">
-                                                <div class="starreddiv favBtn">
-                                                    <i class="ph-bold  ph-star text-warning f-s-18 fav-icon"></i>
-                                                </div>
-
-                                                <div class="dropdown folder-dropdown">
-                                                    <a aria-expanded="true" class=""
-                                                       data-bs-toggle="dropdown"
-                                                       role="button">
-                                                        <i class="ti ti-dots-vertical"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a class="dropdown-item view-item-btn"
-                                                               href="#"><i
-                                                                    class="ti ti-file-export text-primary"></i>
-                                                                view</a></li>
-                                                        <li><a class="dropdown-item edit-folder-list"
-                                                               data-bs-toggle="modal" href="#"
-                                                               role="button"><i
-                                                                    class="ti ti-edit text-success"></i> Rename</a>
-                                                        </li>
-                                                        <li><a class="dropdown-item delete-btn"
-                                                               data-bs-toggle="modal"
-                                                               href="#" role="button"><i
-                                                                    class="ti ti-trash text-danger"></i> Delete</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <div class="fileimage">
-                                                    <img alt="" class="img-fluid"
-                                                         src="{{asset('../assets/images/icons/folder.png')}}">
-                                                    <p class="mb-0 f-s-16 text-center">Photoes</p>
-                                                </div>
-                                                <div class="d-flex justify-content-between mt-2">
-                                                    <p class="text-secondary mb-0 f-w-500">25.67GB</p>
-                                                    <p class="text-secondary mb-0 f-w-500 text-end">50GB</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- tab-4  -->
-                    <div class="tabs-content" id="tab-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Recent Added</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-bottom-border recent-table align-middle table-hover mb-0"
-                                           id="favorites-table">
-                                        <thead>
-                                        <tr>
-                                            <th scope="col">Name</th>
-                                            <th scope="col">Total Items</th>
-                                            <th scope="col">Size</th>
-                                            <th scope="col">Last Modified</th>
-                                            <th scope="col">Actions</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr>
-                                            <td>
-                                                <div>
-                                                    <img alt=""
-                                                         class="w-20 h-20"
-                                                         src="{{asset('../assets/images/icons/music.png')}}">
-                                                    <span class="ms-2 table-text">Quick CV & Porthfolio</span>
-                                                </div>
-                                            </td>
-                                            <td class="text-success f-w-500">10</td>
-                                            <td>209MB</td>
-                                            <td class="text-danger f-w-500">15 march,2024</td>
-                                            <td class="d-flex">
-                                                <div class="dropdown folder-dropdown">
-                                                    <a aria-expanded="true" class=""
-                                                       data-bs-toggle="dropdown"
-                                                       role="button">
-                                                        <i class="ti ti-dots-vertical"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a class="dropdown-item view-item-btn"
-                                                               href="#"><i
-                                                                    class="ti ti-file-export text-primary me-2"></i>
-                                                                view</a></li>
-                                                        <li><a class="dropdown-item edit-folder-name"
-                                                               data-bs-toggle="modal" href="#"
-                                                               role="button"><i
-                                                                    class="ti ti-edit text-success me-2"></i>
-                                                                Rename</a></li>
-                                                        <li><a class="dropdown-item delete-btn"
-                                                               data-bs-toggle="modal"
-                                                               href="#" role="button"><i
-                                                                    class="ti ti-trash text-danger me-2"></i>
-                                                                Delete</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <div class="starreddiv favBtn ms-3">
-                                                    <i class="ph-bold  ph-star text-warning f-s-18 star-icon"></i>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div>
-                                                    <img alt=""
-                                                         class="w-20 h-20"
-                                                         src="{{asset('../assets/images/icons/pdf.png')}}">
-                                                    <span class="ms-2 table-text">Thesis-Brain McKnight</span>
-                                                </div>
-                                            </td>
-                                            <td class="text-success f-w-500">15</td>
-                                            <td>25MB</td>
-                                            <td class="text-danger f-w-500">10 july,2024</td>
-                                            <td class="d-flex">
-                                                <div class="dropdown folder-dropdown">
-                                                    <a aria-expanded="true" class=""
-                                                       data-bs-toggle="dropdown"
-                                                       role="button">
-                                                        <i class="ti ti-dots-vertical"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a class="dropdown-item view-item-btn"
-                                                               href="#"><i
-                                                                    class="ti ti-file-export text-primary me-2"></i>
-                                                                view</a></li>
-                                                        <li><a class="dropdown-item edit-folder-name"
-                                                               data-bs-toggle="modal" href="#"
-                                                               role="button"><i
-                                                                    class="ti ti-edit text-success me-2"></i>
-                                                                Rename</a></li>
-                                                        <li><a class="dropdown-item delete-btn"
-                                                               data-bs-toggle="modal"
-                                                               href="#" role="button"><i
-                                                                    class="ti ti-trash text-danger me-2"></i>
-                                                                Delete</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <div class="starreddiv favBtn ms-3">
-                                                    <i class="ph-bold  ph-star text-warning f-s-18 star-icon"></i>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div>
-                                                    <img alt=""
-                                                         class="w-20 h-20"
-                                                         src="{{asset('../assets/images/icons/gallary.png')}}">
-                                                    <span class="ms-2 table-text">Campaign plan Q4-2021</span>
-                                                </div>
-                                            </td>
-                                            <td class="text-success f-w-500">3</td>
-                                            <td>103MB</td>
-                                            <td class="text-danger f-w-500">2 May,2024</td>
-                                            <td class="d-flex">
-                                                <div class="dropdown folder-dropdown">
-                                                    <a aria-expanded="true" class=""
-                                                       data-bs-toggle="dropdown"
-                                                       role="button">
-                                                        <i class="ti ti-dots-vertical"></i>
-                                                    </a>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a class="dropdown-item view-item-btn"
-                                                               href="#"><i
-                                                                    class="ti ti-file-export text-primary me-2"></i>
-                                                                view</a></li>
-                                                        <li><a class="dropdown-item edit-folder-name"
-                                                               data-bs-toggle="modal" href="#"
-                                                               role="button"><i
-                                                                    class="ti ti-edit text-success me-2"></i>
-                                                                Rename</a></li>
-                                                        <li><a class="dropdown-item delete-btn"
-                                                               data-bs-toggle="modal"
-                                                               href="#" role="button"><i
-                                                                    class="ti ti-trash text-danger me-2"></i>
-                                                                Delete</a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <div class="starreddiv favBtn ms-3">
-                                                    <i class="ph-bold  ph-star text-warning f-s-18 fav-icon"></i>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <div class="seller-table-footer d-flex gap-2 justify-content-between align-items-center">
-                                    <p class="text-secondary text-truncate">Showing 1 to 6 of 24 order
-                                        entries</p>
-                                    <ul class="pagination app-pagination">
-                                        <li class="page-item bg-light-secondar disabled">
-                                            <a class="page-link b-r-left">Previous</a>
-                                        </li>
-                                        <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                        <li aria-current="page" class="page-item active">
-                                            <a class="page-link" href="#">2</a>
-                                        </li>
-                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                        <li class="page-item page-next">
-                                            <a class="page-link" href="#">Next</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>
@@ -1177,123 +890,557 @@
 
 @section('script')
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const resourceModal = document.getElementById('resourceDetailModal');
-        
-        resourceModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
+    <script>
+        // $(document).ready(function() {
+        //     // Handle form submission using AJAX
+        //     $('#lessonadd').click(function(event) {
+        //         event.preventDefault();
+
+        //         var form = $('#lessonForm');  // Reference to the form
+        //         var formData = form.serialize(); // Serialize the form data
+                
+        //         // Show loading indicator (Optional)
+        //         $('#lessonadd').text('Adding...').prop('disabled', true);
+
+        //         // Make the AJAX POST request
+        //         $.ajax({
+        //             url: form.attr('action'),  // Use the form's action URL
+        //             type: 'POST',
+        //             data: formData,
+        //             success: function(response) {
+        //                 // Hide modal and show success message
+        //                 $('#lessonModal').modal('hide');
+        //                 Swal.fire({
+        //                     title: 'Success!',
+        //                     text: response.message,
+        //                     icon: 'success',
+        //                     confirmButtonText: 'OK'
+        //                 });
+
+        //                 // Create new lesson HTML
+        //                 var newLessonHtml = `
+        //                     <li class="tab-link" data-tab="${response.lesson.id}">
+        //                         <i class="ti ti-folder-filled fs-5 pe-2"></i>
+        //                         <span class="flex-grow-1">${response.lesson.name}</span>
+        //                         0 Resources
+        //                     </li>
+        //                 `;
+
+        //                 // Insert new lesson before the divider
+        //                 $('.app-divider-v').before(newLessonHtml);
+
+        //                 // Remove active class from all tabs and content
+        //                 $('.tab-link, .tab-content').removeClass('active');
+                        
+        //                 // Add active class to the new tab
+        //                 $(`.tab-link[data-tab="${response.lesson.id}"]`).addClass('active');
+                        
+        //                 // Create and activate corresponding tab content
+        //                 var newTabContent = `
+        //                     <div id="tab-${response.lesson.id}" class="tab-content active">
+        //                         <!-- Your tab content structure here -->
+        //                         <div class="d-flex justify-content-between align-items-center mb-3">
+        //                             <h5>${response.lesson.name}</h5>
+        //                         </div>
+        //                         <div class="resources-container" data-lesson-id="${response.lesson.id}">
+        //                             <!-- Resources will be loaded here -->
+        //                         </div>
+        //                     </div>
+        //                 `;
+                        
+        //                 $('.tab-content-container').append(newTabContent);
+                        
+        //                 // Reset form
+        //                 $('#lessonForm')[0].reset();
+        //                 $('#lessonadd').text('Add New Lesson').prop('disabled', false);
+        //             },
+        //             error: function(xhr, status, error) {
+        //                 // Handle error
+        //                 var errors = xhr.responseJSON.errors;
+        //                 $('#lessonadd').text('Add New Lesson').prop('disabled', false);
+        //                 if (errors) {
+        //                     $.each(errors, function(key, value) {
+        //                         alert(value[0]); // Display the first error for each field
+        //                     });
+        //                 } else {
+        //                     alert('An error occurred. Please try again.');
+        //                 }
+        //             }
+        //         });
+        //     });
+        // });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Edit lesson modal
+            const lessonEditModal = document.getElementById('lessonEditModal');
+            let currentLessonName = '';
+
+            lessonEditModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+
+                // Extract data from button
+                const lessonId = button.getAttribute('data-lesson-id');
+                currentLessonName = button.getAttribute('data-lesson-name');
+                const lessonDesc = button.getAttribute('data-lesson-desc');
+                const lessonOutcome = button.getAttribute('data-lesson-learn-outcome');
+
+                // Populate form fields - Using currentLessonName instead of undefined lessonName
+                document.getElementById('editLessonName').value = currentLessonName || '';
+                document.getElementById('editLessonDesc').value = lessonDesc || '';
+                document.getElementById('editLessonLearnOutcome').value = lessonOutcome || '';
+
+                // Set form action dynamically for update functionality
+                const updateLessonform = document.getElementById('updateLessonForm');
+                updateLessonform.action = `/course/course_detail/update_lesson/${lessonId}`; 
+                updateLessonform.method = 'POST';
+                
+                // Store the lesson ID for delete functionality
+                updateLessonform.dataset.lessonId = lessonId;
+
+                // Reset UI elements
+                document.getElementById('deleteConfirmInput').value = '';
+                document.getElementById('deleteConfirmWrapper').classList.add('d-none');
+                document.getElementById('deleteConfirmError').classList.add('d-none');
+                document.getElementById('formFieldsWrapper').classList.remove('d-none');
+
+                document.getElementById('deleteLessonBtn').classList.remove('d-none');
+                document.getElementById('cancelDeleteBtn').classList.add('d-none');
+                document.getElementById('saveChangesBtn').classList.remove('d-none');
+
+                const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+                // Add event listener for the new button
+                confirmDeleteBtn.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent any default action
+                    
+                    const input = document.getElementById('deleteConfirmInput');
+                    const error = document.getElementById('deleteConfirmError');
+                    
+                    if (input.value.trim() === currentLessonName.trim()) {
+                        submitDeleteForm();
+                    } else {
+                        error.classList.remove('d-none');
+                    }
+                });
+                
+                // // Make sure the confirm delete button is added if it doesn't exist yet
+                // if (!document.getElementById('confirmDeleteBtn')) {
+                //     const confirmDeleteBtn = document.createElement('button');
+                //     confirmDeleteBtn.type = 'button';
+                //     confirmDeleteBtn.className = 'btn btn-danger mt-2';
+                //     confirmDeleteBtn.textContent = 'Confirm Delete';
+                //     confirmDeleteBtn.id = 'confirmDeleteBtn';
+                //     document.getElementById('deleteConfirmWrapper').appendChild(confirmDeleteBtn);
+                    
+                    
+                // }
+            });
+
+            // Handle delete click
+            document.getElementById('deleteLessonBtn').addEventListener('click', function () {
+                // Remove required attribute before hiding
+                document.getElementById('editLessonName').removeAttribute('required');
+
+                // Hide form fields
+                document.getElementById('formFieldsWrapper').classList.add('d-none');
+                
+                // Hide save changes button
+                document.getElementById('saveChangesBtn').classList.add('d-none');
+
+                // Show delete confirm
+                document.getElementById('deleteConfirmWrapper').classList.remove('d-none');
+
+                // Toggle buttons
+                this.classList.add('d-none');
+                document.getElementById('confirmDeleteBtn').classList.remove('d-none');
+                document.getElementById('cancelDeleteBtn').classList.remove('d-none');
+            });
+
+            // Handle delete confirmation (enter key)
+            document.getElementById('deleteConfirmInput').addEventListener('keyup', function (e) {
+                const input = this;
+                const error = document.getElementById('deleteConfirmError');
+
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault(); // Prevent form submission/page refresh
+                    
+                    if (input.value.trim() === currentLessonName.trim()) {
+                        submitDeleteForm();
+                    } else {
+                        error.classList.remove('d-none');
+                    }
+                }
+            });
+
+            // Cancel delete mode
+            document.getElementById('cancelDeleteBtn').addEventListener('click', function () {
+                // Show form fields
+                document.getElementById('formFieldsWrapper').classList.remove('d-none');
+                
+                // Show save changes button
+                document.getElementById('saveChangesBtn').classList.remove('d-none');
+
+                // Re-add required attribute
+                document.getElementById('editLessonName').setAttribute('required', 'required');
+
+                // Hide confirm input
+                document.getElementById('deleteConfirmWrapper').classList.add('d-none');
+                document.getElementById('confirmDeleteBtn').classList.add('d-none');
+                document.getElementById('deleteConfirmError').classList.add('d-none');
+
+                // Toggle buttons
+                this.classList.add('d-none');
+                document.getElementById('deleteLessonBtn').classList.remove('d-none');
+            });
+
+            // Function to submit delete form with the separate route
+            function submitDeleteForm() {
+                const lessonId = document.getElementById('updateLessonForm').dataset.lessonId;
+                
+                // Create a new form for deletion
+                const deleteForm = document.createElement('form');
+                deleteForm.method = 'POST';
+                deleteForm.action = `/course/course_detail/delete_lesson/${lessonId}`;
+                deleteForm.style.display = 'none';
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                                document.querySelector('input[name="_token"]')?.value;
+                
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken;
+                    deleteForm.appendChild(csrfInput);
+                }
+                
+                // Append form to body, submit it, then remove it
+                document.body.appendChild(deleteForm);
+                deleteForm.submit();
+                document.body.removeChild(deleteForm);
+            }
+
             
-            // Extract all data attributes
-            const resourceData = {
-                id: button.getAttribute('data-resource-id'),
-                name: button.getAttribute('data-resource-name'),
-                description: button.getAttribute('data-resource-description'),
-                type: button.getAttribute('data-resource-type'),
-                path: button.getAttribute('data-resource-path'),
-                views: button.getAttribute('data-resource-views'),
-                downloads: button.getAttribute('data-resource-downloads'),
-                comments: button.getAttribute('data-resource-comments'),
-                created: button.getAttribute('data-resource-created')
-            };
+            // Resource detail modal
+            const resourceModal = document.getElementById('resourceDetailModal');
+            let commentFormSubmitHandler = null; // Store the reference to the event handler
             
-            // Update modal header
-            resourceModal.querySelector('.modal-title').textContent = resourceData.name;
-            
-            // Update stats
-            document.getElementById('viewsCount').textContent = resourceData.views;
-            document.getElementById('downloadsCount').textContent = resourceData.downloads;
-            document.getElementById('commentsCount').textContent = resourceData.comments;
-            
-            // Update resource info
-            document.getElementById('resourceName').textContent = resourceData.name;
-            document.getElementById('resourceDescription').textContent = resourceData.description;
-            document.getElementById('resourceCreated').textContent = `Uploaded on ${resourceData.created}`;
-            
-            // Set download link
-            const downloadBtn = document.getElementById('downloadBtn');
-            downloadBtn.href = resourceData.path;
-            downloadBtn.download = resourceData.name + '.' + resourceData.type;
-            downloadBtn.innerHTML = `<i class="ti ti-download me-1"></i> Download`;
-            
-            
-            // Handle preview based on type
-            const previewContainer = document.getElementById('resourcePreview');
-            previewContainer.innerHTML = '';
-            
-            if (resourceData.type === 'link') {
-                if (resourceData.path.includes('youtube.com') || resourceData.path.includes('youtu.be')) {
-                    // YouTube embed
-                    const videoId = resourceData.path.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)[1];
+            resourceModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                
+                // Extract all data attributes
+                const resourceData = {
+                    id: button.getAttribute('data-resource-id'),
+                    name: button.getAttribute('data-resource-name'),
+                    description: button.getAttribute('data-resource-description'),
+                    type: button.getAttribute('data-resource-type'),
+                    path: button.getAttribute('data-resource-path'),
+                    views: button.getAttribute('data-resource-views'),
+                    downloads: button.getAttribute('data-resource-downloads'),
+                    comments: button.getAttribute('data-resource-comments'),
+                    created: button.getAttribute('data-resource-created')
+                };
+                
+                // Update modal header
+                resourceModal.querySelector('.modal-title').textContent = resourceData.name;
+                
+                // Update stats
+                document.getElementById('viewsCount').textContent = resourceData.views;
+                document.getElementById('downloadsCount').textContent = resourceData.downloads;
+                document.getElementById('commentsCount').textContent = resourceData.comments;
+                
+                // Update resource info
+                document.getElementById('resourceName').textContent = resourceData.name;
+                document.getElementById('resourceDescription').textContent = resourceData.description;
+                document.getElementById('resourceCreated').textContent = `Uploaded on ${resourceData.created}`;
+                
+                // Set download link
+                const downloadBtn = document.getElementById('downloadBtn');
+                downloadBtn.href = resourceData.path;
+                downloadBtn.download = resourceData.name + '.' + resourceData.type;
+                downloadBtn.innerHTML = `<i class="ti ti-download me-1"></i> Download`;
+                
+                
+                // Handle preview based on type
+                const previewContainer = document.getElementById('resourcePreview');
+                previewContainer.innerHTML = '';
+                
+                if (resourceData.type === 'link') {
+                    if (resourceData.path.includes('youtube.com') || resourceData.path.includes('youtu.be')) {
+                        // YouTube embed
+                        const videoId = resourceData.path.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)[1];
+                        previewContainer.innerHTML = `
+                            <div class="ratio ratio-16x9">
+                                <iframe src="https://www.youtube.com/embed/${videoId}" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                        allowfullscreen></iframe>
+                            </div>
+                        `;
+
+                        downloadBtn.innerHTML = '<i class="ti ti-link me-1"></i> Open On YouTube';
+                    } else {
+                        // Regular website link
+                        previewContainer.innerHTML = `
+                            <div class="web-preview h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded" 
+                                style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                                <i class="ph-bold ph-globe text-primary mb-2" style="font-size: 3rem;"></i>
+                                <h5 class="mb-2">External Link</h5>
+                                <a href="${resourceData.path}" 
+                                target="_blank" 
+                                class="text-truncate d-block px-2 w-100 text-center small"
+                                style="max-width: 100%; color: #0d6efd; text-decoration: none;">
+                                ${resourceData.path}
+                                </a>
+                                <small class="text-muted mt-2">Click to open in new tab</small>
+                            </div>
+                        `;
+
+                        downloadBtn.innerHTML = '<i class="ti ti-link me-1"></i> Open Link';
+                    }
+                } else if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(resourceData.type.toLowerCase())) {
+                    // Image preview
+                    previewContainer.innerHTML = `
+                        <div class="text-center">
+                            <img src="${resourceData.path}" 
+                                class="img-fluid rounded" 
+                                style="max-height: 250px;"
+                                alt="${resourceData.name}">
+                        </div>
+                    `;
+                } else if (resourceData.type.toLowerCase() === 'pdf') {
+                    // PDF preview
                     previewContainer.innerHTML = `
                         <div class="ratio ratio-16x9">
-                            <iframe src="https://www.youtube.com/embed/${videoId}" 
-                                    frameborder="0" 
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                    allowfullscreen></iframe>
+                            <iframe src="${resourceData.path}#view=fitH" 
+                                    class="w-100 h-100"></iframe>
                         </div>
                     `;
-
-                    downloadBtn.innerHTML = '<i class="ti ti-link me-1"></i> Open On YouTube';
                 } else {
-                    // Regular website link
+                    // Default file preview
                     previewContainer.innerHTML = `
-                        <div class="web-preview h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded" 
-                            style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
-                            <i class="ph-bold ph-globe text-primary mb-2" style="font-size: 3rem;"></i>
-                            <h5 class="mb-2">External Link</h5>
-                            <a href="${resourceData.path}" 
-                            target="_blank" 
-                            class="text-truncate d-block px-2 w-100 text-center small"
-                            style="max-width: 100%; color: #0d6efd; text-decoration: none;">
-                            ${resourceData.path}
-                            </a>
-                            <small class="text-muted mt-2">Click to open in new tab</small>
+                        <div class="text-center py-4">
+                            <i class="ph-bold ph-file text-primary" style="font-size: 3rem;"></i>
+                            <h5 class="mt-2">${resourceData.name}</h5>
+                            <p class="text-muted">${resourceData.type.toUpperCase()} File</p>
                         </div>
                     `;
-
-                    downloadBtn.innerHTML = '<i class="ti ti-link me-1"></i> Open Link';
                 }
-            } else if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(resourceData.type.toLowerCase())) {
-                // Image preview
-                previewContainer.innerHTML = `
-                    <div class="text-center">
-                        <img src="${resourceData.path}" 
-                             class="img-fluid rounded" 
-                             style="max-height: 250px;"
-                             alt="${resourceData.name}">
-                    </div>
-                `;
-            } else if (resourceData.type.toLowerCase() === 'pdf') {
-                // PDF preview
-                previewContainer.innerHTML = `
-                    <div class="ratio ratio-16x9">
-                        <iframe src="${resourceData.path}#view=fitH" 
-                                class="w-100 h-100"></iframe>
-                    </div>
-                `;
-            } else {
-                // Default file preview
-                previewContainer.innerHTML = `
-                    <div class="text-center py-4">
-                        <i class="ph-bold ph-file text-primary" style="font-size: 3rem;"></i>
-                        <h5 class="mt-2">${resourceData.name}</h5>
-                        <p class="text-muted">${resourceData.type.toUpperCase()} File</p>
-                    </div>
-                `;
-            }
-            
-            // Handle comments display - just show/hide based on count
-            const commentsList = document.getElementById('commentsList');
-            const noComments = document.getElementById('noComments');
 
-            if (parseInt(resourceData.comments) > 0) {
-                noComments.style.display = 'none';
-            } else {
-                noComments.style.display = 'block';
+                // Set resource ID for comment form
+                document.getElementById('commentResourceId').value = resourceData.id;
+                
+                // Clear existing comments immediately
+                const commentsList = document.getElementById('commentsList');
+                commentsList.innerHTML = '';
+                
+                // Show a loading spinner
+                commentsList.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Loading comments...</p>
+                    </div>
+                `;
+
+                // Load comments for this specific resource
+                loadComments(resourceData.id);
+                
+                // Remove any existing event listener on comment form before adding a new one
+                const commentForm = document.getElementById('commentForm');
+                if (commentFormSubmitHandler) {
+                    commentForm.removeEventListener('submit', commentFormSubmitHandler);
+                }
+                
+                // Create new event handler for this specific resource
+                commentFormSubmitHandler = function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const currentResourceId = formData.get('resource_id');
+                    
+                    // Show loading indicator on the button
+                    const submitBtn = commentForm.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Posting...';
+                    
+                    fetch('/course/comment/store_comment', {
+                        method: 'POST',
+                        credentials: 'include', // Crucial for cookies
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            // 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') // If using Sanctum
+                        },
+                        body: JSON.stringify({
+                            resource_id: currentResourceId,
+                            content: formData.get('content')
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.success) {
+                            // Clear input field
+                            const commentInput = document.querySelector('#commentForm input[name="content"]');
+                            const commentContent = commentInput.value;
+                            commentInput.value = '';
+                            
+                            // Update counts
+                            const commentsCount = document.getElementById('commentsCount');
+                            const currentCount = parseInt(commentsCount.textContent) || 0;
+                            const newCount = currentCount + 1;
+                            commentsCount.textContent = newCount;
+                            
+                            // Remove "no comments" message if it exists
+                            const noComments = document.getElementById('noComments');
+                            if (noComments) {
+                                noComments.remove();
+                            }
+                            
+                            // Add the new comment to the list
+                            const commentsList = document.getElementById('commentsList');
+                            
+                            // Get current user info from the form area
+                            const userImg = commentForm.querySelector('img').src;
+                            
+                            // Use the correct property names from the backend response
+                            const commentText = data.comment ? data.comment.content : commentContent;
+                            const commentId = data.comment ? data.comment.id : new Date().getTime();
+                            const userName = data.comment ? data.comment.user_name : "Current User";
+                            const userImage = data.comment ? data.comment.user_image : userImg;
+                            const createdAt = data.comment ? data.comment.created_at : 'Just now';
+                            
+                            const newCommentHtml = `
+                                <div class="d-flex mb-3" id="comment-${commentId}">
+                                    <img src="${userImage}" 
+                                        class="rounded-circle me-3" width="40" height="40" alt="User">
+                                    <div class="w-100">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1">${userName}</h6>
+                                            <small class="text-muted mr-2"> ${createdAt}</small>
+                                        </div>
+                                        <p class="mb-1">${commentText}</p>
+                                        <div class="d-flex gap-2">
+                                            <a href="#" class="text-muted fs-12">Like</a>
+                                            <a href="#" class="text-muted fs-12">Reply</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Prepend to show newest comments at the top
+                            commentsList.insertAdjacentHTML('afterbegin', newCommentHtml);
+                            
+                            // Add highlight animation to new comment
+                            setTimeout(() => {
+                                const newComment = document.getElementById(`comment-${commentId}`);
+                                if (newComment) {
+                                    newComment.style.transition = 'background-color 1s ease';
+                                    newComment.style.backgroundColor = '#f0f8ff';
+                                    setTimeout(() => {
+                                        newComment.style.backgroundColor = 'transparent';
+                                    }, 1500);
+                                }
+                            }, 100);
+                        } else {
+                            // Show error if the server returned success: false
+                            alert('Failed to post comment. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to post comment. Please try again.');
+                    })
+                    .finally(() => {
+                        // Restore button state
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    });
+                };
+                
+                // Add the new event listener
+                commentForm.addEventListener('submit', commentFormSubmitHandler);
+            });
+            
+            // Handle modal close - optional cleanup
+            resourceModal.addEventListener('hidden.bs.modal', function() {
+                // Clear comments when modal is closed to avoid confusion
+                document.getElementById('commentsList').innerHTML = '';
+            });
+            
+            // Function to load comments for a specific resource
+            function loadComments(resourceId) {
+                fetch(`/course/comment/resource/${resourceId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        document.getElementById('commentsCount').textContent = data.comments.length;
+
+                        const commentsList = document.getElementById('commentsList');
+                        commentsList.innerHTML = ''; // Clear loading spinner
+
+                        if (data.comments && data.comments.length > 0) {
+                            // Sort comments by most recent first (if needed)
+                            data.comments.sort((a, b) => {
+                                // Assuming created_at is a string that can be compared
+                                return new Date(b.created_at_raw || b.created_at) - new Date(a.created_at_raw || a.created_at);
+                            });
+                            
+                            data.comments.forEach(comment => {
+                                const commentHtml = `
+                                    <div class="d-flex mb-3" id="comment-${comment.id}">
+                                        <img src="${comment.user_image}" 
+                                            class="rounded-circle me-3" width="40" height="40" alt="User">
+                                        <div class="w-100">
+                                            <div class="d-flex justify-content-between">
+                                                <h6 class="mb-1">${comment.user_name}</h6>
+                                                <small class="text-muted mr-2"> ${comment.created_at}</small>
+                                            </div>
+                                            <p class="mb-1">${comment.content}</p>
+                                            <div class="d-flex gap-2">
+                                                <a href="#" class="text-muted fs-12">Like</a>
+                                                <a href="#" class="text-muted fs-12">Reply</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                commentsList.insertAdjacentHTML('beforeend', commentHtml);
+                            });
+                        } else {
+                            // Show "No comments" message if empty
+                            commentsList.innerHTML = `
+                                <div class="text-center py-3" id="noComments">
+                                    <i class="ti ti-message-off fs-5 text-muted"></i>
+                                    <p class="text-muted mt-2">No comments yet</p>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading comments:', error);
+                        const commentsList = document.getElementById('commentsList');
+                        commentsList.innerHTML = `
+                            <div class="text-center py-3 text-danger">
+                                <i class="ti ti-alert-circle fs-5"></i>
+                                <p class="mt-2">Failed to load comments</p>
+                            </div>
+                        `;
+                    });
             }
         });
-    });
     </script>    
 
     <!--customizer-->
@@ -1305,7 +1452,11 @@
     <!-- Tooltip js  -->
     <script src="{{asset('assets/js/tooltips_popovers.js')}}"></script>
 
+    <!-- sweetalert js-->
+    <script src="{{asset('assets/vendor/sweetalert/sweetalert.js')}}"></script>
+
     <!--js-->
-    <script src="{{asset('assets/js/filemanager.js')}}"></script>
+    {{-- <script src="{{asset('assets/js/filemanager.js')}}"></script> --}}
+    <script src="{{asset('assets/js/course/lesson/lesson_list.js')}}"></script>
 
 @endsection

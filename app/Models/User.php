@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Badge;
 use App\Models\Course;
 use App\Models\SocialLink;
+use App\Models\UserCourse;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -77,6 +78,12 @@ class User extends Authenticatable implements CanResetPassword
         return $this->belongsToMany(Badge::class, 'user_badges')
                     ->withTimestamps();
     }
+
+    public function userCourses()
+    {
+        return $this->hasMany(UserCourse::class);
+    }
+
 
     public function courses()
     {

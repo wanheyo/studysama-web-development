@@ -94,4 +94,13 @@ Route::group(['prefix' => 'studysama'], function () {
         Route::middleware('auth:sanctum')->post('update', [TutorSlotController::class, 'update']);
     });
 
+    // // Web API
+    // Route::group(['prefix' => 'web'], function () {
+    //     // Comment Controller
+    //     Route::group(['prefix' => 'comment'], function () {
+    //         Route::get('resource/{resource_id}', [CommentController::class, 'get_comments']);
+    //         Route::post('store_comment', [CommentController::class, 'store_comment'])->middleware('auth:sanctum');
+    //         // Add other routes as needed
+    //     });
+    // });
 });
