@@ -101,9 +101,9 @@ class LessonController extends Controller
             'learn_outcome' => 'nullable|string',
         ]);
 
-        $lesson->name = $validated['name'] ?? $lesson->name;
-        $lesson->desc = $validated['desc'] ?? $lesson->desc;
-        $lesson->learn_outcome = $validated['learn_outcome'] ?? $lesson->learn_outcome;
+        $lesson->name = $validated['name'];
+        $lesson->desc = $validated['desc'];
+        $lesson->learn_outcome = $validated['learn_outcome'];
         $lesson->updated_at = now();
         $lesson->save();
 

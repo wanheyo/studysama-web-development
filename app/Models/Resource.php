@@ -18,10 +18,10 @@ class Resource extends Model
     
     protected $fillable = [
         'lesson_id',
-        'file_id',
+        'file_id', //nullable
         'name',
-        'desc',
-        'link',
+        'desc', //nullable
+        'link', //nullable
         'category',
         'total_visit',
         'status'

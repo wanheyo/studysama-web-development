@@ -62,6 +62,10 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('course_detail/update_lesson/{lesson_id}', [LessonController::class, 'update_lesson'])->name('course.lesson.update_lesson');
         Route::post('course_detail/delete_lesson/{lesson_id}', [LessonController::class, 'delete_lesson'])->name('course.lesson.delete_lesson');
 
+        // Course->Lesson->Resource
+        Route::post('resource/add_resource', [ResourceController::class, 'add_resource'])->name('resource.add_resource');
+        Route::post('resource/update_resource/{resource_id}', [ResourceController::class, 'update_resource'])->name('resource.update_resource');
+
         // Course->Lesson->Resource->Comments
         Route::group(['prefix' => 'comment'], function () {
             Route::get('resource/{resource_id}', [ResourceController::class, 'get_comments']);
