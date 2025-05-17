@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\CourseController;
 use App\Http\Controllers\Web\LessonController;
 use App\Http\Controllers\Web\ResourceController;
+use App\Http\Controllers\Web\AIController;
 
 // Test routes
 Route::get('/test-auth', function () {
@@ -74,7 +75,15 @@ Route::middleware(['auth:web'])->group(function () {
         });
     });
 
-    
+    // AI
+    Route::group(['prefix' => 'studysama_ai'], function () {
+        Route::get('mcq', [AIController::class, 'show_ai_mcq_section'])->name('ai.mcq');
+        Route::post('mcq/mcq_generated', [AIController::class, 'show_ai_mcq'])->name('ai.mcq_generated');
+        Route::get('flashcard', [AIController::class, 'show_ai_flashcard_section'])->name('ai.flashcard');
+        Route::post('flashcard/flashcard_generated', [AIController::class, 'show_ai_flashcard'])->name('ai.flashcard_generated');
+        Route::get('word_search_puzzle', [AIController::class, 'show_ai_wsp_section'])->name('ai.word_search_puzzle');
+        // Route::post('word_search_puzzle/wsp_generated', [AIController::class, 'show_ai_wsp'])->name('ai.wsp_generated');
+    });
 });
 
 Route::get('/debug-auth', function() {

@@ -38,6 +38,18 @@
                 </ul>
             </li>
             <li>
+                <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#ai">
+                    <i class="iconoir-flare"></i>
+                    StudySama AI
+                    {{-- <span class="badge text-primary-dark bg-primary-300  badge-notification ms-2">4</span> --}}
+                </a>
+                <ul class="collapse" id="ai">
+                    <li><a href="{{route('ai.mcq')}}">MCQ Quiz</a></li>
+                    <li><a href="{{route('ai.flashcard')}}">Flashcard</a></li>
+                    <li><a href="{{route('ai.word_search_puzzle')}}">Word Search Puzzle</a></li>
+                </ul>
+            </li>
+            <li>
                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#profile">
                     <i class="iconoir-profile-circle"></i>
                     profile
