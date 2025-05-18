@@ -36,7 +36,7 @@
             </p>
 
             <div class="app-form search-div mt-4">
-                <form action="{{ route('ai.mcq_generated') }}" method="POST">
+                <form action="{{ route('ai.word_search_puzzle_generated') }}" method="POST">
                 @csrf
                     <div class="input-group mb-3">
                         <input type="text" id="text" class="form-control b-r-right" placeholder="Enter topic (e.g., Photosynthesis)" aria-label="Example text with button addon"

@@ -43,7 +43,7 @@
                                         <i class="ti ti-music me-1"></i><span id="music-text">Play Music</span>
                                     </button>
                                     <audio id="background-music" loop>
-                                        <source src="{{ asset('assets/audio/quefue.mp3') }}" type="audio/mp3">
+                                        <source src="{{ asset('assets/audio/study_background.mp3') }}" type="audio/mp3">
                                         Your browser does not support the audio element.
                                     </audio>
                                 </div>
@@ -409,9 +409,9 @@
         
         musicToggleBtn.addEventListener('click', function() {
             if (backgroundMusic.paused) {
-                backgroundMusic.volume = 0.3; // Set volume to 30%
+                backgroundMusic.volume = 0.5; // Set volume to 50%
                 backgroundMusic.play();
-                musicText.textContent = 'Pause Music - Now Playing: QueFue.mp3';
+                musicText.textContent = 'Pause Music';
                 musicToggleBtn.classList.remove('btn-outline-secondary');
                 musicToggleBtn.classList.add('btn-outline-success');
             } else {

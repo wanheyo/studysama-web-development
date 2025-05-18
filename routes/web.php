@@ -82,7 +82,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::get('flashcard', [AIController::class, 'show_ai_flashcard_section'])->name('ai.flashcard');
         Route::post('flashcard/flashcard_generated', [AIController::class, 'show_ai_flashcard'])->name('ai.flashcard_generated');
         Route::get('word_search_puzzle', [AIController::class, 'show_ai_wsp_section'])->name('ai.word_search_puzzle');
-        // Route::post('word_search_puzzle/wsp_generated', [AIController::class, 'show_ai_wsp'])->name('ai.wsp_generated');
+        Route::post('word_search_puzzle/wsp_generated', [AIController::class, 'show_ai_wsp'])->name('ai.word_search_puzzle_generated');
     });
 });
 

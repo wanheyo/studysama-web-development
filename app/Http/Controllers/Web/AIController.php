@@ -342,4 +342,207 @@ class AIController extends Controller
     {
         return view('ai.word_search_puzzle.word_search_puzzle');
     }
+
+    public function show_ai_wsp(Request $request)
+    {
+        $request->validate([
+            'text' => 'required|string|max:500',
+        ], [
+            'text.required' => 'Please enter a topic for your quiz.',
+            'text.max' => 'Topic text should not exceed 500 characters.',
+        ]);
+
+        try {
+            $textContent = trim($request->input('text'));
+            
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('services.openai.key'),
+                'Content-Type' => 'application/json',
+            ])->timeout(15)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => 'gpt-3.5-turbo',
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'You are an educational assistant specialized in creating list of 10 words that will be used as word search puzzle base on the topic given by the user.',
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => "
+                        Generate a list of 10 words for word search puzzle based on the topic: $textContent
+
+                        Make sure each word is unique and is related to the topic.
+
+                        Provide the response in this structure: 
+                        {
+                            \"words\": [\"word1\", \"word2\", ...]
+                        }
+
+                        Ensure that the words are distributed evenly and not in a predictable pattern. The words MUST NOT HAVE SPACINGS."
+                    ]
+                ],
+                'max_tokens' => 1500,
+                'temperature' => 0.7,
+            ]);
+            
+            if ($response->failed()) {
+                return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
+                throw new \Exception("OpenAI API error: " . $response->body());
+            }
+
+            // dd($response->json('choices.0.message.content'));
+            
+            $message = $response->json('choices.0.message.content');
+            
+            // dd($message);
+            
+            if (!$message) {
+                throw new \Exception("Unexpected response structure from OpenAI.");
+            }
+            
+            $words = $this->parseWsp($message);
+
+            // dd($words);
+            
+            if (empty($words)) {
+                return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
+                // return back()->withErrors(['error' => 'Could not generate quiz questions. Please try a different topic.']);
+            }
+
+            // Generate the word search grid
+            $grid = $this->generateWordSearchGrid($words);
+
+            // Store flashcards in session to prevent duplicate requests
+            // session()->put($sessionKey, $flashcards);            
+            
+            return view('ai.word_search_puzzle.word_search_puzzle_generated', [
+                'title' => 'Word Search Puzzle on ' . ucfirst($textContent),
+                'words' => $words,
+                'grid' => $grid,
+                'topic' => $textContent,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Word Search Puzzle generation error: ' . $e->getMessage());
+            
+            if (str_contains($e->getMessage(), 'timeout')) {
+                return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
+                // return back()->withErrors(['error' => 'The quiz generation timed out. Please try again or use a simpler topic.']);
+            }
+
+            return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
+            // return back()->withErrors(['error' => 'Failed to generate quiz. ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Parse the Flashcard response from OpenAI API
+     * 
+     * @param string $rawText The raw text response from OpenAI
+     * @return array The parsed flashcards
+     */
+    private function parseWsp(string $rawText): array
+    {
+        try {
+            // Extract JSON object containing "words"
+            if (preg_match('/\{\s*"words"\s*:\s*\[.*?\]\s*\}/s', $rawText, $jsonMatch)) {
+                $jsonText = $jsonMatch[0];
+
+                // Clean up potential formatting issues
+                $jsonText = str_replace(["“", "”"], '"', $jsonText);
+                $jsonText = preg_replace('/,\s*]/', ']', $jsonText); // remove trailing comma before closing ]
+
+                $decoded = json_decode($jsonText, true);
+
+                if (json_last_error() === JSON_ERROR_NONE && isset($decoded['words']) && is_array($decoded['words'])) {
+                    // Trim each word and return
+                    return array_map('trim', $decoded['words']);
+                }
+            }
+
+            return [];
+        } catch (\Exception $e) {
+            \Log::error('Error parsing word search puzzle response: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Generate the word search grid
+     */
+    private function generateWordSearchGrid(array $words, int $size = 15): array
+    {
+        // Initialize empty grid
+        $grid = array_fill(0, $size, array_fill(0, $size, ''));
+        
+        // Define possible directions [dx, dy]
+        $directions = [
+            [1, 0],   // Horizontal
+            [0, 1],    // Vertical
+            [1, 1],    // Diagonal down-right
+            [1, -1],   // Diagonal up-right
+            [-1, 0],   // Horizontal (backward)
+            [0, -1],   // Vertical (upward)
+            [-1, -1],  // Diagonal up-left
+            [-1, 1]    // Diagonal down-left
+        ];
+        
+        // Place each word in the grid
+        foreach ($words as $word) {
+            $word = strtoupper(trim($word));
+            $wordLength = strlen($word);
+            $placed = false;
+            $attempts = 0;
+            
+            while (!$placed && $attempts < 100) {
+                $direction = $directions[array_rand($directions)];
+                $row = rand(0, $size - 1);
+                $col = rand(0, $size - 1);
+                
+                // Check if word fits in this position/direction
+                $endRow = $row + ($wordLength - 1) * $direction[1];
+                $endCol = $col + ($wordLength - 1) * $direction[0];
+                
+                if ($endRow < 0 || $endRow >= $size || $endCol < 0 || $endCol >= $size) {
+                    $attempts++;
+                    continue;
+                }
+                
+                // Check if cells are available
+                $canPlace = true;
+                for ($i = 0; $i < $wordLength; $i++) {
+                    $checkRow = $row + $i * $direction[1];
+                    $checkCol = $col + $i * $direction[0];
+                    
+                    $currentCell = $grid[$checkRow][$checkCol];
+                    if ($currentCell !== '' && $currentCell !== $word[$i]) {
+                        $canPlace = false;
+                        break;
+                    }
+                }
+                
+                if ($canPlace) {
+                    // Place the word
+                    for ($i = 0; $i < $wordLength; $i++) {
+                        $placeRow = $row + $i * $direction[1];
+                        $placeCol = $col + $i * $direction[0];
+                        $grid[$placeRow][$placeCol] = $word[$i];
+                    }
+                    $placed = true;
+                }
+                
+                $attempts++;
+            }
+        }
+        
+        // Fill remaining empty cells with random letters
+        $letters = range('A', 'Z');
+        foreach ($grid as &$row) {
+            foreach ($row as &$cell) {
+                if ($cell === '') {
+                    $cell = $letters[array_rand($letters)];
+                }
+            }
+        }
+        
+        return $grid;
+    }
 }
