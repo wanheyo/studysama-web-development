@@ -7,6 +7,7 @@ use App\Models\Badge;
 use App\Models\Course;
 use App\Models\SocialLink;
 use App\Models\UserCourse;
+use App\Models\UserActivityLog;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -95,6 +96,16 @@ class User extends Authenticatable implements CanResetPassword
     public function socialLinks()
     {
         return $this->hasMany(SocialLink::class);
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(UserActivityLog::class);
+    }
+
+    public function userChallenges()
+    {
+        return $this->hasMany(UserChallenge::class);
     }
 
     public function sendPasswordResetNotification($token)
