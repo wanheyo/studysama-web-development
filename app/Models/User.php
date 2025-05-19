@@ -98,6 +98,11 @@ class User extends Authenticatable implements CanResetPassword
         return $this->hasMany(SocialLink::class);
     }
 
+    public function userPoints()
+    {
+        return $this->hasOne(UserPoint::class);
+    }
+
     public function activityLogs()
     {
         return $this->hasMany(UserActivityLog::class);

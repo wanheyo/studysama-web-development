@@ -2,14 +2,41 @@
 
 namespace App\Http\Controllers\Web;
 
-use Illuminate\Support\Facades\Http;
+use App\Models\Topic;
+use App\Models\UserPoint;
 use Illuminate\Http\Request;
+use App\Models\UserActivityLog;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Container\Attributes\Log;
 
 
 class AIController extends Controller
 {
+    public function store_user_activity_log($activity_type, $token_used, $topic, $file_name) {
+        $user = Auth::user();
+
+        $activity_log = UserActivityLog::create([
+            'user_id' => $user->id,
+            'activity_type' => $activity_type,
+            'xp_earned' => 0,
+            'max_xp' => 0,
+            'points_earned' => 0,
+            'token_used' => $token_used ?? 0,
+            'topic' => $topic ?? null,
+            'file_name' => $file_name ?? null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        return $activity_log->id;
+    }
+
     public function show_ai_mcq_section()
     {
         return view('ai.mcq.mcq');
@@ -68,11 +95,17 @@ class AIController extends Controller
                 throw new \Exception("OpenAI API error: " . $response->body());
             }
             
-            $message = $response->json('choices.0.message.content');
             
+            $message = $response->json('choices.0.message.content');
+
+            $responseData = $response->json();
+            $token_used = $responseData['usage']['total_tokens'] ?? 0;
+
             if (!$message) {
                 throw new \Exception("Unexpected response structure from OpenAI.");
             }
+
+            $activityLogId = $this->store_user_activity_log('mcq', $token_used, $textContent, null);
             
             $quiz = $this->parseMCQ($message);
             
@@ -85,6 +118,7 @@ class AIController extends Controller
                 'title' => 'Quiz on ' . ucfirst($textContent),
                 'questions' => $quiz,
                 'topic' => $textContent,
+                'user_activity_log_id' => $activityLogId
             ]);
         } catch (\Exception $e) {
             \Log::error('Quiz generation error: ' . $e->getMessage());
@@ -219,12 +253,12 @@ class AIController extends Controller
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are an educational assistant specialized in creating comprehensive flashcards base on the topic given by the user.',
+                        'content' => 'You are an educational assistant specialized in creating comprehensive list of 10 flashcards base on the topic given by the user.',
                     ],
                     [
                         'role' => 'user',
                         'content' => "
-                        Generate flashcards based on the topic: $textContent
+                        Generate list of 10 flashcards based on the topic: $textContent
 
                         Make sure each flashcard have 2 sides. 1 side is the question or term, the other is the answer or definition.
 
@@ -252,17 +286,21 @@ class AIController extends Controller
             
             if ($response->failed()) {
                 // dd("masuk sini 2", $response->body());
-                return redirect()->back()->with('error', 'An error occurred while generating the quiz. Please try again.');
+                return redirect()->back()->with('error', 'An error occurred while generating the flashcards. Please try again.');
                 throw new \Exception("OpenAI API error: " . $response->body());
             }
             
             $message = $response->json('choices.0.message.content');
             
             // dd($message);
+            $responseData = $response->json();
+            $token_used = $responseData['usage']['total_tokens'] ?? 0;
             
             if (!$message) {
                 throw new \Exception("Unexpected response structure from OpenAI.");
             }
+            
+            $activityLogId = $this->store_user_activity_log('flashcard', $token_used, $textContent, null);
             
             $flashcards = $this->parseFlashcard($message);
 
@@ -280,6 +318,7 @@ class AIController extends Controller
                 'title' => 'Flashcards on ' . ucfirst($textContent),
                 'flashcards' => $flashcards,
                 'topic' => $textContent,
+                'user_activity_log_id' => $activityLogId
             ]);
         } catch (\Exception $e) {
             \Log::error('Flashcard generation error: ' . $e->getMessage());
@@ -377,7 +416,7 @@ class AIController extends Controller
                             \"words\": [\"word1\", \"word2\", ...]
                         }
 
-                        Ensure that the words are distributed evenly and not in a predictable pattern. The words MUST NOT HAVE SPACINGS."
+                        Ensure that the words are distributed evenly and not in a predictable pattern. The words MUST NOT HAVE SPACINGS. "
                     ]
                 ],
                 'max_tokens' => 1500,
@@ -394,10 +433,14 @@ class AIController extends Controller
             $message = $response->json('choices.0.message.content');
             
             // dd($message);
-            
+            $responseData = $response->json();
+            $token_used = $responseData['usage']['total_tokens'] ?? 0;
+
             if (!$message) {
                 throw new \Exception("Unexpected response structure from OpenAI.");
             }
+
+            $activityLogId = $this->store_user_activity_log('wsp', $token_used, $textContent, null);
             
             $words = $this->parseWsp($message);
 
@@ -419,6 +462,7 @@ class AIController extends Controller
                 'words' => $words,
                 'grid' => $grid,
                 'topic' => $textContent,
+                'user_activity_log_id' => $activityLogId
             ]);
         } catch (\Exception $e) {
             \Log::error('Word Search Puzzle generation error: ' . $e->getMessage());

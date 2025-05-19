@@ -21,7 +21,7 @@
                         @endauth
                     </li> --}}
 
-                    <li class="header-cloud">
+                    {{-- <li class="header-cloud">
                         <a aria-controls="cloudoffcanvasTops" class="head-icon"
                            data-bs-target="#cloudoffcanvasTops" data-bs-toggle="offcanvas"
                            href="#" role="button">
@@ -97,9 +97,9 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
+                    </li> --}}
 
-                    <li class="header-language">
+                    {{-- <li class="header-language">
                         <div class="flex-shrink-0 dropdown" id="lang_selector">
                             <a aria-expanded="false" class="d-block head-icon ps-0"
                                data-bs-toggle="dropdown"
@@ -145,7 +145,7 @@
                             </ul>
                         </div>
 
-                    </li>
+                    </li> --}}
 
                     <li class="header-searchbar">
                         <a aria-controls="offcanvasRight" class="d-block head-icon"
@@ -299,7 +299,7 @@
                         </div>
                     </li>
 
-                    <li class="header-apps">
+                    {{-- <li class="header-apps">
                         <a aria-controls="appscanvasRights" class="d-block head-icon"
                            data-bs-target="#appscanvasRights" data-bs-toggle="offcanvas"
                            href="#" role="button">
@@ -486,9 +486,9 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
+                    </li> --}}
 
-                    <li class="header-cart">
+                    {{-- <li class="header-cart">
                         <a aria-controls="cartcanvasRight" class="d-block head-icon position-relative"
                            data-bs-target="#cartcanvasRight"
                            data-bs-toggle="offcanvas"
@@ -508,7 +508,7 @@
                             </div>
                             <div class="offcanvas-body app-scroll p-0">
                                 <div class="head-container">
-                                    {{-- <div class="head-box">
+                                    <div class="head-box">
                                         <img alt="cart" class="h-50 me-3 b-r-10"
                                              src="../assets/images/ecommerce/19.jpg">
                                         <div class="flex-grow-1">
@@ -614,7 +614,7 @@
                                             <i class="iconoir-xmark close-btn"></i>
                                             <p class="text-success f-w-500 mb-0">$450.00 x 1</p>
                                         </div>
-                                    </div> --}}
+                                    </div>
                                     <div class="hidden-massage py-4 px-3">
                                         <img alt="cart" class="img-fluid mb-3"
                                              src="{{ asset('assets/images/header/cart_empty.gif') }}">
@@ -645,7 +645,7 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
+                    </li> --}}
 
                     <li class="header-dark">
                         <div class="sun-logo head-icon">
@@ -819,7 +819,10 @@
                                 </div>
                             </div>
                         </div>
+                    </li>
 
+                    <li class="header-level">
+                        <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '0' }}</span>
                     </li>
 
                     <li class="header-profile">

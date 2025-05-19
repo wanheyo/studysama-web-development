@@ -44,7 +44,8 @@ Route::middleware(['auth:web'])->group(function () {
     Route::group(['prefix' => 'user'], function () {
         Route::get('my_profile', [UserController::class, 'my_profile'])->name('user.my_profile');
         Route::get('edit_profile', [UserController::class, 'show_edit_profile'])->name('user.edit_profile');
-        Route::put('/edit_profile', [UserController::class, 'edit_profile'])->name('user.edit_profile.put');
+        Route::put('edit_profile', [UserController::class, 'edit_profile'])->name('user.edit_profile.put');
+        Route::post('update_points', [UserController::class, 'update_user_points'])->name('user.update_points');
     });
     
     // Course

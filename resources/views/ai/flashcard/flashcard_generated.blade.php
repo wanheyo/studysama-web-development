@@ -464,6 +464,7 @@
         const progressBar = document.getElementById('quiz-progress-bar');
         const currentFlashcardDisplay = document.getElementById('current-flashcard');
         let currentFlashcardIndex = 0;
+        let isDoneUpdateXP = false;
         
         function updateProgress() {
             const progress = ((currentFlashcardIndex + 1) / totalFlashcards) * 100;
@@ -581,6 +582,11 @@
                 showResults();
             });
         }
+
+        // Calculate XP
+        const xpEarned = 50; // 100% = 50 XP
+        const maxXp = 50; 
+        const pointsEarned = 5; // 0.2 point per 10%
         
         // Calculate and show results
         function showResults() {
@@ -609,6 +615,89 @@
             const celebrationSound = new Audio("{{ asset('assets/audio/success_2.mp3') }}");
             celebrationSound.volume = 0.5;
             celebrationSound.play();
+
+            if(!isDoneUpdateXP) {
+
+                isDoneUpdateXP = true;
+                // Update XP and points
+                fetch("{{ route('user.update_points') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                    },
+                    body: JSON.stringify({
+                        user_activity_log_id: "{{ $user_activity_log_id }}",
+                        activity_type: "flashcard",
+                        xp_earned: xpEarned,
+                        max_xp: maxXp,
+                        points_earned: pointsEarned,
+                        topic: "{{ $topic ?? 'Flashcard' }}", // Adjust if topic is dynamic
+                        // file_name: "{{ '' }}" // Optional
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("XP and points updated:", data);
+
+                    const resultSummary = document.querySelector(".result-summary");
+
+                    // Clear old feedback if needed
+                    resultSummary.querySelectorAll(".xp-feedback").forEach(e => e.remove());
+
+                    // XP & Points display
+                    const xpElement = document.createElement("p");
+                    xpElement.classList.add("xp-feedback");
+                    xpElement.innerHTML = `<strong>XP Earned:</strong> ${xpEarned}/${maxXp} XP`;
+
+                    const pointsElement = document.createElement("p");
+                    pointsElement.classList.add("xp-feedback");
+                    pointsElement.innerHTML = `<strong>Points:</strong> +${pointsEarned}`; 
+
+                    resultSummary.appendChild(xpElement);
+                    resultSummary.appendChild(pointsElement);
+
+                    // Level Progress display
+                    const progressPercent = Math.min(
+                        Math.round((data.xp / (data.xp + data.xp_to_next_level)) * 100), 100
+                    );
+
+                    const nextLvlXp = data.xp + data.xp_to_next_level;
+                    const currentLvlXp = nextLvlXp - (100 * (data.level - 1) * data.level / 2);
+
+                    const levelContainer = document.createElement("div");
+                    levelContainer.classList.add("d-flex", "align-items-center", "justify-content-between", "mt-3", "xp-feedback");
+
+                    levelContainer.className = "row mt-3 xp-feedback align-items-center";
+
+                    levelContainer.innerHTML = `
+                        <!-- Column 1: Label -->
+                        <div class="col-12 col-md-3 fw-bold mb-2 mb-md-0">
+                            Level Progress:
+                        </div>
+
+                        <!-- Column 2: Full progress bar with level values -->
+                        <div class="col-12 col-md-9 d-flex align-items-center gap-2">
+                            <span>Lvl ${formatNumber(data.level)} (${formatNumber(currentLvlXp)} XP)</span>
+                            <div class="progress flex-grow-1 mx-2" style="height: 20px; min-width: 150px;">
+                                <div class="progress-bar bg-success progress-bar-striped" 
+                                    role="progressbar" 
+                                    style="width: ${progressPercent}%;" 
+                                    aria-valuenow="${progressPercent}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100">
+                                    ${progressPercent}% (${formatNumber(data.xp)} XP)
+                                </div>
+                            </div>
+                            <span>Lvl ${formatNumber(data.next_level)} (${formatNumber(nextLvlXp)} XP)</span>
+                        </div>
+                    `;
+                    resultSummary.appendChild(levelContainer);
+                })
+                .catch(error => {
+                    console.error("Error updating points:", error);
+                });
+            }
             
             // Show the modal
             const resultModal = new bootstrap.Modal(document.getElementById('flashcardResultModal'));
@@ -619,6 +708,13 @@
         document.getElementById('restart-session').addEventListener('click', function() {
             location.reload();
         });
+
+        function formatNumber(n) {
+            if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'b';
+            if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'm';
+            if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+            return n;
+        }
 
         // Create confetti animation
         function createConfetti() {

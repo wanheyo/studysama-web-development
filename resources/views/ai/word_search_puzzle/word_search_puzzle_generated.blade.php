@@ -485,6 +485,7 @@
             const totalWords = {{ count($words ?? []) }};
             const progressBar = document.getElementById('wsp-progress-bar');
             const currentWordDisplay = document.getElementById('current-word');
+            let isDoneUpdateXP = false;
             // let totalWordsFound = foundWords.length;
             
             function updateProgress(totalWordsFound) {
@@ -914,18 +915,106 @@
             
             // Show the completion modal
             function showCompletionModal() {
-                // Calculate score based on time
-                const score = calculateScore();
+                // Calculate score based and XP on time
+                const scoreResult = calculateScore();
+                const score = scoreResult.finalScore;
+                const maxScore = scoreResult.maxScore;
+                const xpEarned = scoreResult.xpEarned;
+                const pointsEarned = scoreResult.pointsEarned;
+                const maxXp = 500;
                 
                 // Update modal content
                 document.getElementById('time-taken').textContent = formatTime(totalSeconds);
-                document.getElementById('final-score').textContent = score;
+                document.getElementById('final-score').textContent = score + ' / ' + maxScore;
                 
                 // Play celebration sound
                 playSound('complete');
                 
                 // Show confetti animation
                 createConfetti();
+
+                if(!isDoneUpdateXP) {
+
+                    isDoneUpdateXP = true;
+                    // Update XP and points
+                    fetch("{{ route('user.update_points') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                        },
+                        body: JSON.stringify({
+                            user_activity_log_id: "{{ $user_activity_log_id }}",
+                            activity_type: "mcq",
+                            xp_earned: xpEarned,
+                            max_xp: maxXp,
+                            points_earned: pointsEarned,
+                            topic: "{{ $topic ?? 'MCQ Quiz' }}", // Adjust if topic is dynamic
+                            // file_name: "{{ '' }}" // Optional
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("XP and points updated:", data);
+
+                        const resultSummary = document.querySelector(".result-summary");
+
+                        // Clear old feedback if needed
+                        resultSummary.querySelectorAll(".xp-feedback").forEach(e => e.remove());
+
+                        // XP & Points display
+                        const xpElement = document.createElement("p");
+                        xpElement.classList.add("xp-feedback");
+                        xpElement.innerHTML = `<strong>XP Earned:</strong> ${xpEarned}/${maxXp} XP`;
+
+                        const pointsElement = document.createElement("p");
+                        pointsElement.classList.add("xp-feedback");
+                        pointsElement.innerHTML = `<strong>Points:</strong> +${pointsEarned}`; 
+
+                        resultSummary.appendChild(xpElement);
+                        resultSummary.appendChild(pointsElement);
+
+                        // Level Progress display
+                        const progressPercent = Math.min(
+                            Math.round((data.xp / (data.xp + data.xp_to_next_level)) * 100), 100
+                        );
+
+                        const nextLvlXp = data.xp + data.xp_to_next_level;
+                        const currentLvlXp = nextLvlXp - (100 * (data.level - 1) * data.level / 2);
+
+                        const levelContainer = document.createElement("div");
+                        levelContainer.classList.add("d-flex", "align-items-center", "justify-content-between", "mt-3", "xp-feedback");
+
+                        levelContainer.className = "row mt-3 xp-feedback align-items-center";
+
+                        levelContainer.innerHTML = `
+                            <!-- Column 1: Label -->
+                            <div class="col-12 col-md-3 fw-bold mb-2 mb-md-0">
+                                Level Progress:
+                            </div>
+
+                            <!-- Column 2: Full progress bar with level values -->
+                            <div class="col-12 col-md-9 d-flex align-items-center gap-2">
+                                <span>Lvl ${formatNumber(data.level)} (${formatNumber(currentLvlXp)} XP)</span>
+                                <div class="progress flex-grow-1 mx-2" style="height: 20px; min-width: 150px;">
+                                    <div class="progress-bar bg-success progress-bar-striped" 
+                                        role="progressbar" 
+                                        style="width: ${progressPercent}%;" 
+                                        aria-valuenow="${progressPercent}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                        ${progressPercent}% (${formatNumber(data.xp)} XP)
+                                    </div>
+                                </div>
+                                <span>Lvl ${formatNumber(data.next_level)} (${formatNumber(nextLvlXp)} XP)</span>
+                            </div>
+                        `;
+                        resultSummary.appendChild(levelContainer);
+                    })
+                    .catch(error => {
+                        console.error("Error updating points:", error);
+                    });
+                }
                 
                 // Show the modal
                 const resultModal = new bootstrap.Modal(document.getElementById('puzzleResultModal'));
@@ -941,25 +1030,50 @@
             
             // Calculate score based on completion time
             function calculateScore() {
-                // Base score
                 const baseScore = 1000;
+                const optimalTime = 120; // 2 minutes
+                const maxBonus = 300;
+                const maxScore = baseScore + maxBonus;
                 
                 // Time penalty (lose points the longer it takes)
                 // The formula creates a decay curve - faster completion means higher score
                 // For a 15x15 grid with ~10 words, a good completion time is around 2-3 minutes
-                const optimalTime = 120; // 2 minutes is considered great
                 const timeRatio = Math.max(0, 1 - (totalSeconds / (optimalTime * 2.5)));
                 
                 // Bonus for very fast completion
                 let bonus = 0;
                 if (totalSeconds < optimalTime) {
-                    bonus = 300 * (1 - (totalSeconds / optimalTime));
+                    bonus = maxBonus * (1 - (totalSeconds / optimalTime));
                 }
                 
-                // Final score calculation (with minimum score of 100)
                 const finalScore = Math.max(100, Math.round(baseScore * timeRatio + bonus));
-                
-                return finalScore;
+
+                // XP scaling (max XP = 500)
+                const xpEarned = Math.round((finalScore / maxScore) * 500);
+
+                // Points scaling (max 45 from score + 5 speed bonus)
+                let pointsEarned = Math.floor((finalScore / maxScore) * 45);
+                if (totalSeconds <= optimalTime) {
+                    pointsEarned += 5; // Bonus for fast completion
+                }
+
+                // Enforce ceilings
+                const maxXp = 500;
+                const maxPoints = 50;
+
+                return {
+                    finalScore,
+                    maxScore,
+                    xpEarned: Math.min(xpEarned, maxXp),
+                    pointsEarned: Math.min(pointsEarned, maxPoints)
+                };
+            }
+
+            function formatNumber(n) {
+                if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'b';
+                if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'm';
+                if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+                return n;
             }
             
             // Create confetti animation
