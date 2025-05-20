@@ -47,6 +47,7 @@
                     <li><a href="{{route('ai.mcq')}}">MCQ Quiz</a></li>
                     <li><a href="{{route('ai.flashcard')}}">Flashcard</a></li>
                     <li><a href="{{route('ai.word_search_puzzle')}}">Word Search Puzzle</a></li>
+                    <li><a href="{{route('ai.leaderboard')}}">Leaderboard</a></li>
                 </ul>
             </li>
             <li>

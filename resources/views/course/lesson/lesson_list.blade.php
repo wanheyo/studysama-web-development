@@ -1349,6 +1349,7 @@
             
             resourceModal.addEventListener('show.bs.modal', function(event) {
                 const button = event.relatedTarget;
+                console.log('relatedTarget:', button); // Check if null or undefined
 
                 // Extract all data attributes
                 const resourceData = {
@@ -1387,18 +1388,19 @@
                 // Set edit button
                 const editBtn = document.querySelector('#resourceDetailModal button[data-bs-target="#resourceEditModal"]');
 
-                // Set all attributes dynamically based on resourceData
-                editBtn.setAttribute('data-resource-id', resourceData.id);
-                editBtn.setAttribute('data-resource-name', resourceData.name);
-                editBtn.setAttribute('data-resource-description', resourceData.description);
-                editBtn.setAttribute('data-resource-category', resourceData.category);
-                editBtn.setAttribute('data-resource-type', resourceData.type);
-                editBtn.setAttribute('data-resource-file-name', resourceData.fileName);
-                editBtn.setAttribute('data-resource-path', resourceData.path);
-                editBtn.setAttribute('data-resource-views', resourceData.views);
-                editBtn.setAttribute('data-resource-downloads', resourceData.downloads);
-                editBtn.setAttribute('data-resource-comments', resourceData.comments);
-                editBtn.setAttribute('data-resource-created', resourceData.created);
+                if (editBtn) {
+                    editBtn.setAttribute('data-resource-id', resourceData.id);
+                    editBtn.setAttribute('data-resource-name', resourceData.name);
+                    editBtn.setAttribute('data-resource-description', resourceData.description);
+                    editBtn.setAttribute('data-resource-category', resourceData.category);
+                    editBtn.setAttribute('data-resource-type', resourceData.type);
+                    editBtn.setAttribute('data-resource-file-name', resourceData.fileName);
+                    editBtn.setAttribute('data-resource-path', resourceData.path);
+                    editBtn.setAttribute('data-resource-views', resourceData.views);
+                    editBtn.setAttribute('data-resource-downloads', resourceData.downloads);
+                    editBtn.setAttribute('data-resource-comments', resourceData.comments);
+                    editBtn.setAttribute('data-resource-created', resourceData.created);
+                }
 
                 
                 // Handle preview based on type

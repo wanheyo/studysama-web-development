@@ -84,6 +84,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('flashcard/flashcard_generated', [AIController::class, 'show_ai_flashcard'])->name('ai.flashcard_generated');
         Route::get('word_search_puzzle', [AIController::class, 'show_ai_wsp_section'])->name('ai.word_search_puzzle');
         Route::post('word_search_puzzle/wsp_generated', [AIController::class, 'show_ai_wsp'])->name('ai.word_search_puzzle_generated');
+        Route::get('leaderboard', [AIController::class, 'show_leaderboard'])->name('ai.leaderboard');
     });
 });
 

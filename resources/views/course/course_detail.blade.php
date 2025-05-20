@@ -422,7 +422,7 @@
                                             <div id="imgPreview">
                                                 <img alt="avatar" class="b-r-50 h-100 w-100 object-cover rounded-circle"
                                                      src="{{ $tutor->image 
-                                                        ? asset('storage/uploads/profile_picture/' . auth()->user()->image) 
+                                                        ? asset('storage/uploads/profile_picture/' . $tutor->image) 
                                                         : asset('assets/images/avtar/woman.jpg') }}">
                                             </div>
                                         </div>                                        

@@ -1225,6 +1225,12 @@
             // Initialize the puzzle
             generatePuzzle();
             startTimer();
+
+            // Confirm before leaving the page
+            window.addEventListener('beforeunload', function (e) {
+                e.preventDefault();
+                e.returnValue = 'Your word search puzzle progress will be lost. Are you sure you want to leave?';
+            });
         });
     </script>
 @endsection

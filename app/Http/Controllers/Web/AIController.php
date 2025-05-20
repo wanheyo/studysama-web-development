@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Models\User;
 use App\Models\Topic;
 use App\Models\UserPoint;
 use Illuminate\Http\Request;
@@ -9,8 +10,8 @@ use App\Models\UserActivityLog;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Container\Attributes\Log;
@@ -588,5 +589,58 @@ class AIController extends Controller
         }
         
         return $grid;
+    }
+
+    public function show_leaderboard()
+    {
+        // Leaderboard: total user XP (general, from user_points table)
+        $userXP = User::select('users.id', 'users.username', 'users.image', 'user_points.xp', 'user_points.level', 'user_points.total_points')
+            ->join('user_points', 'user_points.user_id', '=', 'users.id')
+            ->where('users.status', 1)
+            ->orderByDesc('user_points.xp')
+            ->with('userPoints')
+            ->get();
+
+        // Leaderboard: MCQ activity
+        $mcqLeaderboard = User::select('users.id', 'users.username', 'users.image',
+                DB::raw('SUM(user_activity_logs.xp_earned) as total_xp'),
+                DB::raw('SUM(user_activity_logs.points_earned) as total_points')
+            )
+            ->join('user_activity_logs', 'user_activity_logs.user_id', '=', 'users.id')
+            ->where('user_activity_logs.activity_type', 'mcq')
+            ->where('users.status', 1)
+            ->groupBy('users.id', 'users.username', 'users.image')
+            ->orderByDesc('total_xp') // or orderByDesc('total_points') depending on your preference
+            ->get();
+
+        // Leaderboard: Flashcard activity
+        $flashcardLeaderboard = User::select('users.id', 'users.username', 'users.image',
+                DB::raw('SUM(user_activity_logs.xp_earned) as total_xp'),
+                DB::raw('SUM(user_activity_logs.points_earned) as total_points')
+            )
+            ->join('user_activity_logs', 'user_activity_logs.user_id', '=', 'users.id')
+            ->where('user_activity_logs.activity_type', 'flashcard')
+            ->where('users.status', 1)
+            ->groupBy('users.id', 'users.username', 'users.image')
+            ->orderByDesc('total_xp')
+            ->get();
+
+        // Leaderboard: WSP (Workshop?) activity
+        $wspLeaderboard = User::select('users.id', 'users.username', 'users.image',
+                DB::raw('SUM(user_activity_logs.xp_earned) as total_xp'),
+                DB::raw('SUM(user_activity_logs.points_earned) as total_points')
+            )
+            ->join('user_activity_logs', 'user_activity_logs.user_id', '=', 'users.id')
+            ->where('user_activity_logs.activity_type', 'wsp')
+            ->where('users.status', 1)
+            ->groupBy('users.id', 'users.username', 'users.image')
+            ->orderByDesc('total_xp')
+            ->get();
+
+
+        // dd($userXP, $mcqLeaderboard, $flashcardLeaderboard, $wspLeaderboard);
+
+        // Send all to view
+        return view('ai.leaderboard', compact('userXP', 'mcqLeaderboard', 'flashcardLeaderboard', 'wspLeaderboard'));
     }
 }
