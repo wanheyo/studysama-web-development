@@ -70,95 +70,99 @@
                     <div class="card-header">
                         <h5>Filters</h5>
                     </div>
-                    <form id="filter-form">
-                        <!-- Sort By -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="flush-heading-two">
-                                <button class="accordion-button bg-none p-1" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapse_two" aria-expanded="true" aria-controls="collapse_two">
-                                    <span class="m-0 mt-1">Sort By</span>
-                                </button>
-                            </h2>
-                            <div id="collapse_two" class="accordion-collapse collapse show"
-                                aria-labelledby="flush-heading-two" data-bs-parent="#accordion-flush-sort-by">
-                                <div>
-                                    <label class="check-box m-3">
-                                        <input type="radio" name="sort" value="most_popular">
-                                        <span class="radiomark outline-secondary"></span>
-                                        <span class="text-secondary">Most Popular</span>
-                                    </label>
-                                    <label class="check-box m-3">
-                                        <input type="radio" name="sort" value="least_popular">
-                                        <span class="radiomark outline-secondary"></span>
-                                        <span class="text-secondary">Least Popular</span>
-                                    </label>
-                                    <label class="check-box m-3">
-                                        <input type="radio" name="sort" value="newest">
-                                        <span class="radiomark outline-secondary"></span>
-                                        <span class="text-secondary">Newest</span>
-                                    </label>
-                                    <label class="check-box m-3">
-                                        <input type="radio" name="sort" value="oldest">
-                                        <span class="radiomark outline-secondary"></span>
-                                        <span class="text-secondary">Oldest</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <!-- Topics -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="flush-heading-three">
-                                <button class="accordion-button bg-none p-1" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapse_three" aria-expanded="true" aria-controls="collapse_three">
-                                    <span class="m-0 mt-1">Topics</span>
-                                </button>
-                            </h2>
-                            <div id="collapse_three" class="accordion-collapse collapse show"
-                                aria-labelledby="flush-heading-three" data-bs-parent="#accordion-flush-sort-by">
-                                <div class="accordion-body p-2">
-                                    @foreach ($topics as $topic)
-                                        <div class="p-2 d-flex align-items-center gap-2">
-                                            <label class="check-box">
-                                                <input type="checkbox" name="topics[]" value="{{ $topic->id }}">
-                                                <span class="checkmark outline-secondary ms-2"></span>
+                    <div class="card-body p-0">
+                        <div class="accordion accordion-flush app-accordion accordion-light-primary" id="accordion-flush-sort-by">
+                            <form id="filter-form">
+                                <!-- Sort By -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-heading-two">
+                                        <button class="accordion-button bg-none p-1" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapse_two" aria-expanded="true" aria-controls="collapse_two">
+                                            <span class="m-0 mt-1">Sort By</span>
+                                        </button>
+                                    </h2>
+                                    <div id="collapse_two" class="accordion-collapse collapse show"
+                                        aria-labelledby="flush-heading-two" data-bs-parent="#accordion-flush-sort-by">
+                                        <div>
+                                            <label class="check-box m-3">
+                                                <input type="radio" name="sort" value="most_popular">
+                                                <span class="radiomark outline-secondary"></span>
+                                                <span class="text-secondary">Most Popular</span>
                                             </label>
-                                            <a href="#" class="f-s-15 f-w-500 text-secondary">{{ $topic->desc }}</a>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <!-- Ratings -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="flush-heading-seven">
-                                <button class="accordion-button bg-none p-1" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapse_seven" aria-expanded="true" aria-controls="collapse_seven">
-                                    <span class="m-0 mt-1">Ratings</span>
-                                </button>
-                            </h2>
-                            <div id="collapse_seven" class="accordion-collapse collapse show"
-                                aria-labelledby="flush-heading-seven" data-bs-parent="#accordion-flush-sort-by">
-                                <div class="accordion-body p-2">
-                                    @for ($rating = 1; $rating <= 5; $rating++)
-                                        <div class="p-2 d-flex align-items-center gap-2">
-                                            <label class="check-box">
-                                                <input type="checkbox" name="ratings[]" value="{{ $rating }}">
-                                                <span class="checkmark outline-secondary ms-2"></span>
+                                            <label class="check-box m-3">
+                                                <input type="radio" name="sort" value="least_popular">
+                                                <span class="radiomark outline-secondary"></span>
+                                                <span class="text-secondary">Least Popular</span>
                                             </label>
-                                            {{ $rating }}
-                                            <div class="d-flex align-items-center">
-                                                @for ($i = 0; $i < $rating; $i++)
-                                                    <i class="ti ti-star-filled text-warning"></i>
-                                                @endfor
-                                            </div>
+                                            <label class="check-box m-3">
+                                                <input type="radio" name="sort" value="newest">
+                                                <span class="radiomark outline-secondary"></span>
+                                                <span class="text-secondary">Newest</span>
+                                            </label>
+                                            <label class="check-box m-3">
+                                                <input type="radio" name="sort" value="oldest">
+                                                <span class="radiomark outline-secondary"></span>
+                                                <span class="text-secondary">Oldest</span>
+                                            </label>
                                         </div>
-                                    @endfor
+                                    </div>
                                 </div>
-                            </div>
+                            
+                                <!-- Topics -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-heading-three">
+                                        <button class="accordion-button bg-none p-1" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapse_three" aria-expanded="true" aria-controls="collapse_three">
+                                            <span class="m-0 mt-1">Topics</span>
+                                        </button>
+                                    </h2>
+                                    <div id="collapse_three" class="accordion-collapse collapse show"
+                                        aria-labelledby="flush-heading-three" data-bs-parent="#accordion-flush-sort-by">
+                                        <div class="accordion-body p-2">
+                                            @foreach ($topics as $topic)
+                                                <div class="p-2 d-flex align-items-center gap-2">
+                                                    <label class="check-box">
+                                                        <input type="checkbox" name="topics[]" value="{{ $topic->id }}">
+                                                        <span class="checkmark outline-secondary ms-2"></span>
+                                                    </label>
+                                                    <a href="#" class="f-s-15 f-w-500 text-secondary">{{ $topic->desc }}</a>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                                <!-- Ratings -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-heading-seven">
+                                        <button class="accordion-button bg-none p-1" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapse_seven" aria-expanded="true" aria-controls="collapse_seven">
+                                            <span class="m-0 mt-1">Ratings</span>
+                                        </button>
+                                    </h2>
+                                    <div id="collapse_seven" class="accordion-collapse collapse show"
+                                        aria-labelledby="flush-heading-seven" data-bs-parent="#accordion-flush-sort-by">
+                                        <div class="accordion-body p-2">
+                                            @for ($rating = 1; $rating <= 5; $rating++)
+                                                <div class="p-2 d-flex align-items-center gap-2">
+                                                    <label class="check-box">
+                                                        <input type="checkbox" name="ratings[]" value="{{ $rating }}">
+                                                        <span class="checkmark outline-secondary ms-2"></span>
+                                                    </label>
+                                                    {{ $rating }}
+                                                    <div class="d-flex align-items-center">
+                                                        @for ($i = 0; $i < $rating; $i++)
+                                                            <i class="ti ti-star-filled text-warning"></i>
+                                                        @endfor
+                                                    </div>
+                                                </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
             <!-- Filters end -->
@@ -182,7 +186,7 @@
                                                 </a>
                                                 <ul class="product-links">
                                                     <li>
-                                                        <a href="{{ route('course.course_detail', ['course_id' => $course->id]) }}" 
+                                                        <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}" 
                                                             class="bg-success h-30 w-30 d-flex-center b-r-20">
                                                             <i class="ti ti-eye f-s-18 text-light"></i>
                                                         </a>

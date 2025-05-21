@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\User;
 use App\Models\Course;
-use App\Models\UserCourse;
 use App\Models\UserBadge;
+use App\Models\UserCourse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 
 class CourseController extends Controller
@@ -180,6 +181,7 @@ class CourseController extends Controller
 
     public function course_detail(Request $request, $course_id)
     {
+        $course_id = Crypt::decrypt($course_id);
         // \Log::info('Current user:', ['user' => Auth::user()]);
         // \Log::info('Auth check status:', [
         //     'is_authenticated' => Auth::check(),

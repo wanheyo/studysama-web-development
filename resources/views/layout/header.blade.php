@@ -821,9 +821,11 @@
                         </div>
                     </li>
 
+                    @auth
                     <li class="header-level">
                         <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '0' }}</span>
                     </li>
+                    
 
                     <li class="header-profile">
                         <a aria-controls="profilecanvasRight" class="d-block head-icon"
@@ -956,6 +958,7 @@
                             </div>
                         </div>
                     </li>
+                    @endauth
                 </ul>
             </div>
         </div>

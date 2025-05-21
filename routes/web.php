@@ -45,6 +45,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::get('my_profile', [UserController::class, 'my_profile'])->name('user.my_profile');
         Route::get('edit_profile', [UserController::class, 'show_edit_profile'])->name('user.edit_profile');
         Route::put('edit_profile', [UserController::class, 'edit_profile'])->name('user.edit_profile.put');
+        Route::post('update_follow/{user_followed_id}', [UserController::class, 'update_follow'])->name('user.update_follow');
         Route::post('update_points', [UserController::class, 'update_user_points'])->name('user.update_points');
     });
     
@@ -87,6 +88,8 @@ Route::middleware(['auth:web'])->group(function () {
         Route::get('leaderboard', [AIController::class, 'show_leaderboard'])->name('ai.leaderboard');
     });
 });
+
+Route::get('user/profile/{user_id}/{shared?}', [UserController::class, 'show_profile'])->name('user.profile');
 
 Route::get('/debug-auth', function() {
     return [

@@ -7,16 +7,19 @@ use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Resource;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 
 class LessonController extends Controller
 {
     public function lesson_list(Request $request, $course_id)
     {
+        $course_id = Crypt::decrypt($course_id);
+
         $course = Course::where('id', $course_id)
             ->where('status', 1)
             ->firstOrFail();

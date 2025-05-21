@@ -4,13 +4,15 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\User;
 use App\Models\UserPoint;
-use App\Models\UserActivityLog;
+use App\Models\UserFollow;
 use Illuminate\Http\Request;
+use App\Models\UserActivityLog;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 
@@ -82,7 +84,7 @@ class UserController extends Controller
         return redirect('/sign_in');
     }
 
-    public function my_profile(Request $request)
+    public function my_profile()
     {
         $user = Auth::user();
 
@@ -181,6 +183,121 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'Profile updated successfully');
     }
+
+    public function show_profile(Request $request, $user_id, $shared = 0)
+    {
+        $user_id = Crypt::decrypt($user_id);
+        
+        $user = User::find($user_id);
+
+        if(!$user || $user->status == 0) {
+            abort(404);
+        }
+
+        if ($shared == 0 && Auth::check() && $user_id === Auth::user()->id) {
+            return redirect()->route('user.my_profile');
+        }
+
+        $user_follow = DB::table('user_follow')
+            ->where('user_follower_id', $user->id)
+            ->get();
+
+        $courses = DB::table('courses as c')
+            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id')
+            ->join('users as u', 'uc.user_id', '=', 'u.id')
+            ->where('c.status', 1)
+            ->where('uc.user_id', $user->id)
+            ->distinct()
+            ->select('c.*', 'uc.role_id as role_id')
+            ->get();
+
+        // Users that this user is following (followed users)
+        $following = DB::table('user_follow')
+            ->join('users', 'users.id', '=', 'user_follow.user_followed_id')
+            ->where('user_follow.user_follower_id', $user->id)
+            ->where('user_follow.status', 1)
+            ->select('users.id', 'users.username', 'users.name', 'users.image')
+            ->get();
+
+        // Users who follow this user (followers)
+        $followers = DB::table('user_follow')
+            ->join('users', 'users.id', '=', 'user_follow.user_follower_id')
+            ->where('user_follow.user_followed_id', $user->id)
+            ->where('user_follow.status', 1)
+            ->select('users.id', 'users.username', 'users.name', 'users.image')
+            ->get();
+
+        // dd($user_follow);
+        return view('user.profile', compact('user', 'user_follow', 'courses', 'following', 'followers'));
+    }
+
+    public function update_follow(Request $request, $user_followed_id)
+    {
+        try {
+            $user_followed_id = Crypt::decrypt($user_followed_id);
+            $user = auth()->user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated',
+                ], 401);
+            }
+
+            $user_follow = UserFollow::where('user_follower_id', $user->id)
+                ->where('user_followed_id', $user_followed_id)
+                ->where('status', 1)
+                ->first();
+
+            $user_followed = User::findOrFail($user_followed_id);
+
+            if ($user_follow) {
+                $user_follow->status = 0;
+                $user_follow->updated_at = now();
+                $user_follow->save();
+
+                $user_followed->total_follower -= 1;
+                $user_followed->save();
+
+                return response()->json([
+                    'success' => true,
+                    'following' => false,
+                    'totalFollower' => $user_followed->total_follower,
+                ]);
+            } else {
+                UserFollow::updateOrCreate(
+                    [
+                        'user_follower_id' => $user->id,
+                        'user_followed_id' => $user_followed_id,
+                    ],
+                    [
+                        'status' => 1,
+                        'created_at' => now(),
+                    ]
+                );
+
+                $user_followed->total_follower += 1;
+                $user_followed->save();
+
+                return response()->json([
+                    'success' => true,
+                    'following' => true,
+                    'totalFollower' => $user_followed->total_follower,
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Follow toggle failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Process failed',
+            ], 500);
+        }
+    }
+
 
     function calculateLevelFromXP($xp) {
         // Solve: 100 * (n-1)*n / 2 <= xp

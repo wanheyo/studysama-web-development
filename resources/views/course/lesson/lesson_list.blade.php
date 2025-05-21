@@ -32,7 +32,7 @@
                         <a href="{{ route('course.find_course') }}" class="f-s-14 f-w-500">Find Courses</a>
                     </li>
                     <li>
-                        <a href="{{ route('course.course_detail', ['course_id' => $course->id]) }}" class="f-s-14 f-w-500">Course Details</a>
+                        <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}" class="f-s-14 f-w-500">Course Details</a>
                     </li>
                     <li class="active">
                         <a href="#" class="f-s-14 f-w-500">Lessons</a>

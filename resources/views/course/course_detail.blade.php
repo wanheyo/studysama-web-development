@@ -100,7 +100,7 @@
                                         <a class="btn btn-secondary px-4 py-2" href="" role="button">
                                             Edit Course
                                         </a>
-                                        <a href="{{ route('course.lesson.lesson_list', ['course_id' => $course->id]) }}" class="btn btn-primary">View Course</a>
+                                        <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($course->id)]) }}" class="btn btn-primary">View Course</a>
                                     @else
                                         <form id="join-leave-form" action="{{ route('course.join_leave_course') }}" method="POST" style="display:inline;">
                                             @csrf
@@ -110,7 +110,7 @@
                                             <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
                                                 @if($isJoined)
                                                     <!-- When joined - View Course goes to view route, dropdown has Leave option -->
-                                                    <a href="{{ route('course.lesson.lesson_list', ['course_id' => $course->id]) }}" class="btn btn-primary">View Course</a>
+                                                    <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($course->id)]) }}" class="btn btn-primary">View Course</a>
                                                     
                                                     <div class="btn-group" role="group">
                                                         <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
