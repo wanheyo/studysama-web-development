@@ -19,9 +19,9 @@
                 <ul class="app-line-breadcrumbs mb-3">
                     <li class="">
                         <a href="#" class="f-s-14 f-w-500">
-                                    <span>
-                                      <i class="ph-duotone  ph-stack f-s-16 "></i> Profile
-                                    </span>
+                            <span>
+                                <i class="ph-duotone  ph-stack f-s-16 "></i> Profile
+                            </span>
                         </a>
                     </li>
                     <li class="active">
@@ -34,7 +34,7 @@
 
         <!-- setting-app start -->
         <div class="row">
-            <div class="col-lg-4 col-xxl-3">
+            {{-- <div class="col-lg-4 col-xxl-3">
                 <div class="card">
                     <div class="card-header">
                         <h5>Settings</h5>
@@ -157,9 +157,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
-            <div class="col-lg-8 col-xxl-9">
+            {{-- <div class="col-lg-8 col-xxl-9"> --}}
+            <div class="col-12">
                 <div class="tab-content">
                     <div aria-labelledby="profile-tab" class="tab-pane fade active show"
                          id="profile-tab-pane"
@@ -204,9 +205,9 @@
                                         </script>
                                         <div class="person-details">
                                             <h5 class="f-w-600">{{ auth()->user()->username }}
-                                                <img alt="instagram-check-mark" height="20"
+                                                {{-- <img alt="instagram-check-mark" height="20"
                                                      src="../assets/images/profile-app/01.png"
-                                                     width="20">
+                                                     width="20"> --}}
                                             </h5>
                                             <p>{{ auth()->user()->email }}</p>
                                         </div>
@@ -384,8 +385,8 @@
 
                                             <h5 class="mb-3 text-dark f-w-600 col-8">Social Links</h5>
                                             <div class="col-4 text-end">
-                                                <button type="button" id="add-social-link" class="btn btn-light-primary mb-3">
-                                                    <i class="ti ti-plus me-2"></i> Add Social Link
+                                                <button type="button" id="add-social-link" class="btn btn-light-primary mb-3 icon-btn b-rr-22 rounded">
+                                                    <i class="ti ti-plus"></i>
                                                 </button>
                                             </div>
 
@@ -410,7 +411,7 @@
                                                                     <input type="hidden" class="delete-flag" name="social_links[{{ $i }}][delete]" value="0">
                                                                 </div>
                                                                 <div class="col-md-1">
-                                                                    <button type="button" class="btn btn-danger btn-sm remove-social-link">
+                                                                    <button type="button" class="btn btn-danger icon-btn btn-sm remove-social-link b-r-22 rounded">
                                                                         <i class="ti ti-trash"></i>
                                                                     </button>
                                                                 </div>
@@ -452,7 +453,7 @@
                                                                 <input type="hidden" class="delete-flag" 
                                                                     name="social_links[${linkCount}][delete]" 
                                                                     value="0">
-                                                                <button type="button" class="btn btn-danger btn-sm remove-social-link">
+                                                                <button type="button" class="btn btn-danger icon-btn btn-sm remove-social-link b-r-22 rounded">
                                                                     <i class="ti ti-trash"></i>
                                                                 </button>
                                                             </div>

@@ -1,13 +1,14 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Web\AIController;
+use App\Http\Controllers\Web\MainController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\CourseController;
 use App\Http\Controllers\Web\LessonController;
 use App\Http\Controllers\Web\ResourceController;
-use App\Http\Controllers\Web\AIController;
 
 // Test routes
 Route::get('/test-auth', function () {
@@ -33,12 +34,22 @@ Route::get('/check_username', [UserController::class, 'check_username'])->name('
 // Protected routes
 Route::middleware(['auth:web'])->group(function () {
     // Dashboard
-    Route::get('/', function () {
-        return view('index');
-    })->name('index');
+    // Route::get('/', function () {
+    //     return view('index');
+    // })->name('index');
 
     // Auth
     Route::post('/sign_out', [UserController::class, 'sign_out'])->name('auth.sign_out');
+
+    // Main
+    Route::group(['prefix' => 'main'], function () {
+        Route::get('homepage', [MainController::class, 'homepage'])->name('main.homepage');
+        Route::get('search', [MainController::class, 'search'])->name('main.search');
+
+        Route::group(['prefix' => 'admin'], function () {
+            Route::get('admin_homepage', [MainController::class, 'admin_homepage'])->name('main.admin.homepage');
+        });
+    });
     
     // User
     Route::group(['prefix' => 'user'], function () {
@@ -52,8 +63,11 @@ Route::middleware(['auth:web'])->group(function () {
     // Course
     Route::group(['prefix' => 'course'], function () {
         Route::get('find_course', [CourseController::class, 'find_course'])->name('course.find_course');
+        Route::get('my_course', [CourseController::class, 'my_course'])->name('course.my_course');
         Route::get('add_course', [CourseController::class, 'show_add_course'])->name('course.add_course');
         Route::post('add_course', [CourseController::class, 'add_course'])->name('course.add_course.post');
+        Route::get('edit_course/{course_id}', [CourseController::class, 'show_edit_course'])->name('course.edit_course');
+        Route::post('edit_course/{course_id}', [CourseController::class, 'edit_course'])->name('course.edit_course.post');
         Route::get('course_detail/{course_id}', [CourseController::class, 'course_detail'])->name('course.course_detail');
         Route::post('update_review', [CourseController::class, 'update_review'])->name('course.update_review');
         Route::post('delete_review', [CourseController::class, 'delete_review'])->name('course.delete_review');

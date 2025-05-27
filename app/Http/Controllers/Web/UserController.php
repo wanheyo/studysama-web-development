@@ -37,7 +37,7 @@ class UserController extends Controller
                 ]);
             }
 
-            return redirect()->intended('/');
+            return redirect()->intended(route('main.homepage'));
         }
 
         return back()->withErrors([
@@ -62,7 +62,7 @@ class UserController extends Controller
 
         Auth::login($user); // auto-login after registration
 
-        return redirect()->intended('/');
+        return redirect()->intended(route('main.homepage'));
     }
 
     public function check_username(Request $request)
@@ -84,7 +84,7 @@ class UserController extends Controller
         return redirect('/sign_in');
     }
 
-    public function my_profile()
+    public function my_profile(Request $request)
     {
         $user = Auth::user();
 
@@ -93,16 +93,82 @@ class UserController extends Controller
             ->get();
 
         $courses = DB::table('courses as c')
-            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id')
-            ->join('users as u', 'uc.user_id', '=', 'u.id')
+            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id') // current user's enrollment
+            ->join('user_courses as tutor_uc', function ($join) {
+                $join->on('tutor_uc.course_id', '=', 'c.id')
+                    ->where('tutor_uc.role_id', '=', 1); // get the actual tutor
+            })
+            ->join('users as u', 'tutor_uc.user_id', '=', 'u.id') // get tutor user info
             ->where('c.status', 1)
             ->where('uc.user_id', $user->id)
+            ->select(
+                'c.*',
+                'uc.role_id as role_id', // role of logged-in user
+                'u.username as tutor_username',
+                'u.id as tutor_id',
+                'u.image as tutor_image'
+            )
             ->distinct()
-            ->select('c.*', 'uc.role_id as role_id')
             ->get();
 
+        foreach ($courses as $course) {
+            $course->topics = DB::table('topic_courses as tc')
+                ->join('topics as t', 'tc.topic_id', '=', 't.id')
+                ->where('tc.course_id', $course->id)
+                ->select('t.id', 't.name', 't.desc')
+                ->get();
+        }
+
+        // Users that this user is following (followed users)
+        $following = DB::table('user_follow')
+            ->join('users', 'users.id', '=', 'user_follow.user_followed_id')
+            ->where('user_follow.user_follower_id', $user->id)
+            ->where('user_follow.status', 1)
+            ->select('users.id', 'users.username', 'users.name', 'users.image')
+            ->get();
+
+        // Users who follow this user (followers)
+        $followers = DB::table('user_follow')
+            ->join('users', 'users.id', '=', 'user_follow.user_follower_id')
+            ->where('user_follow.user_followed_id', $user->id)
+            ->where('user_follow.status', 1)
+            ->select('users.id', 'users.username', 'users.name', 'users.image')
+            ->get();
+
+        $user_points = DB::table('user_activity_logs')
+            ->where('user_id', $user->id)
+            ->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->paginate(5);
+
+        if ($request->ajax()) {
+            return view('user.partials.user_activity_log', compact('user_points'))->render();
+        }
+        
+        // Leaderboard: MCQ activity
+        $mcq = User::join('user_activity_logs', 'user_activity_logs.user_id', '=', 'users.id')
+            ->where('user_activity_logs.activity_type', 'mcq')
+            ->where('users.id', $user->id)
+            ->selectRaw('SUM(user_activity_logs.xp_earned) as total_xp, SUM(user_activity_logs.points_earned) as total_points')
+            ->first();
+
+        // Leaderboard: Flashcard activity
+        $flashcard = User::join('user_activity_logs', 'user_activity_logs.user_id', '=', 'users.id')
+            ->where('user_activity_logs.activity_type', 'flashcard')
+            ->where('users.id', $user->id)
+            ->selectRaw('SUM(user_activity_logs.xp_earned) as total_xp, SUM(user_activity_logs.points_earned) as total_points')
+            ->first();
+
+        // Leaderboard: WSP activity
+        $wsp = User::join('user_activity_logs', 'user_activity_logs.user_id', '=', 'users.id')
+            ->where('user_activity_logs.activity_type', 'wsp')
+            ->where('users.id', $user->id)
+            ->selectRaw('SUM(user_activity_logs.xp_earned) as total_xp, SUM(user_activity_logs.points_earned) as total_points')
+            ->first();
+
+
         // dd($user_follow);
-        return view('user.my_profile', compact('user', 'user_follow', 'courses'));
+        return view('user.my_profile', compact('user', 'user_follow', 'courses', 'following', 'followers', 'user_points', 'mcq', 'flashcard', 'wsp'));
     }
 
     public function show_edit_profile(Request $request)
@@ -203,13 +269,31 @@ class UserController extends Controller
             ->get();
 
         $courses = DB::table('courses as c')
-            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id')
-            ->join('users as u', 'uc.user_id', '=', 'u.id')
+            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id') // current user's enrollment
+            ->join('user_courses as tutor_uc', function ($join) {
+                $join->on('tutor_uc.course_id', '=', 'c.id')
+                    ->where('tutor_uc.role_id', '=', 1); // get the actual tutor
+            })
+            ->join('users as u', 'tutor_uc.user_id', '=', 'u.id') // get tutor user info
             ->where('c.status', 1)
             ->where('uc.user_id', $user->id)
+            ->select(
+                'c.*',
+                'uc.role_id as role_id', // role of logged-in user
+                'u.username as tutor_username',
+                'u.id as tutor_id',
+                'u.image as tutor_image'
+            )
             ->distinct()
-            ->select('c.*', 'uc.role_id as role_id')
             ->get();
+
+        foreach ($courses as $course) {
+            $course->topics = DB::table('topic_courses as tc')
+                ->join('topics as t', 'tc.topic_id', '=', 't.id')
+                ->where('tc.course_id', $course->id)
+                ->select('t.id', 't.name', 't.desc')
+                ->get();
+        }
 
         // Users that this user is following (followed users)
         $following = DB::table('user_follow')
@@ -227,8 +311,39 @@ class UserController extends Controller
             ->select('users.id', 'users.username', 'users.name', 'users.image')
             ->get();
 
+        $user_points = DB::table('user_activity_logs')
+            ->where('user_id', $user->id)
+            ->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->paginate(5);
+
+        if ($request->ajax()) {
+            return view('user.partials.user_activity_log', compact('user_points'))->render();
+        }
+        
+        // Leaderboard: MCQ activity
+        $mcq = User::join('user_activity_logs', 'user_activity_logs.user_id', '=', 'users.id')
+            ->where('user_activity_logs.activity_type', 'mcq')
+            ->where('users.id', $user->id)
+            ->selectRaw('SUM(user_activity_logs.xp_earned) as total_xp, SUM(user_activity_logs.points_earned) as total_points')
+            ->first();
+
+        // Leaderboard: Flashcard activity
+        $flashcard = User::join('user_activity_logs', 'user_activity_logs.user_id', '=', 'users.id')
+            ->where('user_activity_logs.activity_type', 'flashcard')
+            ->where('users.id', $user->id)
+            ->selectRaw('SUM(user_activity_logs.xp_earned) as total_xp, SUM(user_activity_logs.points_earned) as total_points')
+            ->first();
+
+        // Leaderboard: WSP activity
+        $wsp = User::join('user_activity_logs', 'user_activity_logs.user_id', '=', 'users.id')
+            ->where('user_activity_logs.activity_type', 'wsp')
+            ->where('users.id', $user->id)
+            ->selectRaw('SUM(user_activity_logs.xp_earned) as total_xp, SUM(user_activity_logs.points_earned) as total_points')
+            ->first();
+
         // dd($user_follow);
-        return view('user.profile', compact('user', 'user_follow', 'courses', 'following', 'followers'));
+        return view('user.profile', compact('user', 'user_follow', 'courses', 'following', 'followers', 'user_points', 'mcq', 'flashcard', 'wsp'));
     }
 
     public function update_follow(Request $request, $user_followed_id)

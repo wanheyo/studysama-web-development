@@ -5,7 +5,7 @@
             <div class="col-md-9 col-12">
                 <ul class="footer-text">
                     <li>
-                        <p class="mb-0">Copyright © 2025 axelit. All rights reserved 💖</p>
+                        <p class="mb-0">Copyright © 2025 StudySama</p>
                     </li>
                     <li><a href="#"> V1.0.0 </a></li>
                 </ul>

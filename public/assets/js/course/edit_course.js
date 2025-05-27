@@ -39,29 +39,45 @@ const pondInput = FilePond.create(
 const dropZone = document.querySelector('#drop-zone');
 const inputFile = document.querySelector('#file-input');
 const previewContainer = document.querySelector('#uploaded_image');
-const agreeCheck = document.querySelector('#agree_check');
+const deleteBtn = document.querySelector('#delete-image-btn');
+const deleteInput = document.querySelector('#delete_image');
 
 function handleFile(file) {
-const isImage = file.type.startsWith("image/");
-const isSizeValid = file.size <= 2 * 1024 * 1024; // 2MB
+    const isImage = file.type.startsWith("image/");
+    const isSizeValid = file.size <= 2 * 1024 * 1024; // 2MB
 
-if (!isImage) {
-    alert("Only image files are allowed.");
-    return;
+    if (!isImage) {
+        alert("Only image files are allowed.");
+        return;
+    }
+
+    if (!isSizeValid) {
+        alert("File size exceeds 2MB limit.");
+        return;
+    }
+
+    const fileURL = URL.createObjectURL(file);
+    previewContainer.innerHTML = `
+        <div>
+        <img src="${fileURL}" class="uploaded-image mb-2" style="max-width: 100%; max-height: 200px; object-fit: contain;" />
+        <p class="mt-2 text-center">${file.name}</p>
+        </div>
+    `;
+    deleteInput.value = 0;
 }
 
-if (!isSizeValid) {
-    alert("File size exceeds 2MB limit.");
-    return;
-}
-
-const fileURL = URL.createObjectURL(file);
-previewContainer.innerHTML = `
-    <div>
-    <img src="${fileURL}" class="uploaded-image mb-2" style="max-width: 100%; max-height: 200px; object-fit: contain;" />
-    <p class="mt-2 text-center">${file.name}</p>
-    </div>
-`;
+if (deleteBtn) {
+    deleteBtn.addEventListener('click', function () {
+        if (confirm('Are you sure you want to delete this image?')) {
+            previewContainer.innerHTML = `
+                <i class="fa-solid fa-cloud-arrow-up me-2 fs-1 mb-3 text-secondary"></i>
+                <span class="fs-5">1920x1080 thumbnail size</span>
+                <span class="fs-6 text-secondary text-center ms-3 me-3">JPEG, PNG or any image formats, up to 2MB</span>
+                <span class="btn btn-lg btn-secondary mt-4">Choose an image</span>
+            `;
+            deleteInput.value = 1;
+        }
+    });
 }
 
 // Click upload

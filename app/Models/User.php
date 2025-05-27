@@ -38,7 +38,7 @@ class User extends Authenticatable implements CanResetPassword
         'last_changed_at',
         'verification_status',
         'status',
-        
+        'role',
     ];
 
     /**
@@ -117,4 +117,20 @@ class User extends Authenticatable implements CanResetPassword
     {
         $this->notify(new \App\Notifications\CustomResetPasswordNotification($token));
     }
+
+    public function isSuperadmin()
+    {
+        return $this->role === 'Superadmin';
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'Admin';
+    }
+
+    public function isUser()
+    {
+        return $this->role === 'User';
+    }
+
 }

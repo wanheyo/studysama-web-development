@@ -149,153 +149,34 @@
 
                     <li class="header-searchbar">
                         <a aria-controls="offcanvasRight" class="d-block head-icon"
-                           data-bs-target="#offcanvasRight" data-bs-toggle="offcanvas"
-                           href="#" role="button">
+                            data-bs-target="#offcanvasRight" data-bs-toggle="offcanvas"
+                            href="#" role="button">
                             <i class="iconoir-search"></i>
                         </a>
 
                         <div aria-labelledby="offcanvasRight"
-                             class="offcanvas offcanvas-end header-searchbar-canvas"
-                             id="offcanvasRight"
-                             tabindex="-1">
+                            class="offcanvas offcanvas-end header-searchbar-canvas"
+                            id="offcanvasRight"
+                            tabindex="-1">
                             <div class="header-searchbar-header">
                                 <div class="d-flex justify-content-between mb-3">
                                     <form action="#" class="app-form app-icon-form w-100">
                                         <div class="position-relative">
-                                            <input aria-label="Search" class="form-control search-filter"
-                                                   placeholder="Search..."
-                                                   type="search">
+                                            <input id="liveSearch" class="form-control search-filter" placeholder="Search..." type="search" autocomplete="off">
                                             <i class="ti ti-search text-dark"></i>
                                         </div>
                                     </form>
-
-                                    <div class="app-dropdown flex-shrink-0">
-                                        <a aria-expanded="false"
-                                           class="h-35 w-35 d-flex-center b-r-15 overflow-hidden bg-light-secondary search-list-avtar ms-2"
-                                           data-bs-auto-close="outside" data-bs-toggle="dropdown"
-                                           href="#"
-                                           role="button">
-                                            <i class="ph-duotone  ph-gear f-s-20"></i>
-                                        </a>
-
-                                        <ul class="dropdown-menu mb-3">
-                                            <li class="dropdown-item mt-2">
-                                                <a href="#">
-                                                    <h6 class="mb-0">Search Settings</h6>
-                                                </a>
-                                            </li>
-                                            <li class="dropdown-item d-flex align-items-center justify-content-between">
-                                                <a href="#">
-                                                    <h6 class="mb-0 text-secondary f-s-14">Safe Search
-                                                        Filtering</h6>
-                                                </a>
-                                                <div class="flex-shrink-0">
-                                                    <div class="form-check form-switch">
-                                                        <input checked
-                                                               class="form-check-input form-check-primary"
-                                                               id="searchSwitch"
-                                                               type="checkbox">
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="dropdown-item d-flex align-items-center justify-content-between">
-                                                <a href="#">
-                                                    <h6 class="mb-0 text-secondary f-s-14">Search
-                                                        Suggestions</h6>
-                                                </a>
-                                                <div class="flex-shrink-0">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input form-check-primary"
-                                                               id="searchSwitch1"
-                                                               type="checkbox">
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="dropdown-item d-flex align-items-center justify-content-between">
-                                                <h6 class="mb-0 text-secondary f-s-14"> Search History</h6>
-                                                <i class="ti ti-message-circle me-3  text-success"></i>
-                                            </li>
-                                            <li class="dropdown-divider"></li>
-                                            <li class="dropdown-item d-flex align-items-center justify-content-between mb-2">
-                                                <a href="#">
-                                                    <h6 class="mb-0 text-dark f-s-14">Custom Search
-                                                        Preferences</h6>
-                                                </a>
-                                                <div class="flex-shrink-0">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input form-check-primary"
-                                                               id="searchSwitch2"
-                                                               type="checkbox">
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
                                 </div>
-                                <p class="mb-0 text-secondary f-s-15 mt-2">Recently Searched Data:</p>
+                                <p class="mb-0 text-secondary f-s-15 mt-2">Search result:</p>
                             </div>
                             <div class="offcanvas-body app-scroll p-0">
                                 <div>
-                                    <ul class="search-list">
-                                        <li class="search-list-item">
-                                            <div
-                                                class="h-35 w-35 d-flex-center b-r-15 overflow-hidden bg-light-primary search-list-avtar">
-                                                <i class="ph-duotone  ph-gear f-s-20"></i>
-                                            </div>
-                                            <div class="search-list-content">
-                                                <a href="{{route('api')}}" target="_blank"><h6
-                                                        class="mb-0 text-dark">user management</h6></a>
-                                                <p class="f-s-13 mb-0 text-secondary">#RA789</p>
-                                            </div>
-                                        </li>
-                                        <li class="search-list-item">
-                                            <div
-                                                class="h-35 w-35 d-flex-center b-r-15 overflow-hidden bg-light-warning search-list-avtar">
-                                                <i class="ph-duotone  ph-projector-screen-chart f-s-20"></i>
-                                            </div>
-                                            <div class="search-list-content">
-                                                <a href="{{route('privacy_policy')}}" target="_blank"><h6
-                                                        class="mb-0 text-dark">data visualization</h6></a>
-                                                <p class="f-s-13 mb-0 text-secondary">#RY810</p>
-                                            </div>
-                                        </li>
-                                        <li class="search-list-item">
-                                            <div
-                                                class="h-35 w-35 d-flex-center b-r-15 overflow-hidden bg-light-danger search-list-avtar">
-                                                <i class="ph-duotone  ph-shield-check f-s-20"></i>
-                                            </div>
-                                            <div class="search-list-content">
-                                                <a href="{{route('terms_condition')}}" target="_blank"><h6
-                                                        class="mb-0 text-dark">security protocols</h6></a>
-                                                <p class="f-s-13 mb-0 text-secondary">#ATR56</p>
-                                            </div>
-                                        </li>
-                                        <li class="search-list-item">
-                                            <div
-                                                class="h-35 w-35 d-flex-center b-r-15 overflow-hidden bg-light-info search-list-avtar">
-                                                <i class="ph-duotone  ph-app-window f-s-20"></i>
-                                            </div>
-                                            <div class="search-list-content">
-                                                <a href="{{route('login')}}" target="_blank"><h6
-                                                        class="mb-0 text-dark">authentication methods</h6>
-                                                </a>
-                                                <p class="f-s-13 mb-0 text-secondary">#YE615</p>
-                                            </div>
-                                        </li>
-                                        <li class="search-list-item">
-                                            <div
-                                                class="h-35 w-35 d-flex-center b-r-15 overflow-hidden bg-light-dark search-list-avtar">
-                                                <i class="ph-duotone  ph-table f-s-20"></i>
-                                            </div>
-                                            <div class="search-list-content">
-                                                <a href="{{route('data_table')}}" target="_blank"><h6
-                                                        class="mb-0 text-dark">Data Table</h6></a>
-                                                <p class="f-s-13 mb-0 text-secondary">#YE615</p>
-                                            </div>
-                                        </li>
+                                    <ul id="searchResults" class="search-list">
+                                        <!-- AJAX results will go here -->
                                     </ul>
                                 </div>
                             </div>
+
                         </div>
                     </li>
 
@@ -656,7 +537,7 @@
                         </div>
                     </li>
 
-                    <li class="header-notification">
+                    {{-- <li class="header-notification">
                         <a aria-controls="notificationcanvasRight"
                            class="d-block head-icon position-relative"
                            data-bs-target="#notificationcanvasRight"
@@ -819,149 +700,224 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
+                    </li> --}}
 
                     @auth
-                    <li class="header-level">
-                        <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '0' }}</span>
-                    </li>
-                    
+                        <li class="header-level">
+                            <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '0' }}</span>
+                        </li>
+                        
 
-                    <li class="header-profile">
-                        <a aria-controls="profilecanvasRight" class="d-block head-icon"
-                           data-bs-target="#profilecanvasRight" data-bs-toggle="offcanvas"
-                           href="#" role="button">
-                            <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark"
-                                 src="{{ asset(auth()->user()->image ? 'storage/uploads/profile_picture/' . auth()->user()->image : '../assets/images/avtar/woman.jpg') }}">
-                        </a>
+                        <li class="header-profile">
+                            <a aria-controls="profilecanvasRight" class="d-block head-icon"
+                            data-bs-target="#profilecanvasRight" data-bs-toggle="offcanvas"
+                            href="#" role="button">
+                                <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark"
+                                    src="{{ asset(auth()->user()->image ? 'storage/uploads/profile_picture/' . auth()->user()->image : '../assets/images/avtar/woman.jpg') }}">
+                            </a>
 
-                        <div aria-labelledby="profilecanvasRight"
-                             class="offcanvas offcanvas-end header-profile-canvas"
-                             id="profilecanvasRight"
-                             tabindex="-1">
-                            <div class="offcanvas-body app-scroll">
-                                <ul class="">
-                                    <li class="d-flex gap-3 mb-3">
-                                        <div class="d-flex-center">
-                                                    <span class="h-45 w-45 d-flex-center b-r-10 position-relative">
-                                                      <img alt="" class="img-fluid b-r-10"
-                                                           src="{{ asset(auth()->user()->image ? 'storage/uploads/profile_picture/' . auth()->user()->image : '../assets/images/avtar/woman.jpg') }}">
-                                                    </span>
-                                        </div>
-                                        <div class="text-center mt-2">
-                                            <h6 class="mb-0"> {{ auth()->user()->username }} <img
-                                                    alt="instagram-check-mark"
-                                                    class="w-20 h-20"
-                                                    src="/assets/images/profile-app/01.png"></h6>
-                                            <p class="f-s-12 mb-0 text-secondary">{{ auth()->user()->email }}</p>
-                                        </div>
-                                    </li>
-
-                                    <li>
-                                        <a class="f-w-500" href="{{route('user.my_profile')}}">
-                                            <i class="iconoir-user-love pe-1 f-s-20"></i> Profile
-                                            Details
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="f-w-500" href="{{route('setting')}}" target="_blank">
-                                            <i class="iconoir-settings pe-1 f-s-20"></i> Settings
-                                        </a>
-                                    </li>
-                                    <li class="app-divider-v dotted py-1"></li>
-                                    <li>
-                                        <div class="app-dropdown dropstart">
-                                            <a aria-expanded="false" class="f-w-500"
-                                               data-bs-toggle="dropdown"
-                                               href="{{route('setting')}}"
-                                               role="button" target="_blank">
-                                                <i class="iconoir-eye-closed pe-1 f-s-20"></i> Hide
-                                                Settings
-                                            </a>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item">Hide Comments</a></li>
-                                                <li><a class="dropdown-item">Advanced comment filtering</a>
-                                                </li>
-                                                <li><a class="dropdown-item">Hide mssage request</a></li>
-                                                <li>
-                                                    <hr class="dropdown-divider">
-                                                </li>
-                                                <li><a class="dropdown-item">Separated link</a></li>
-                                            </ul>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <a class="f-w-500" href="#">
-                                                <i class="iconoir-bell-notification pe-1 f-s-20"></i>
-                                                Notification
-                                            </a>
-                                            <div class="flex-shrink-0">
-                                                <div class="form-check form-switch">
-                                                    <input checked
-                                                           class="form-check-input form-check-primary"
-                                                           id="basicSwitch"
-                                                           type="checkbox">
-                                                </div>
+                            <div aria-labelledby="profilecanvasRight"
+                                class="offcanvas offcanvas-end header-profile-canvas"
+                                id="profilecanvasRight"
+                                tabindex="-1">
+                                <div class="offcanvas-body app-scroll">
+                                    <ul class="">
+                                        <li class="d-flex gap-3 mb-3">
+                                            <div class="d-flex-center">
+                                                <span class="h-45 w-45 d-flex-center b-r-10 position-relative">
+                                                    <img alt="" class="img-fluid b-r-10"
+                                                        src="{{ asset(auth()->user()->image ? 'storage/uploads/profile_picture/' . auth()->user()->image : '../assets/images/avtar/woman.jpg') }}">
+                                                </span>
                                             </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div>
-                                                <a class="f-w-500" href="#">
-                                                    <i class="ph-duotone  ph-detective pe-1 f-s-20"></i>
-                                                    Incognito
+                                            <div class="text-center mt-2">
+                                                <h6 class="mb-0">{{'@' . auth()->user()->username }} 
+                                                    {{-- <img
+                                                        alt="instagram-check-mark"
+                                                        class="w-20 h-20"
+                                                        src="/assets/images/profile-app/01.png"> --}}
+                                                    </h6>
+                                                <p class="f-s-12 mb-0 text-secondary">{{ auth()->user()->email }}</p>
+                                            </div>
+                                        </li>
+
+                                        <li>
+                                            <a class="f-w-500" href="{{route('user.my_profile')}}">
+                                                <i class="iconoir-user-love pe-1 f-s-20"></i> Profile
+                                                Details
+                                            </a>
+                                        </li>
+                                        {{-- <li>
+                                            <a class="f-w-500" href="{{route('setting')}}" target="_blank">
+                                                <i class="iconoir-settings pe-1 f-s-20"></i> Settings
+                                            </a>
+                                        </li>
+                                        <li class="app-divider-v dotted py-1"></li>
+                                        <li>
+                                            <div class="app-dropdown dropstart">
+                                                <a aria-expanded="false" class="f-w-500"
+                                                data-bs-toggle="dropdown"
+                                                href="{{route('setting')}}"
+                                                role="button" target="_blank">
+                                                    <i class="iconoir-eye-closed pe-1 f-s-20"></i> Hide
+                                                    Settings
                                                 </a>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item">Hide Comments</a></li>
+                                                    <li><a class="dropdown-item">Advanced comment filtering</a>
+                                                    </li>
+                                                    <li><a class="dropdown-item">Hide mssage request</a></li>
+                                                    <li>
+                                                        <hr class="dropdown-divider">
+                                                    </li>
+                                                    <li><a class="dropdown-item">Separated link</a></li>
+                                                </ul>
                                             </div>
-                                            <div class="flex-shrink-0">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input form-check-primary"
-                                                           id="incognitoSwitch"
-                                                           type="checkbox">
+                                        </li>
+                                        <li>
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <a class="f-w-500" href="#">
+                                                    <i class="iconoir-bell-notification pe-1 f-s-20"></i>
+                                                    Notification
+                                                </a>
+                                                <div class="flex-shrink-0">
+                                                    <div class="form-check form-switch">
+                                                        <input checked
+                                                            class="form-check-input form-check-primary"
+                                                            id="basicSwitch"
+                                                            type="checkbox">
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </li>
-                                    <li class="app-divider-v dotted py-1"></li>
-                                    <li>
-                                        <a class="f-w-500" href="{{route('faq')}}" target="_blank">
-                                            <i class="iconoir-help-circle pe-1 f-s-20"></i> Help
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="f-w-500" href="{{route('pricing')}}" target="_blank">
-                                            <i class="iconoir-dollar pe-1 f-s-20"></i>
-                                            Pricing
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="mb-0 text-secondary f-w-500" href="{{route('register')}}"
-                                           target="_blank">
-                                            <i class="iconoir-plus pe-1 f-s-20"></i> Add account
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <form method="POST" action="{{ route('auth.sign_out') }}">
-                                            @csrf
-                                            <button type="submit" class="mb-0 btn btn-light-danger btn-sm justify-content-center">
-                                                <i class="ph-duotone ph-sign-out pe-1 f-s-20"></i> Log Out
-                                            </button>
-                                        </form>
-                                        {{-- <a class="mb-0 btn btn-light-danger btn-sm justify-content-center "
-                                           href="{{route('sign_in')}}"
-                                           role="button">
-                                            <i class="ph-duotone  ph-sign-out pe-1 f-s-20"></i> Log Out
-                                        </a> --}}
-                                    </li>
-                                </ul>
+                                        </li>
+                                        <li>
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div>
+                                                    <a class="f-w-500" href="#">
+                                                        <i class="ph-duotone  ph-detective pe-1 f-s-20"></i>
+                                                        Incognito
+                                                    </a>
+                                                </div>
+                                                <div class="flex-shrink-0">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input form-check-primary"
+                                                            id="incognitoSwitch"
+                                                            type="checkbox">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li> --}}
+                                        <li class="app-divider-v dotted py-1"></li>
+                                        {{-- <li>
+                                            <a class="f-w-500" href="{{route('faq')}}" target="_blank">
+                                                <i class="iconoir-help-circle pe-1 f-s-20"></i> Help
+                                            </a>
+                                        </li> --}}
+                                        <li>
+                                            <a class="mb-0 text-secondary f-w-500" href="{{route('register')}}"
+                                            target="_blank">
+                                                <i class="iconoir-plus pe-1 f-s-20"></i> Add account
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <div class="w-100">
+                                                <form method="POST" action="{{ route('auth.sign_out') }}">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-light-danger btn-sm w-100 rounded">
+                                                        <i class="ph-duotone ph-sign-out pe-1 f-s-20"></i> Log Out
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            {{-- <a class="mb-0 btn btn-light-danger btn-sm justify-content-center "
+                                                href="{{route('auth.sign_out')}}"
+                                                role="button">
+                                                <i class="ph-duotone  ph-sign-out pe-1 f-s-20"></i> Log Out
+                                            </a> --}}
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                    </li>
+                        </li>
                     @endauth
                 </ul>
             </div>
         </div>
     </div>
 </header>
+
+<style>
+    .offcanvas.header-profile-canvas {
+        height: 240px !important;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('liveSearch');
+        const resultsContainer = document.getElementById('searchResults');
+
+        function highlightMatches(container, keyword) {
+            if (!keyword) return;
+
+            const regex = new RegExp(`(${keyword})`, 'gi');
+
+            const walk = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+
+            while (walk.nextNode()) {
+                const node = walk.currentNode;
+                const parent = node.parentNode;
+
+                if (node.nodeValue.trim() !== "" && parent) {
+                    const span = document.createElement("span");
+                    span.innerHTML = node.nodeValue.replace(regex, '<span class="text-primary">$1</span>');
+                    parent.replaceChild(span, node);
+                }
+            }
+        }
+
+         // Prevent Enter key from submitting
+        searchInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+            }
+        });
+
+        searchInput.addEventListener('keyup', function () {
+            const query = this.value.trim();
+
+            if (query.length >= 2) {
+                resultsContainer.innerHTML = `
+                    <li class="search-list-item text-center py-3">
+                        <span class="spinner-border text-primary spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="ms-2 text-secondary">Searching...</span>
+                    </li>
+                `;
+
+                fetch(`{{ route('main.search') }}?query=${encodeURIComponent(query)}`)
+                    .then(response => response.text())
+                    .then(data => {
+                        // Safely insert and highlight
+                        resultsContainer.innerHTML = data;
+                        highlightMatches(resultsContainer, query);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        resultsContainer.innerHTML = `
+                            <li class="search-list-item text-center py-3 text-danger">
+                                An error occurred.
+                            </li>
+                        `;
+                    });
+            } else {
+                resultsContainer.innerHTML = '';
+            }
+        });
+    });
+</script>
+
+
+
+
+
 <!-- Header Section ends -->

@@ -15,7 +15,7 @@
                     <div class="col-12 p-0">
                         <div class="login-form-container">
                             <div class="mb-4">
-                                <a class="logo d-inline-block" href="{{route('index')}}">
+                                <a class="logo d-inline-block" href="{{route('main.homepage')}}">
                                     <img src="{{asset('../assets/images/logo/SS_Header_1.png')}}" width="250" alt="#">
                                 </a>
                             </div>
@@ -48,7 +48,7 @@
                                         <label class="form-check-label" for="formCheck1">Remember me</label>
                                     </div>
                                     <div class="mb-3">
-                                        <button type="submit" class="btn btn-primary w-100">Submit</button>
+                                        <button type="submit" class="btn btn-primary w-100 rounded">Submit</button>
                                     </div>
                                     {{-- Rest of the form --}}
                                     <div class="col-12">

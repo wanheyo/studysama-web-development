@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
@@ -118,6 +119,137 @@ class CourseController extends Controller
         return view('course.find_course', compact('courses', 'topics'));
     }
 
+    public function my_course(Request $request)
+    {
+        $user = auth()->user(); // Get the authenticated user
+
+        // Get all active topics
+        $topics = DB::table('topics as t')
+            ->where('t.status', 1)
+            ->select('t.*')
+            ->get();
+
+        // Start building the query
+        // $coursesQuery = DB::table('courses as c')
+        //     ->join('user_courses as uc', function($join) {
+        //         $join->on('uc.course_id', '=', 'c.id')
+        //             ->where('uc.role_id', 1); // Tutors only
+        //     })
+        //     ->join('users as u', 'uc.user_id', '=', 'u.id')
+        //     ->where('c.status', 1)
+        //     ->select([
+        //         'c.*',
+        //         'u.username as tutor_username',
+        //         'u.id as tutor_id',
+        //         'u.image as tutor_image'
+        //     ]);
+
+        // Build query for courses joined by the user
+        $coursesQuery = DB::table('courses as c')
+            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id') // current user's enrollment
+            ->join('user_courses as tutor_uc', function ($join) {
+                $join->on('tutor_uc.course_id', '=', 'c.id')
+                    ->where('tutor_uc.role_id', '=', 1); // get the actual tutor
+            })
+            ->join('users as u', 'tutor_uc.user_id', '=', 'u.id') // get tutor user info
+            ->where('c.status', '!=', 0)
+            ->where('uc.user_id', $user->id)
+            ->select(
+                'c.*',
+                'uc.role_id as role_id', // role of logged-in user
+                'u.username as tutor_username',
+                'u.id as tutor_id',
+                'u.image as tutor_image'
+            )
+            ->distinct();
+
+
+        // Search filter
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $coursesQuery->where(function ($query) use ($searchTerm) {
+                $query->where('c.name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('c.desc', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        // Topic filter
+        if ($request->filled('topics')) {
+            $coursesQuery->whereExists(function ($query) use ($request) {
+                $query->select(DB::raw(1))
+                    ->from('topic_courses as tc')
+                    ->whereColumn('tc.course_id', 'c.id')
+                    ->whereIn('tc.topic_id', $request->topics);
+            });
+        }
+
+        // Rating filter
+        if ($request->filled('ratings')) {
+            $coursesQuery->where(function ($query) use ($request) {
+                foreach ($request->ratings as $rating) {
+                    $query->orWhereBetween('c.average_rating', [$rating, $rating + 0.99]);
+                }
+            });
+        }
+
+        // Sorting
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'most_popular':
+                    $coursesQuery->orderBy('c.total_joined', 'desc');
+                    break;
+                case 'least_popular':
+                    $coursesQuery->orderBy('c.total_joined', 'asc');
+                    break;
+                case 'newest':
+                    $coursesQuery->orderBy('c.created_at', 'desc');
+                    break;
+                case 'oldest':
+                    $coursesQuery->orderBy('c.created_at', 'asc');
+                    break;
+            }
+        } else {
+            $coursesQuery->orderBy('c.created_at', 'desc');
+        }
+
+        // Get the result
+        $courses = $coursesQuery->get();
+
+        // Append topics to each course
+        foreach ($courses as $course) {
+            $course->topics = DB::table('topic_courses as tc')
+                ->join('topics as t', 'tc.topic_id', '=', 't.id')
+                ->where('tc.course_id', $course->id)
+                ->select('t.id', 't.name', 't.desc')
+                ->get();
+        }
+
+        $type = $request->get('type', 'created');
+
+        if ($type == 'created') {
+            $view = view('course.partials.course_created_items', compact('courses'))->render();
+        } else {
+            $view = view('course.partials.course_joined_items', compact('courses'))->render();
+        }
+
+        if ($request->ajax()) {
+            return response()->json([
+                'courses' => $view
+            ]);
+        }
+
+        // For AJAX requests, return partial view
+        // if ($request->ajax()) {
+        //     return response()->json([
+        //         'created_courses' => view('course.partials.course_created_items', compact('courses'))->render(),
+        //         'joined_courses' => view('course.partials.course_joined_items', compact('courses'))->render(),
+        //     ]);
+        // }
+
+        // For normal page load
+        return view('course.my_course', compact('courses', 'topics'));
+    }
+
 
     public function show_add_course(Request $request)
     {
@@ -139,13 +271,13 @@ class CourseController extends Controller
             // 'topic' => 'array',
             // 'topic.*' => 'exists:topics,id',
             'topic' => 'nullable|exists:topics,id',
-            'availability' => 'nullable|in:1,2',
+            // 'availability' => 'nullable|in:1,2',
         ]);
 
         $course = new Course();
         $course->name = $validated['name'];
         $course->desc = $validated['desc'] ?? null;
-        $course->status = $validated['availability'] ?? 1; // Default to public
+        $course->status = 2; // Default to 2 (under review)
 
         // Handle image upload
         if ($request->hasFile('image')) {
@@ -175,9 +307,108 @@ class CourseController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Course added successfully!');
+        return redirect()->route('course.my_course')->with('success', 'Course submitted to review, please wait for approval.');
     }
 
+    public function show_edit_course(Request $request, $course_id)
+    {
+        $course_id = Crypt::decrypt($course_id);
+
+        $course = Course::find($course_id);
+
+        $course->topics = DB::table('topic_courses as tc')
+            ->join('topics as t', 'tc.topic_id', '=', 't.id')
+            ->where('tc.course_id', $course->id)
+            ->select('t.id', 't.name', 't.desc')
+            ->get();
+        
+        $topics = DB::table('topics as t')
+            ->where('t.status', 1)
+            ->select('t.*')
+            ->get();
+
+        // dd($topics);
+        return view('course.edit_course', compact('course', 'topics'));
+    }
+
+    public function edit_course(Request $request, $course_id)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:128',
+            'desc' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            // 'topic' => 'array',
+            // 'topic.*' => 'exists:topics,id',
+            'topic' => 'nullable|exists:topics,id',
+            // 'availability' => 'nullable|in:1,2',
+        ]);
+
+        $course_id = Crypt::decrypt($course_id);
+        $course = Course::find($course_id);
+
+        $course->name = $validated['name'];
+        $course->desc = $validated['desc'] ?? $course->desc;
+        // $course->status = 2; // Default to 2 (under review)
+
+        if ($request->input('delete_image')) {
+            if ($course->image && Storage::disk('public')->exists($course->image)) {
+                Storage::disk('public')->delete($course->image);
+            }
+            $course->image = null;
+        }
+
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+
+            $filename = uniqid() . '.' . $request->file('image')->getClientOriginalExtension();
+            $request->file('image')->storeAs('uploads/course_picture', $filename, 'public');
+
+            if($course->image) {
+                if(Storage::disk('public')->exists($course->image)) {
+                    Storage::disk('public')->delete($course->image);
+                }
+            }
+            
+            $course->image = $filename;
+        }
+
+        $course->updated_at = now();
+        $course->save();
+
+        // Add user courses
+        // DB::table('user_courses')->insert([
+        //     'user_id' => auth()->id(),
+        //     'course_id' => $course->id,
+        //     'role_id' => 1,
+        //     'created_at' => now(),
+        //     'updated_at' => now(),
+        // ]);
+
+        // Attach topic to pivot table
+        if (!empty($validated['topic'])) {
+            $topic_courses = DB::table('topic_courses')
+                ->where('course_id', $course_id)->first();
+
+            if ($topic_courses) {
+                DB::table('topic_courses')
+                    ->where('course_id', $course_id)
+                    ->update([
+                        'topic_id' => $validated['topic'],
+                        'updated_at' => now(),
+                ]);
+            } else {
+                DB::table('topic_courses')->insert([
+                    'topic_id' => $validated['topic'],
+                    'course_id' => $course->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        return redirect()->route('course.my_course')->with('success', 'Course has been updated.');
+    }
 
     public function course_detail(Request $request, $course_id)
     {
@@ -191,7 +422,7 @@ class CourseController extends Controller
 
         // $course = null;
         $course = Course::where('id', $course_id)
-            ->where('status', 1)
+            // ->where('status', 1)
             ->firstOrFail();
 
         $topics = DB::table('topic_courses as tc')

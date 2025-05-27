@@ -1,7 +1,7 @@
 <!-- Menu Navigation starts -->
 <nav>
     <div class="app-logo">
-        <a class="logo d-inline-block" href="{{ route('index') }}">
+        <a class="logo d-inline-block" href="{{ route('main.homepage') }}">
             <img src="{{asset('../assets/images/logo/SS_Header_1.png')}}" alt="#">
         </a>
 
@@ -11,6 +11,23 @@
     </div>
     <div class="app-nav" id="app-simple-bar">
         <ul class="main-nav p-0 mt-2">
+            @if (auth()->user()->isSuperadmin() || auth()->user()->isAdmin())
+                <li class="menu-title">
+                    <span>Admin</span>
+                </li>
+                <li>
+                    <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#dashboard">
+                        <i class="iconoir-home-alt"></i>
+                        dashboard
+                        {{-- <span class="badge text-primary-dark bg-primary-300  badge-notification ms-2">4</span> --}}
+                    </a>
+                    <ul class="collapse" id="dashboard">
+                        <li><a href="{{route('main.admin.homepage')}}">Homepage</a></li>
+                        {{-- <li><a href="{{route('ecommerce_dashboard')}}">Notification</a></li> --}}
+                    </ul>
+                </li>
+            @endif
+            
             <li class="menu-title">
                 <span>Dashboard</span>
             </li>
@@ -18,11 +35,11 @@
                 <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#dashboard">
                     <i class="iconoir-home-alt"></i>
                     dashboard
-                    <span class="badge text-primary-dark bg-primary-300  badge-notification ms-2">4</span>
+                    {{-- <span class="badge text-primary-dark bg-primary-300  badge-notification ms-2">4</span> --}}
                 </a>
                 <ul class="collapse" id="dashboard">
-                    <li><a href="{{route('index')}}">Project</a></li>
-                    <li><a href="{{route('ecommerce_dashboard')}}">Ecommerce</a></li>
+                    <li><a href="{{route('main.homepage')}}">Homepage</a></li>
+                    {{-- <li><a href="{{route('ecommerce_dashboard')}}">Notification</a></li> --}}
                 </ul>
             </li>
             <li>
@@ -32,9 +49,9 @@
                     {{-- <span class="badge text-primary-dark bg-primary-300  badge-notification ms-2">4</span> --}}
                 </a>
                 <ul class="collapse" id="course">
+                    <li><a href="{{route('course.my_course')}}">My Courses</a></li>
                     <li><a href="{{route('course.find_course')}}">Find Courses</a></li>
                     <li><a href="{{route('course.add_course')}}">Add New Course</a></li>
-                    {{-- <li><a href="{{route('ecommerce_dashboard')}}">Ecommerce</a></li> --}}
                 </ul>
             </li>
             <li>

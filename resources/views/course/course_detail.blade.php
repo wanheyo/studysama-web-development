@@ -97,23 +97,22 @@
                                         </form>                                    
                                     @endif --}}
                                     @if($isTutor)
-                                        <a class="btn btn-secondary px-4 py-2" href="" role="button">
+                                        <a class="btn btn-secondary px-4 py-2 rounded" href="{{ route('course.edit_course', ['course_id' => encrypt($course->id)]) }}" role="button">
                                             Edit Course
                                         </a>
-                                        <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($course->id)]) }}" class="btn btn-primary">View Course</a>
+                                        <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($course->id)]) }}" class="btn btn-primary rounded">View Course</a>
                                     @else
                                         <form id="join-leave-form" action="{{ route('course.join_leave_course') }}" method="POST" style="display:inline;">
                                             @csrf
                                             <input type="hidden" name="course_id" value="{{ $course->id }}">
                                             <input type="hidden" name="status" value="{{ $isJoined ? 0 : 1 }}">
                                             
-                                            <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
                                                 @if($isJoined)
                                                     <!-- When joined - View Course goes to view route, dropdown has Leave option -->
-                                                    <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($course->id)]) }}" class="btn btn-primary">View Course</a>
-                                                    
-                                                    <div class="btn-group" role="group">
-                                                        <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                                    <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($course->id)]) }}" class="btn btn-primary rounded">View Course</a>
+
+                                                    <div class="btn-group dropdown-icon-none" role="group">
+                                                        <button type="button" class="btn btn-outline-primary icon-btn b-r-22 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">:</button>
                                                         <ul class="dropdown-menu">
                                                             <li>
                                                                 <button type="submit" class="dropdown-item leave-course-btn">Leave Course</button>
@@ -132,10 +131,27 @@
                                                         </ul>
                                                     </div>
                                                 @endif
-                                            </div>
                                         </form>
                                     @endif
                                 </div>
+                                @if($course->status == 2)
+                                    <div class="col-12 mt-3">
+                                        <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                            role="alert">
+                                            <p class="mb-0">
+                                                <i class="ti ti-alert-triangle f-s-18 me-2"></i> 
+                                                Your course is <span class="badge bg-danger" data-bs-placement="top" data-bs-toggle="tooltip"title="This course is under review by the admin, user cannot view or join it.">
+                                                    Under Review</span> by our team. It will be unavailable to public until it is approved. Please refer to our <a href="" class="text-decoration-underline fw-semibold text-primary">guidelines</a>. 
+                                            </p>
+                                        </div>
+                                        {{-- <div class="form-check d-flex">
+                                            <input class="form-check-input mg-2" type="checkbox" id="flexCheck">
+                                            <label class="form-check-label ms-2" for="flexCheck">
+                                                Agree to submit this course for review
+                                            </label>
+                                        </div> --}}
+                                    </div>
+                                @endif
                             </div>                                                
 
                             <div class="app-divider-v dotted pb-2"></div>
@@ -285,127 +301,18 @@
                                 </div>
                             </form>
                         @else
-                            <div class="alert alert-outline-info">
+                            <div class="alert alert-light-border-warning" role="alert">
                                 @if($isTutor)
                                     <i class="ti ti-info-circle"></i> Tutors cannot review their own courses.
                                 @else
                                     <i class="ti ti-info-circle"></i> You must join the course before submitting a review.
                                 @endif
                             </div>
-                        @endif                   
-
-                        
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function () {
-                                // Toast notifications
-                                @if(session('success'))
-                                    setTimeout(() => {
-                                        Swal.fire({
-                                            icon: 'success',
-                                            title: "{{ session('success') }}",
-                                            toast: true,
-                                            position: 'top-end',
-                                            showConfirmButton: false,
-                                            timer: 3000,
-                                            timerProgressBar: true,
-                                            width: 'auto',
-                                        });
-                                    }, 100);
-                                @endif
-                            
-                                @if(session('error'))
-                                    setTimeout(() => {
-                                        Swal.fire({
-                                            icon: 'error',
-                                            title: "{{ session('error') }}",
-                                            toast: true,
-                                            position: 'top-end',
-                                            showConfirmButton: false,
-                                            timer: 3000,
-                                            timerProgressBar: true,
-                                            width: 'auto',
-                                        });
-                                    }, 100);
-                                @endif
-                            
-                                // Delete review confirmation
-                                document.getElementById('delete-review-btn')?.addEventListener('click', function () {
-                                    Swal.fire({
-                                        title: 'Are you sure?',
-                                        text: "Do you really want to delete your review?",
-                                        icon: 'warning',
-                                        showCancelButton: true,
-                                        confirmButtonColor: '#d33',
-                                        cancelButtonColor: '#6c757d',
-                                        confirmButtonText: 'Yes, delete it!',
-                                        reverseButtons: true
-                                    }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            document.getElementById('action').value = 'delete';
-                                            document.getElementById('review-form').submit();
-                                        }
-                                    });
-                                });
-                        
-                                // Course leaving confirmation
-                                document.querySelectorAll('.leave-course-btn').forEach(button => {
-                                    button.addEventListener('click', function(e) {
-                                        e.preventDefault();
-                                        Swal.fire({
-                                            title: 'Leave Course?',
-                                            text: "Are you sure you want to leave this course?",
-                                            icon: 'question',
-                                            showCancelButton: true,
-                                            confirmButtonColor: '#d33',
-                                            cancelButtonColor: '#6c757d',
-                                            confirmButtonText: 'Yes, leave course',
-                                            reverseButtons: true
-                                        }).then((result) => {
-                                            if (result.isConfirmed) {
-                                                // Find the closest form and submit it
-                                                this.closest('form').submit();
-                                            }
-                                        });
-                                    });
-                                });
-                            
-                                // Star rating system
-                                const stars = document.querySelectorAll('.star-btn');
-                                const ratingInput = document.getElementById('rating-input');
-                            
-                                stars.forEach((star, index) => {
-                                    star.addEventListener('click', () => {
-                                        const rating = star.getAttribute('data-rating');
-                                        ratingInput.value = rating;
-                            
-                                        // Reset all stars
-                                        stars.forEach((s, idx) => {
-                                            const icon = s.querySelector('i');
-                                            if (idx < rating) {
-                                                icon.classList.remove('ti-star', 'text-secondary');
-                                                icon.classList.add('ti-star-filled', 'text-warning');
-                                            } else {
-                                                icon.classList.remove('ti-star-filled', 'text-warning');
-                                                icon.classList.add('ti-star', 'text-secondary');
-                                            }
-                                        });
-                                    });
-                                });
-                            });
-                        </script>                             
+                        @endif                          
                     </div>
                 </div>
             </div>
-
-            <style>
-                /* EXTRA PROTECTION */
-                .swal2-toast {
-                    width: auto !important;
-                    max-width: 100% !important;
-                    padding: 0.625em !important;
-                }
-            </style>
-
+            
             {{-- <div class="col-md-6 col-xxl-3 order-md-1 order-xxl-3"> --}}
             <div class="col-lg-3 order-md-1 order-xxl-3">
                 <div class="card">
@@ -441,8 +348,9 @@
                                     </div>
                                 </div> --}}
                                 <div class="my-2">
-                                    <button type="button" class="btn btn-primary b-r-22" id="followButton"> <i class="ti ti-user"></i>
-                                        View Profile</button>
+                                    {{-- <button type="button" class="btn btn-primary b-r-22" id="followButton"> <i class="ti ti-user"></i>
+                                        View Profile</button> --}}
+                                    <a href="{{ route('user.profile', ['user_id' => encrypt($tutor->id), 'shared' => 0]) }}" class="btn btn-primary rounded">View Profile</a>
                                 </div>
                             </div>
                         </div>
@@ -501,9 +409,117 @@
         </div>
         <!-- Product Details end -->
     </div>
+
+    <style>
+        .swal2-toast {
+            width: auto !important;
+            max-width: 100% !important;
+            padding: 0.625em !important;
+        }
+    </style>
 @endsection
 
 @section('script') 
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Toast notifications
+        @if(session('success'))
+            setTimeout(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: "{{ session('success') }}",
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    width: 'auto',
+                });
+            }, 100);
+        @endif
+    
+        @if(session('error'))
+            setTimeout(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: "{{ session('error') }}",
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    width: 'auto',
+                });
+            }, 100);
+        @endif
+    
+        // Delete review confirmation
+        document.getElementById('delete-review-btn')?.addEventListener('click', function () {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you really want to delete your review?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('action').value = 'delete';
+                    document.getElementById('review-form').submit();
+                }
+            });
+        });
+
+        // Course leaving confirmation
+        document.querySelectorAll('.leave-course-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Leave Course?',
+                    text: "Are you sure you want to leave this course?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, leave course',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Find the closest form and submit it
+                        this.closest('form').submit();
+                    }
+                });
+            });
+        });
+    
+        // Star rating system
+        const stars = document.querySelectorAll('.star-btn');
+        const ratingInput = document.getElementById('rating-input');
+    
+        stars.forEach((star, index) => {
+            star.addEventListener('click', () => {
+                const rating = star.getAttribute('data-rating');
+                ratingInput.value = rating;
+    
+                // Reset all stars
+                stars.forEach((s, idx) => {
+                    const icon = s.querySelector('i');
+                    if (idx < rating) {
+                        icon.classList.remove('ti-star', 'text-secondary');
+                        icon.classList.add('ti-star-filled', 'text-warning');
+                    } else {
+                        icon.classList.remove('ti-star-filled', 'text-warning');
+                        icon.classList.add('ti-star', 'text-secondary');
+                    }
+                });
+            });
+        });
+    });
+</script>   
+
 <!--customizer-->
 <div id="customizer"></div>
 

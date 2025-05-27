@@ -54,21 +54,28 @@
                                     <span class="badge rounded-pill bg-warning badge-notification">
                             10+
                             <span class="visually-hidden">unread messages</span> --}}
-                          </span>
                                 </li>
-                                <li class="tab-link fw-medium f-s-16 f-w-600" data-tab="3"><i
+                                <li class="tab-link fw-medium f-s-16 f-w-600" data-tab="2"><i
                                         class="ti ti-clipboard-data fw-bold"></i> Created Course</li>
-                                <li class="tab-link fw-medium f-s-16 f-w-600" data-tab="4"><i
+                                <li class="tab-link fw-medium f-s-16 f-w-600" data-tab="3"><i
                                         class="ti ti-photo-heart fw-bold"></i> Joined Course</li>
+                                <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="4"><i class="ti ti-users fw-bold"></i>
+                                    Follower</li>
                                 <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="5"><i class="ti ti-users fw-bold"></i>
-                                    Friends</li>
+                                    Following</li>
+                                <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="6"><i class="ti ti-chart-radar fw-bold"></i>
+                                    Level Progression</li>
+                                <li class="app-divider-v dashed p-0 m-2"></li>
+                                <li><i class="ti ti-help fs-5 pe-2"></i><span
+                                        class="flex-grow-1">Help</span>
+                                </li>
                             </ul>
                         </div>
 
                     </div>
                 </div>
 
-                <div class="card d-lg-block d-none">
+                {{-- <div class="card d-lg-block d-none">
                     <div class="card-header">
                         <h5>Friends</h5>
                     </div>
@@ -134,7 +141,7 @@
                             <a href="#" class="btn btn-light-secondary icon-btn b-r-22"> <i class="ti ti-user-check"></i> </a>
                         </div>
                     </div>
-                </div>
+                </div> --}}
 
                 {{-- <div class="card">
                     <div class="card-body">
@@ -192,6 +199,7 @@
             <div class="col-lg-9">
                 <!-- profile content -->
                 <div class="content-wrapper">
+                    
                     <!-- tab 1 -->
                     <div id="tab-1" class="tabs-content active">
                         <div class="profile-content">
@@ -216,9 +224,14 @@
                                             </div>
                                         </div>
                                         <div class="person-details">
-                                            <h5 class="f-w-600">{{auth()->user()->username }}
-                                                <img src="{{asset('../assets/images/profile-app/01.png')}}" class="w-20 h-20" alt="instagram-check-mark">
-                                            </h5>
+                                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                                <h5 class="f-w-600">{{auth()->user()->username }}
+                                                    {{-- <img src="{{asset('../assets/images/profile-app/01.png')}}" class="w-20 h-20" alt="instagram-check-mark"> --}}
+                                                    
+                                                </h5>
+                                                <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '0' }}</span>
+                                            </div>
+                                            
                                             <p>{{auth()->user()->email }}</p>
                                             <div class="details">
                                                 <div>
@@ -241,7 +254,16 @@
                                             <div class="my-2">
                                                 <button type="button" class="btn btn-primary b-r-22" id="editButton" onclick="window.location='{{ route('user.edit_profile') }}'">
                                                     <i class="ti ti-edit"></i> Edit Profile
-                                                </button>                                                
+                                                </button>
+
+                                                <div class="btn-group dropdown-icon-none">
+                                                    <button class="btn btn-light-primary icon-btn b-r-22 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        :
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li><a class="dropdown-item" href="#"><i class="ti ti-share"></i> Share profile</a></li>
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -266,6 +288,10 @@
                                         <div>
                                             <span class="fw-medium"><i class="ti ti-phone"></i> Contact</span>
                                             <span class="float-end f-s-13 text-secondary">{{ auth()->user()->phone_num ?? '-' }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="fw-medium"><i class="ti ti-calendar"></i> Joined at</span>
+                                            <span class="float-end f-s-13 text-secondary">{{ auth()->user()->created_at->diffForHumans() ?? '-' }}</span>
                                         </div>
                                         {{-- <div>
                                             <span class="fw-medium"><i class="ti ti-notebook"></i> Biography</span>
@@ -327,200 +353,112 @@
                     </div>
 
                     <!-- tab 2 -->
-                    <div id="tab-2" class="tabs-content ">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Activity</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul class="app-timeline-box">
-                                    <li class="timeline-section">
-                                        <div class="timeline-icon">
-                              <span class="text-light-primary h-35 w-35 d-flex-center b-r-50">
-                                W
-                              </span>
-                                        </div>
-                                        <div class="timeline-content">
-                                            <div class="f-s-16">
-                                                <span class="text-primary f-s-16 mb-0">Wilson<span class="text-secondary ms-2">added reaction in <span class="badge text-outline-primary me-2">#product website</span>post</span></span>
-                                            </div>
-                                            <p class="f-w-500 text-end mt-2 mb-0">
-                                                <i class="ph ph-clock me-1 align-middle"></i>09.00AM
-                                            </p>
-                                        </div>
-                                    </li>
-                                    <li class="timeline-section">
-                                        <div class="timeline-icon">
-                              <span class="text-light-info h-35 w-35 d-flex-center b-r-50 icon-direction">
-                                <i class="ph-duotone  ph-image f-s-18"></i>
-                              </span>
-                                        </div>
-                                        <div class="timeline-content">
-                                            <p class=" f-s-16 text-info mb-0">2 image files and 2 vedios uploaded</p>
-
-                                            <div class="app-timeline-info-text timeline-border-box me-2 ms-0 mt-3 p-3">
-                                                <div class="row">
-                                                    <div class="col-sm-4">
-                                                        <a href="{{asset('../assets/images/draggable/02.jpg')}}" class="glightbox img-hover-zoom" data-glightbox="type: image; zoomable: true;">
-                                                            <img src="{{asset('../assets/images/draggable/02.jpg')}}" class="w-100 rounded" alt="">
-                                                        </a>
-
-                                                    </div>
-                                                    <div class="col-sm-4">
-                                                        <a href="{{asset('../assets/images/draggable/04.jpg')}}" class="glightbox img-hover-zoom" data-glightbox="type: image; zoomable: true;">
-                                                            <img src="{{asset('../assets/images/draggable/04.jpg')}}" class="w-100 rounded" alt="">
-                                                        </a>
-                                                    </div>
-                                                    <div class="col-sm-4">
-                                                        <a href="{{asset('../assets/images/draggable/01.jpg')}}" class="glightbox img-hover-zoom" data-glightbox="type: image; zoomable: true;">
-                                                            <img src="{{asset('../assets/images/draggable/01.jpg')}}" class="w-100 rounded" alt="">
-                                                        </a>
-
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <p class="f-w-500 text-end mt-2 mb-0">
-                                                <i class="ph ph-clock me-1 align-middle"></i>Updated at 12:45 pm
-                                            </p>
-                                        </div>
-
-
-                                    </li>
-                                    <li class="timeline-section">
-                                        <div class="timeline-icon">
-                              <span class="text-light-success  h-35 w-35 d-flex-center b-r-50">
-                                D
-                              </span>
-                                        </div>
-                                        <div class="timeline-content">
-                                            <div class="f-s-16">
-                                                <span class="text-secondary"><span class="text-success f-s-16 mb-0">Dane Wiza</span> added reaction in <span class="badge text-outline-success me-2">#product website</span>post</span>
-                                            </div>
-                                            <div class="timeline-border-box me-2 ms-0 mt-3">
-                                                <h6 class="mb-0">Need a feature</h6>
-                                                <p class="mb-4 text-secondary">Hello everyone,
-                                                    question on email marketing. What are some
-                                                    tips/tricks to avoid going to promotion
-                                                    spam/ junk for automated marketing emails
-                                                    going to promotion spam/ junk for automated
-                                                    marketing emails</p>
-                                                <span class="badge text-outline-success me-2 timeline-badge">#🙂❤10Reactions</span>
-                                                <span class="badge text-outline-success me-2">#✨12Replies</span>
-                                            </div>
-                                            <p class="f-w-500 text-end mt-2 mb-0">
-                                                <i class="ph ph-clock me-1 align-middle"></i>09.00AM
-                                            </p>
-                                        </div>
-
-
-                                    </li>
-                                    <li class="timeline-section">
-                                        <div class="timeline-icon">
-                              <span class="text-light-danger h-35 w-35 d-flex-center b-r-50">
-                                B
-                              </span>
-                                        </div>
-                                        <div class="timeline-content">
-                                            <div class="f-s-16">
-                                                <span class="text-danger f-s-16 mb-0">Betty Mante <span class="text-secondary ms-2">Request joined <span class="badge text-outline-danger me-2">#reaserchteam</span>groups</span></span>
-                                            </div>
-                                            <div class="mt-3">
-                                                <button type="button"
-                                                        class="btn btn-danger">Accept</button>
-                                                <button type="button"
-                                                        class="btn btn-outline-danger">Rejects</button>
-                                            </div>
-                                            <p class="f-w-500 text-end mt-2 mb-0">
-                                                <i class="ph ph-clock me-1 align-middle"></i>4 days ago
-                                            </p>
-                                        </div>
-
-
-                                    </li>
-                                    <li class="timeline-section">
-                                        <div class="timeline-icon">
-                              <span class="text-light-primary h-35 w-35 d-flex-center b-r-50">
-                                P
-                              </span>
-                                        </div>
-                                        <div class="timeline-content">
-                                            <div class=" f-s-16">
-                                <span class="text-primary f-s-16 mb-0">Pinkie
-                                <span class="text-secondary ms-2">uploaded
-                                  <span class="text-dark f-w-600 me-2 ms-2">2</span>attachment <span class="badge text-outline-primary me-2">#reaserchteam</span></span>
-                                </span>
-                                            </div>
-
-                                            <div class="mt-3">
-                                                <button type="button"
-                                                        class="btn btn-primary">Accept</button>
-                                                <button type="button"
-                                                        class="btn btn-outline-primary">Rejects</button>
-                                            </div>
-                                            <p class="f-w-500 text-end mt-2 mb-0">
-                                                <i class="ph ph-clock me-1 align-middle"></i>4 days ago
-                                            </p>
-                                        </div>
-
-
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- tab 3 -->
-                    <div id="tab-3" class="tabs-content">
+                    <div id="tab-2" class="tabs-content">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center flex-wrap mb-3">
                                 <h5 class="mb-0">Created Courses</h5>
-                                
-                                <form class="app-form app-icon-form d-inline-block " action="#">
-                                    <div class="position-relative">
-                                        <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
-                                        <i class="ti ti-search text-dark"></i>
-                                    </div>
-                                </form>
                             </div>                            
 
                             <div class="card-body">
                                 <div class="row">
                                     @forelse ($courses->where('role_id', 1) as $course)
-                                        <div class="col-12 col-md-6 mb-4">
+                                        <div class="col-xxl-4 col-md-6 col-sm-6 mb-4">
                                             <div class="card overflow-hidden h-100 border border-secondary rounded">
-                                                <div class="card-body p-0">
-                                                    <div class="product-content-box">
-                                                        <div class="product-grid">
-                                                            <div class="product-image">
-                                                                <a href="#" class="image">
-                                                                    <img class="pic-1" src="{{ asset($course->image ? 'storage/uploads/course_picture/' . $course->image : '../assets/images/ecommerce/1280x720.png') }}" alt="">
-                                                                    <img class="images_box" src="{{ asset('../assets/images/ecommerce/1280x720.png') }}" alt="">
-                                                                </a>
-                                                                <ul class="product-links">
-                                                                    <li><a href="{{ route('wishlist') }}" target="_blank" class="bg-danger h-30 w-30 d-flex-center b-r-20"><i class="f-s-18 ti ti-heart text-light"></i></a></li>
-                                                                    <li><a href="{{ route('cart') }}" target="_blank" class="bg-primary h-30 w-30 d-flex-center b-r-20"><i class="ti ti-shopping-cart f-s-18 text-light"></i></a></li>
-                                                                    <li><a href="{{ route('product_details') }}" target="_blank" class="bg-success h-30 w-30 d-flex-center b-r-20"><i class="ti ti-eye f-s-18 text-light"></i></a></li>
-                                                                </ul>
-                                                            </div>
-                                                        </div>
-                                                        <div class="p-3">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <a href="{{ route('product_details') }}" target="_blank" class="m-0 f-s-20 f-w-500 text-truncate" title="{{ $course->name }}">
-                                                                    {{ $course->name }}
-                                                                </a>
-                                                                <p class="text-warning m-0">4.2 <span><i class="ti ti-star-filled"></i></span></p>
-                                                            </div>
-                                                            <p class="text-secondary mb-0" style="min-height: 40px;">
-                                                                {{ $course->desc ?? 'No description available' }}
-                                                            </p>
+                                                <div class="card-body p-0 d-flex flex-column">
+                                                    <!-- Course Thumbnail -->
+                                                    <div class="product-grid">
+                                                        <div class="product-image">
+                                                            <a href="#" class="image">
+                                                                <img class="pic-1"
+                                                                    src="{{ asset($course->image ? 'storage/uploads/course_picture/' . $course->image : '../assets/images/ecommerce/1280x720.png') }}"
+                                                                    alt="Course Thumbnail"
+                                                                    style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover;" />
+                                                            </a>
+                                                            <ul class="product-links">
+                                                                <li>
+                                                                    <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}" 
+                                                                        class="bg-success h-30 w-30 d-flex-center b-r-20">
+                                                                        <i class="ti ti-eye f-s-18 text-light"></i>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
                                                         </div>
                                                     </div>
+
+                                                    <!-- Course Details -->
+                                                    <div class="p-3 flex-grow-1">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}"
+                                                                class="h5 mb-0 text-truncate" style="max-width: 70%;" data-bs-placement="top" data-bs-toggle="tooltip"
+                                                                title="{{ $course->name }}">
+                                                                {{ $course->name }}
+                                                            </a>
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="text-warning fw-bold me-1">
+                                                                    {{ number_format($course->average_rating, 1) }}
+                                                                </span>
+                                                                <i class="ti ti-star-filled text-warning"></i>
+                                                            </div>
+                                                        </div>
+
+                                                        <p class="text-secondary small mb-2"
+                                                        style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;">
+                                                            {{ $course->desc ?? 'No description available' }}
+                                                        </p>
+
+                                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                                            <div>
+                                                                <small class="text-muted">
+                                                                    <i class="ti ti-books"></i>
+                                                                    Topic:
+                                                                </small>
+                                                            </div>
+                                                            @foreach ($course->topics as $topic)
+                                                                <span class="badge bg-primary small">#{{ $topic->name }}</span>
+                                                            @endforeach
+                                                        </div>
+
+                                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                                            <div>
+                                                                <small class="text-muted">
+                                                                    <i class="ti ti-users me-1"></i>
+                                                                    {{ $course->total_joined ?? 0 }} joined
+                                                                </small>
+                                                            </div>
+                                                            <div>
+                                                                <small class="text-muted">
+                                                                    <i class="ti ti-calendar me-1"></i>
+                                                                    {{ $course->created_at ? \Carbon\Carbon::parse($course->created_at)->format('M Y') : 'Jan 2023' }}
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Footer: Tutor Info -->
+                                                    <div class="p-2 border-top bg-primary-light">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <a href="{{ route('user.profile', ['user_id' => encrypt($course->tutor_id), 'shared' => 0]) }}" style="cursor: pointer; text-decoration: none; color: inherit;" class="d-flex align-items-center gap-2">
+                                                                <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/woman.jpg') }}"
+                                                                    class="rounded-circle border"
+                                                                    width="32"
+                                                                    height="32"
+                                                                    style="object-fit: cover;"
+                                                                    alt="Tutor Avatar">
+                                                                <div class="text-truncate">
+                                                                    <small class="text-muted d-block">Tutor</small>
+                                                                    <span class="fw-semibold text-truncate d-block" style="max-width: 150px;">
+                                                                        {{ $course->tutor_username ?? 'Null' }}
+                                                                    </span>
+                                                                </div>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+
                                                 </div>
                                             </div>
                                         </div>
                                     @empty
-                                        <div class="col-12 text-center">
+                                        <div class="col-12 text-center h-50">
                                             <p class="text-secondary">No courses found.</p>
                                         </div>
                                     @endforelse
@@ -530,60 +468,164 @@
                     </div>
 
 
-                    <!-- tab 4 -->
-                    <div id="tab-4" class="tabs-content">
+                    <!-- tab 3 -->
+                    <div id="tab-3" class="tabs-content">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center flex-wrap mb-3">
                                 <h5 class="mb-0">Joined Courses</h5>
-                                
-                                <form class="app-form app-icon-form d-inline-block " action="#">
-                                    <div class="position-relative">
-                                        <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
-                                        <i class="ti ti-search text-dark"></i>
-                                    </div>
-                                </form>
                             </div>                            
 
                             <div class="card-body">
                                 <div class="row">
                                     @forelse ($courses->where('role_id', 3) as $course)
-                                        <div class="col-12 col-md-6 mb-4">
+                                        <div class="col-xxl-4 col-md-6 col-sm-6 mb-4">
                                             <div class="card overflow-hidden h-100 border border-secondary rounded">
-                                                <div class="card-body p-0">
-                                                    <div class="product-content-box">
-                                                        <div class="product-grid">
-                                                            <div class="product-image">
-                                                                <a href="#" class="image">
-                                                                    <img class="pic-1" src="{{ asset($course->image ? 'storage/uploads/course_picture/' . $course->image : '../assets/images/ecommerce/1280x720.png') }}" alt="">
-                                                                    <img class="images_box" src="{{ asset('../assets/images/ecommerce/1280x720.png') }}" alt="">
-                                                                </a>
-                                                                <ul class="product-links">
-                                                                    <li><a href="{{ route('wishlist') }}" target="_blank" class="bg-danger h-30 w-30 d-flex-center b-r-20"><i class="f-s-18 ti ti-heart text-light"></i></a></li>
-                                                                    <li><a href="{{ route('cart') }}" target="_blank" class="bg-primary h-30 w-30 d-flex-center b-r-20"><i class="ti ti-shopping-cart f-s-18 text-light"></i></a></li>
-                                                                    <li><a href="{{ route('product_details') }}" target="_blank" class="bg-success h-30 w-30 d-flex-center b-r-20"><i class="ti ti-eye f-s-18 text-light"></i></a></li>
-                                                                </ul>
-                                                            </div>
-                                                        </div>
-                                                        <div class="p-3">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <a href="{{ route('product_details') }}" target="_blank" class="m-0 f-s-20 f-w-500 text-truncate" title="{{ $course->name }}">
-                                                                    {{ $course->name }}
-                                                                </a>
-                                                                <p class="text-warning m-0">4.2 <span><i class="ti ti-star-filled"></i></span></p>
-                                                            </div>
-                                                            <p class="text-secondary mb-0" style="min-height: 40px;">
-                                                                {{ $course->desc ?? 'No description available' }}
-                                                            </p>
+                                                <div class="card-body p-0 d-flex flex-column">
+                                                    <!-- Course Thumbnail -->
+                                                    <div class="product-grid">
+                                                        <div class="product-image">
+                                                            <a href="#" class="image">
+                                                                <img class="pic-1"
+                                                                    src="{{ asset($course->image ? 'storage/uploads/course_picture/' . $course->image : '../assets/images/ecommerce/1280x720.png') }}"
+                                                                    alt="Course Thumbnail"
+                                                                    style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover;" />
+                                                            </a>
+                                                            <ul class="product-links">
+                                                                <li>
+                                                                    <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}" 
+                                                                        class="bg-success h-30 w-30 d-flex-center b-r-20">
+                                                                        <i class="ti ti-eye f-s-18 text-light"></i>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
                                                         </div>
                                                     </div>
+
+                                                    <!-- Course Details -->
+                                                    <div class="p-3 flex-grow-1">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}"
+                                                                class="h5 mb-0 text-truncate" style="max-width: 70%;" data-bs-placement="top" data-bs-toggle="tooltip"
+                                                                title="{{ $course->name }}">
+                                                                {{ $course->name }}
+                                                            </a>
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="text-warning fw-bold me-1">
+                                                                    {{ number_format($course->average_rating, 1) }}
+                                                                </span>
+                                                                <i class="ti ti-star-filled text-warning"></i>
+                                                            </div>
+                                                        </div>
+
+                                                        <p class="text-secondary small mb-2"
+                                                        style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;">
+                                                            {{ $course->desc ?? 'No description available' }}
+                                                        </p>
+
+                                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                                            <div>
+                                                                <small class="text-muted">
+                                                                    <i class="ti ti-books"></i>
+                                                                    Topic:
+                                                                </small>
+                                                            </div>
+                                                            @foreach ($course->topics as $topic)
+                                                                <span class="badge bg-primary small">#{{ $topic->name }}</span>
+                                                            @endforeach
+                                                        </div>
+
+                                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                                            <div>
+                                                                <small class="text-muted">
+                                                                    <i class="ti ti-users me-1"></i>
+                                                                    {{ $course->total_joined ?? 0 }} joined
+                                                                </small>
+                                                            </div>
+                                                            <div>
+                                                                <small class="text-muted">
+                                                                    <i class="ti ti-calendar me-1"></i>
+                                                                    {{ $course->created_at ? \Carbon\Carbon::parse($course->created_at)->format('M Y') : 'Jan 2023' }}
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Footer: Tutor Info -->
+                                                    <div class="p-2 border-top bg-primary-light">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <a href="{{ route('user.profile', ['user_id' => encrypt($course->tutor_id), 'shared' => 0]) }}" style="cursor: pointer; text-decoration: none; color: inherit;" class="d-flex align-items-center gap-2">
+                                                                <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/woman.jpg') }}"
+                                                                    class="rounded-circle border"
+                                                                    width="32"
+                                                                    height="32"
+                                                                    style="object-fit: cover;"
+                                                                    alt="Tutor Avatar">
+                                                                <div class="text-truncate">
+                                                                    <small class="text-muted d-block">Tutor</small>
+                                                                    <span class="fw-semibold text-truncate d-block" style="max-width: 150px;">
+                                                                        {{ $course->tutor_username ?? 'Null' }}
+                                                                    </span>
+                                                                </div>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+
                                                 </div>
                                             </div>
                                         </div>
                                     @empty
-                                        <div class="col-12 text-center">
+                                        <div class="col-12 text-center h-50">
                                             <p class="text-secondary">No courses found.</p>
                                         </div>
                                     @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- tab 4 -->
+                    <div id="tab-4" class="tabs-content">
+                        <div class="row profile-friend-box">
+                            <div class="col-12">
+                                <div class="card equal-card">
+                                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap mb-3">
+                                        <h5>Follower</h5>
+                                        <h4 class="text-primary">{{ auth()->user()->total_follower }}</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="friend-list">
+                                            @forelse ($followers as $follower)
+                                                <li class="d-flex align-items-center position-relative justify-content-between">
+                                                    {{-- Profile Link Section --}}
+                                                    <div class="d-flex align-items-center gap-2" style="text-decoration: none; color: inherit;">
+                                                        <a href="{{ route('user.profile', ['user_id' => encrypt($follower->id), 'shared' => 0]) }}" class="d-flex align-items-center">
+                                                            <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-relative bg-danger" style="width: 50px; height: 50px;">
+                                                                <img src="{{ $follower->image 
+                                                                            ? asset('storage/uploads/profile_picture/' . $follower->image) 
+                                                                            : asset('assets/images/avtar/1.png') }}" alt="image" class="img-fluid">
+                                                            </div>
+                                                            <div class="flex-grow-1 ms-3">
+                                                                <h6 class="mb-0 fw-medium text-ellipsis">{{ '@' . $follower->username }}</h6>
+                                                                <p class="text-muted mb-0">{{ $follower->name }}</p>
+                                                            </div>
+                                                        </a>
+                                                    </div>
+
+                                                    {{-- Follow Button --}}
+                                                    {{-- <form method="POST" action="{{ route('user.update_follow', ['user_followed_id' => Crypt::encrypt($follower->id)]) }}">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-primary b-r-5 me-2 d-flex align-items-center">
+                                                            <i class="ti ti-user-check me-2"></i><span>Follow</span>
+                                                        </button>
+                                                    </form> --}}
+                                                </li>
+                                            @empty
+                                                <div class="col-12 text-center h-50">
+                                                    <p class="text-secondary">No followers found.</p>
+                                                </div>
+                                            @endforelse
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -593,268 +635,255 @@
                     <div id="tab-5" class="tabs-content">
                         <div class="row profile-friend-box">
                             <div class="col-12">
-                                <div class="row">
+                                <div class="card equal-card">
+                                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap mb-3">
+                                        <h5>Following</h5>
+                                        <h4 class="text-primary">{{ $user_follow->where('status', 1)->count() }}</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="friend-list">
+                                            @forelse ($following as $following)
+                                                <li class="d-flex align-items-center position-relative justify-content-between">
+                                                    {{-- Profile Link Section --}}
+                                                    <div class="d-flex align-items-center gap-2" style="text-decoration: none; color: inherit;">
+                                                        <a href="{{ route('user.profile', ['user_id' => encrypt($following->id), 'shared' => 0]) }}" class="d-flex align-items-center">
+                                                            <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-relative bg-danger" style="width: 50px; height: 50px;">
+                                                                <img src="{{ $following->image 
+                                                                            ? asset('storage/uploads/profile_picture/' . $following->image) 
+                                                                            : asset('assets/images/avtar/1.png') }}" alt="image" class="img-fluid">
+                                                            </div>
+                                                            <div class="flex-grow-1 ms-3">
+                                                                <h6 class="mb-0 fw-medium text-ellipsis">{{ '@' . $following->username }}</h6>
+                                                                <p class="text-muted mb-0">{{ $following->name }}</p>
+                                                            </div>
+                                                        </a>
+                                                    </div>
 
-                                    <div class="col-xxl-6 box-col">
-                                        <div class="card friend-list-card">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="h-45 w-45 d-flex-center b-r-50 overflow-hidden bg-dark position-absolute">
-                                                        <img src="{{asset('../assets/images/avtar/2.png')}}" alt="image" class="img-fluid">
-                                                    </div>
-                                                    <div class="flex-grow-1 mg-s-55">
-                                                        <div class="f-w-500">Fleta Walsh</div>
-                                                        <div class="text-muted f-s-12">Wed Developer</div>
-                                                    </div>
-                                                    <a href="{{route('chat')}}" target="_blank" class="btn btn-light-success icon-btn b-r-22"> <i class="ti ti-brand-hipchat"></i> </a>
+                                                    {{-- Follow Button --}}
+                                                    {{-- <form method="POST" action="{{ route('user.update_follow', ['user_followed_id' => Crypt::encrypt($following->id)]) }}">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-primary b-r-5 me-2 d-flex align-items-center">
+                                                            <i class="ti ti-user-check me-2"></i><span>Follow</span>
+                                                        </button>
+                                                    </form> --}}
+                                                </li>
+                                            @empty
+                                                <div class="col-12 text-center h-50">
+                                                    <p class="text-secondary">No following found.</p>
                                                 </div>
-                                                <div class="mt-4 friend-list-content">
-                                                    <p class="mb-0">
-                                                        Web Developer 👩‍💼 at <span class="text-primary f-w-500">@TechFirm</span>. Building innovative solutions for <span class="text-primary f-w-500">@PersonalProject</span>  in my free 🕐 time.
-                                                    </p>
-                                                    <div class="app-divider-v dashed m-0 py-3"></div>
-                                                    <p class="f-s-16 text-secondary mb-0"><span class="text-dark f-w-500">14k</span> Follower <span class="text-dark f-w-500">8k</span> Following</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-xxl-6 box-col">
-                                        <div class="card friend-list-card">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="h-45 w-45 d-flex-center b-r-50 overflow-hidden bg-primary position-absolute">
-                                                        <img src="{{asset('../assets/images/avtar/16.png')}}" alt="image" class="img-fluid">
-                                                    </div>
-                                                    <div class="flex-grow-1 mg-s-55">
-                                                        <div class="fw-medium"> Bette Hagenes</div>
-                                                        <div class="text-muted f-s-12">Wed Designer</div>
-                                                    </div>
-                                                    <a href="{{route('chat')}}" target="_blank" class="btn btn-light-success icon-btn b-r-22"> <i class="ti ti-brand-hipchat"></i> </a>
-                                                </div>
-                                                <div class="mt-4 friend-list-content">
-                                                    <p class="mb-0">
-                                                        "Transforming ideas into visually stunning 💻 websites for <span class="text-primary f-w-500">@FreelanceProject</span> during my off hours."
-                                                    </p>
-                                                    <div class="app-divider-v dashed m-0 py-3"></div>
-                                                    <p class="f-s-16 text-secondary mb-0"><span class="text-dark f-w-500">14k</span> Follower <span class="text-dark f-w-500">8k</span> Following</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-xxl-6 box-col">
-                                        <div class="card friend-list-card equal-card">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="h-45 w-45 d-flex-center b-r-50 overflow-hidden bg-warning position-absolute">
-                                                        <img src="{{asset('../assets/images/avtar/1.png')}}" alt="image" class="img-fluid">
-                                                    </div>
-                                                    <div class="flex-grow-1 mg-s-55">
-                                                        <div class="fw-medium"> Heli Walsh</div>
-                                                        <div class="text-muted f-s-12">UI/UX designer</div>
-                                                    </div>
-                                                    <a href="{{route('chat')}}" target="_blank" class="btn btn-light-success icon-btn b-r-22"> <i class="ti ti-brand-hipchat"></i> </a>
-                                                </div>
-                                                <div class="mt-3 friend-list-content">
-                                                    <p class="mb-0">
-                                                        "Crafting intuitive experiences, one  pixel at a time 📏📈."
-                                                    </p>
-                                                    <div class="app-divider-v dashed m-0 py-3"></div>
-                                                    <p class="f-s-16 text-secondary mb-0"><span class="text-dark f-w-500">14k</span> Follower <span class="text-dark f-w-500">8k</span> Following</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-xxl-6 box-col">
-                                        <div class="card friend-list-card">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="h-45 w-45 d-flex-center b-r-50 overflow-hidden bg-danger  position-absolute">
-                                                        <img src="{{asset('../assets/images/avtar/10.png')}}" alt="image" class="img-fluid">
-                                                    </div>
-                                                    <div class="flex-grow-1 mg-s-55">
-                                                        <div class="fw-medium"> Lenora</div>
-                                                        <div class="text-muted f-s-12">React Developer</div>
-                                                    </div>
-                                                    <a href="{{route('chat')}}" target="_blank" class="btn btn-light-success icon-btn b-r-22"> <i class="ti ti-brand-hipchat"></i> </a>
-                                                </div>
-                                                <div class="mt-3 friend-list-content">
-                                                    <p class="mb-0">
-                                                        "Crafting dynamic, responsive, and efficient user interfaces with the ⚡ power of React."
-                                                    </p>
-                                                    <div class="app-divider-v dashed m-0 py-3"></div>
-                                                    <p class="f-s-16 text-secondary mb-0"><span class="text-dark f-w-500">14k</span> Follower <span class="text-dark f-w-500">8k</span> Following</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="card equal-card">
-                                            <div class="card-header">
-                                                <h5>Friends Requests</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <ul class="friend-list">
-                                                    <li class="d-flex align-items-center position-relative">
-                                                        <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-absolute bg-danger">
-                                                            <img src="{{asset('../assets/images/avtar/1.png')}}" alt="image" class="img-fluid">
-                                                        </div>
-                                                        <div class="flex-grow-1 mg-s-50">
-                                                            <h6 class="mb-0 fw-medium text-ellipsis"> @Bette</h6>
-                                                            <p class="text-muted mb-0">Web Developer</p>
-                                                        </div>
-                                                        <a href="#" class="btn btn-primary b-r-5 me-2"> <i class="ti ti-user-check me-2"></i><span>Follow</span> </a>
-                                                        <a href="#" class="btn btn-danger b-r-5"> <i class="ti ti-user-x me-2"></i><span>Remove</span>
-                                                        </a>
-
-                                                    </li>
-                                                    <li class="d-flex align-items-center mt-3 position-relative">
-                                                        <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-absolute bg-success">
-                                                            <img src="{{asset('../assets/images/avtar/10.png')}}" alt="image" class="img-fluid">
-                                                        </div>
-                                                        <div class="flex-grow-1 mg-s-50">
-                                                            <h6 class="mb-0 fw-medium  text-ellipsis"> @Fleta</h6>
-                                                            <p class="text-muted mb-0">Web Designer</p>
-                                                        </div>
-                                                        <a href="#" class="btn btn-primary b-r-5 me-2"> <i class="ti ti-user-check me-2"></i><span>Follow</span> </a>
-                                                        <a href="#" class="btn btn-danger b-r-5"> <i class="ti ti-user-x me-2"></i><span>Remove</span>
-                                                        </a>
-                                                    </li>
-                                                    <li class="d-flex align-items-center mt-3 position-relative">
-                                                        <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-absolute bg-secondary">
-                                                            <img src="{{asset('../assets/images/avtar/14.png')}}" alt="image" class="img-fluid">
-                                                        </div>
-                                                        <div class="flex-grow-1 mg-s-50">
-                                                            <h6 class="mb-0 fw-medium  text-ellipsis"> @Lenora</h6>
-                                                            <p class="text-muted mb-0">UI/UX designer</p>
-                                                        </div>
-                                                        <a href="#" class="btn btn-primary b-r-5 me-2"> <i class="ti ti-user-check me-2"></i><span>Follow</span> </a>
-                                                        <a href="#" class="btn btn-danger b-r-5"> <i class="ti ti-user-x me-2"></i><span>Remove</span>
-                                                        </a>
-                                                    </li>
-                                                    <li class="d-flex align-items-center mt-3 position-relative">
-                                                        <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-absolute bg-warning">
-                                                            <img src="{{asset('../assets/images/avtar/12.png')}}" alt="image" class="img-fluid">
-                                                        </div>
-                                                        <div class="flex-grow-1 mg-s-50">
-                                                            <h6 class="mb-0 fw-medium text-ellipsis"> @Olive </h6>
-                                                            <p class="text-muted mb-0"> Developer</p>
-                                                        </div>
-                                                        <a href="#" class="btn btn-primary b-r-5 me-2"> <i class="ti ti-user-check me-2"></i><span>Follow</span> </a>
-                                                        <a href="#" class="btn btn-danger b-r-5"> <i class="ti ti-user-x me-2"></i><span>Remove</span>
-                                                        </a>
-                                                    </li>
-                                                    <li class="d-flex align-items-center mt-3 position-relative">
-                                                        <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-absolute bg-primary">
-                                                            <img src="{{asset('../assets/images/avtar/2.png')}}" alt="image" class="img-fluid">
-                                                        </div>
-                                                        <div class="flex-grow-1 mg-s-50">
-                                                            <h6 class="mb-0 fw-medium text-ellipsis"> @Mason</h6>
-                                                            <p class="text-muted mb-0"> Developer</p>
-                                                        </div>
-                                                        <a href="#" class="btn btn-primary b-r-5 me-2"> <i class="ti ti-user-check me-2"></i><span>Follow</span> </a>
-                                                        <a href="#" class="btn btn-danger b-r-5"> <i class="ti ti-user-x me-2"></i><span>Remove</span>
-                                                        </a>
-                                                    </li>
-
-                                                </ul>
-                                            </div>
-                                        </div>
+                                            @endforelse
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- tab 6 -->
+                    <div id="tab-6" class="tabs-content ">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <h5>Level Progression</h5>
+                                    {{-- <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '0' }} | {{ auth()->user()->userPoints?->xp ?? '0' }} XP</span> --}}
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-center align-items-center px-lg-5 px-3 py-3 gap-5 mb-3">
+                                <div class="text-center">
+                                    <p class="text-secondary">Level</p>
+                                    <h4 class="text-primary">{{ auth()->user()->userPoints?->level ?? '0' }}</h4>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-secondary">Total XP</p>
+                                    <h4 class="text-primary">{{ auth()->user()->userPoints?->xp ?? '0' }}</h4>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-secondary">Total Points</p>
+                                    <h4 class="text-primary">{{ auth()->user()->userPoints?->total_points ?? '0' }}</h4>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-secondary">Streak</p>
+                                    <h4 class="text-primary">{{ auth()->user()->userPoints?->current_streak ?? '0' }}</h4>
+                                </div>
+                            </div>
+
+                            @php
+                                function xpForLevel($level) {
+                                    return 100 * ($level - 1) * $level / 2;
+                                }
+
+                                function formatNumber($n) {
+                                    if ($n >= 1e9) return number_format($n / 1e9, 1) . 'b';
+                                    if ($n >= 1e6) return number_format($n / 1e6, 1) . 'm';
+                                    if ($n >= 1e3) return number_format($n / 1e3, 1) . 'k';
+                                    return $n;
+                                }
+
+                                $userPoints = auth()->user()->userPoints;
+
+                                $currentXP = $userPoints->xp ?? 0;
+                                $currentLevel = $userPoints->level ?? 0;
+
+                                $nextLevel = $currentLevel + 1;
+                                $xpToNextLevel = xpForLevel($nextLevel) - $currentXP;
+                                $xpForNextLevel = $currentXP + $xpToNextLevel;
+                                $xpForCurrentLevel = $xpForNextLevel - (100 * ($currentLevel - 1) * $currentLevel / 2);
+
+                                $totalXPRequired = $currentXP + $xpToNextLevel;
+                                $progressPercent = $totalXPRequired > 0
+                                    ? min(round(($currentXP / $totalXPRequired) * 100), 100)
+                                    : 0;
+                            @endphp
+
+                            <div class="card-body">
+                                <div class="col-12 d-flex align-items-center gap-2 mb-3">
+                                    <span>Lvl {{ formatNumber($currentLevel) }} ({{ formatNumber($xpForCurrentLevel) }} XP)</span>
+                                    <div class="progress flex-grow-1 mx-2" style="height: 20px; min-width: 150px;">
+                                        <div class="progress-bar bg-success progress-bar-striped" 
+                                            role="progressbar" 
+                                            style="width: {{ $progressPercent }}%;" 
+                                            aria-valuenow="{{ $progressPercent }}" 
+                                            aria-valuemin="0" 
+                                            aria-valuemax="100">
+                                            {{ $progressPercent }}% ({{ formatNumber($currentXP) }} XP)
+                                        </div>
+                                    </div>
+                                    <span>Lvl {{ formatNumber($nextLevel) }} ({{ formatNumber($xpForNextLevel) }} XP)</span>
+                                </div>
+                                @if( $user->userPoints )
+                                    <div id="pie1" class="mt-3 mb-3"></div>
+                                @else
+                                    <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                        role="alert">
+                                        <p class="mb-0">
+                                            <i class="ti ti-alert-triangle f-s-18 me-2"></i>No activity data available. Please complete some activities to see your progress.
+                                        </p>
+                                        {{-- <i class="ti ti-x" data-bs-dismiss="alert"></i> --}}
+                                    </div>
+
+                                @endif
+
+                                <h6 class="text-muted">Recent Activity</h6>
+
+                                <div id="user-points-container">
+                                    @include('user.partials.user_activity_log')
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            {{-- <div class="col-lg-4 col-xxl-3 col-box-4 order-lg--1">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="profile-container">
-                            <div class="image-details">
-                                <div class="profile-image"></div>
-                                <div class="profile-pic">
-                                    <div class="avatar-upload">
-                                        <div class="avatar-preview">
-                                            <div id="imgPreview">
-                                                <img alt="avatar" class="b-r-50 h-100 w-100 object-cover rounded-circle"
-                                                     src="{{ auth()->user()->image 
-                                                        ? asset('storage/uploads/profile_picture/' . auth()->user()->image) 
-                                                        : asset('../assets/images/avtar/woman.jpg') }}">
-                                            </div>
-                                        </div>                                        
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="person-details">
-                                <h5 class="f-w-600">{{ auth()->user()->name }}
-                                    <img src="{{asset('../assets/images/profile-app/01.png')}}" class="w-20 h-20" alt="instagram-check-mark">
-                                </h5>
-                                <p>{{'@' . auth()->user()->username }}</p>
-                                <div class="details">
-                                    <div>
-                                        <h4 class="text-primary">{{ auth()->user()->total_follower }}</h4>
-                                        <p class="text-secondary">Follower</p>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-primary">{{ $user_follow->where('status', 1)->count() }}</h4>
-                                        <p class="text-secondary">Following</p>
-                                    </div>
-                                </div>
-                                <div class="my-2">
-                                    <button type="button" class="btn btn-primary b-r-22" id="editButton"> <i class="ti ti-edit"></i>
-                                        Edit Profile</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h5>About Me</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted f-s-13">{{ auth()->user()->bio }}</p>
-                        <div class="about-list">
-                            <div>
-                                <span class="fw-medium"><i class="ti ti-briefcase"></i> Work passion</span>
-                                <span class="float-end f-s-13 text-secondary">IT Section</span>
-                            </div>
-                            <div>
-                                <span class="fw-medium"><i class="ti ti-mail"></i> Email</span>
-                                <span class="float-end f-s-13 text-secondary">{{ auth()->user()->email }}</span>
-                            </div>
-                            <div>
-                                <span class="fw-medium"><i class="ti ti-phone"></i> Contact</span>
-                                <span class="float-end f-s-13 text-secondary">{{ auth()->user()->phone_num ?? '-' }}</span>
-                            </div>
-                            <div>
-                                <span class="fw-medium"><i class="ti ti-cake"></i> Birth of Date</span>
-                                <span class="float-end f-s-13 text-secondary">24 Oct</span>
-                            </div>
-                            <div>
-                                <span class="fw-semibold"><i class="ti ti-map-pin"></i> Location</span>
-                                <span class="float-end f-s-13 text-secondary">Via Partenope, 117</span>
-                            </div>
-                            <div>
-                                <span class="fw-semibold"><i class="ti ti-device-laptop"></i> Website</span>
-                                <span class="float-end f-s-13 text-secondary">Ninfa_devWWW.com</span>
-                            </div>
-                            <div>
-                                <span class="fw-semibold"><i class="ti ti-brand-github"></i> Github</span>
-                                <span class="float-end f-s-13 text-secondary">Ninfa_dev</span>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div> --}}
         </div>
     </div>
+
+    <style>
+        .swal2-toast {
+            width: auto !important;
+            max-width: 100% !important;
+            padding: 0.625em !important;
+        }
+    </style>
 @endsection
 
 @section('script')
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toast notifications
+        @if(session('success'))
+            setTimeout(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: "{{ session('success') }}",
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    width: 'auto',
+                });
+            }, 100);
+        @endif
+    
+        @if(session('error'))
+            setTimeout(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: "{{ session('error') }}",
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    width: 'auto',
+                });
+            }, 100);
+        @endif
+
+        var options = {
+            series: [{{ $mcq->total_xp ?? 0 }}, {{ $flashcard->total_xp ?? 0 }}, {{ $wsp->total_xp ?? 0 }}],
+            chart: {
+                fontFamily: 'Montserrat, system-ui',
+                height: 340,
+                type: 'pie',
+            },
+            tooltip: {
+                x: {
+                    show: false,
+                },
+                style: {
+                    fontSize: '16px',
+                },
+            },
+            labels: ['MCQ Quiz', 'Flashcard', 'Word Search Puzzle'],
+            colors: [
+                getLocalStorageItem('color-primary', '#0d6efd'),
+                getLocalStorageItem('color-success', '#198754'),
+                getLocalStorageItem('color-warning', '#ffc107')
+            ],
+            legend: {
+            position: 'bottom'
+        },
+            responsive: [{
+                breakpoint: 1366,
+                options: {
+                    chart: {
+
+                        height: 250
+                    },
+                    legend: {
+                    show: false,
+                    },
+                }
+            }]
+        };
+
+        var chart = new ApexCharts(document.querySelector("#pie1"), options);
+        chart.render();
+
+        document.addEventListener('click', function (e) {
+            if (e.target.matches('.pagination a')) {
+                e.preventDefault();
+                const url = e.target.getAttribute('href');
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('user-points-container').innerHTML = data;
+                    window.history.pushState({}, '', url); // optional: update URL
+                })
+                .catch(error => console.error('Pagination error:', error));
+            }
+        });
+    });
+
+
+</script>
+
 <!--customizer-->
 <div id="customizer"></div>
 
@@ -873,7 +902,11 @@
 <script src="{{asset('assets/vendor/slick/slick.min.js')}}"></script>
 <script src="{{asset('assets/vendor/shepherdjs/shepherd.js')}}"></script>
 
+<!-- apexcharts-->
+<script src="{{asset('assets/vendor/apexcharts/apexcharts.min.js')}}"></script>
+
 <!-- js -->
 <script src="{{asset('assets/js/profile.js')}}"></script>
+<script src="{{asset('assets/js/pie_charts.js')}}"></script>
 
 @endsection

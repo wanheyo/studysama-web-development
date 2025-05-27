@@ -126,13 +126,13 @@
                                 </div> --}}
                                 <div class="col-12 mt-3">
                                     <div class="mb-3">
-                                        <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                                        <button type="submit" class="btn btn-primary w-100 rounded">Sign Up</button>
                                     </div>
                                 </div>
                                 <div class="col-12">
                                     <div class="text-center text-lg-start">
-                                        Already Have A Account? <a href="{{route('login')}}"
-                                                                   class="link-primary text-decoration-underline"> Sign in</a>
+                                        Already Have an Account? 
+                                        <a href="{{route('login')}}" class="link-primary text-decoration-underline"> Sign in</a>
                                     </div>
                                 </div>
                                 {{-- <div class="app-divider-v justify-content-center">
