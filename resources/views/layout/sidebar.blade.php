@@ -16,12 +16,12 @@
                     <span>Admin</span>
                 </li>
                 <li>
-                    <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#dashboard">
+                    <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#admin_dashboard">
                         <i class="iconoir-home-alt"></i>
                         dashboard
                         {{-- <span class="badge text-primary-dark bg-primary-300  badge-notification ms-2">4</span> --}}
                     </a>
-                    <ul class="collapse" id="dashboard">
+                    <ul class="collapse" id="admin_dashboard">
                         <li><a href="{{route('main.admin.homepage')}}">Homepage</a></li>
                         {{-- <li><a href="{{route('ecommerce_dashboard')}}">Notification</a></li> --}}
                     </ul>

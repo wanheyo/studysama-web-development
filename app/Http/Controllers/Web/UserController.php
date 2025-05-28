@@ -20,15 +20,21 @@ class UserController extends Controller
 {
     public function sign_in(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        $request->validate([
+            'login' => 'required|string',
+            'password' => 'required|string',
         ]);
+
+        $login_type = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $login_type => $request->login,
+            'password' => $request->password,
+        ];
 
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
 
-            // For API requests, return a token
             if ($request->wantsJson()) {
                 $token = $request->user()->createToken('api-token')->plainTextToken;
                 return response()->json([
@@ -37,18 +43,23 @@ class UserController extends Controller
                 ]);
             }
 
-            return redirect()->intended(route('main.homepage'));
+            if(Auth::user()->isAdmin() || Auth::user()->isSuperadmin()) {
+                return redirect()->intended(route('main.admin.homepage'));
+            } else {
+                return redirect()->intended(route('main.homepage'));
+            }
+            
         }
 
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+            'login' => 'The provided credentials do not match our records.',
+        ])->onlyInput('login');
     }
 
     public function sign_up(Request $request)
     {
         $validated = $request->validate([
-            'username' => 'required|string|max:16|unique:users',
+            'username' => 'required|string|min:4|max:16|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ]);

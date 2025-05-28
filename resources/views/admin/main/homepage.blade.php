@@ -17,15 +17,27 @@
 @section('main-content')
     <div class="container-fluid mt-3">
         <div class="row">
-            <div class="col-sm-6 col-lg-4 col-xxl-2 order--1-lg">
+            <div class="col-12 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Hi, {{ $user->name }} 👋</h4>
+                    {{-- <div>
+                        <a href="" class="btn btn-primary">View Profile</a>
+                    </div> --}}
+                </div>
+                <p class="f-m-light">We have jobs to be done, let's get started</p>
+            </div>
+        </div>
+        <div class="row">
+            
+            <div class="col-sm-6 col-lg-6 col-xxl-2 order--1-lg">
                 <div class="row">
                     <div class="col-12">
                         <div class="card orders-provided-card">
                             <div class="card-body">
-                                <i class="ph-bold  ph-circle circle-bg-img"></i>
+                                <i class="ph-bold ph-circle circle-bg-img"></i>
                                 <div>
-                                    <p class="f-s-18 f-w-600 text-dark txt-ellipsis-1">📈 Orders Provided</p>
-                                    <h2 class="text-secondary-dark mb-0">2.36k</h2>
+                                    <p class="f-s-18 f-w-600 text-dark txt-ellipsis-1">Total Users</p>
+                                    <h2 class="text-secondary-dark mb-0">{{ $users->count() }}</h2>
                                 </div>
                             </div>
                         </div>
@@ -34,23 +46,19 @@
                         <div class="card bg-primary-300 product-sold-card">
                             <div class="card-body">
                                 <div>
-                                    <h5 class="text-primary-dark f-w-600">Order Import</h5>
-                                    <p class="text-dark f-w-600 mb-0 mt-2 txt-ellipsis-1"><i
+                                    <h5 class="text-primary-dark f-w-600">Tokens Used</h5>
+                                    <div class="d-flex justify-content-center my-2">
+                                        <i class="ti ti-coin f-s-60 text-primary-dark"></i>
+                                    </div>
+                                    {{-- <p class="text-dark f-w-600 mb-0 mt-2 txt-ellipsis-1"><i
                                             class="iconoir-calendar f-s-16 align-text-top me-2"></i>Oct 1 -
-                                        Oct 15, 2024</p>
+                                        Oct 15, 2024</p> --}}
                                 </div>
-                                <div class="my-4">
-                                    <h4 class="text-primary-dark">2,450</h4>
-                                </div>
-                                <div class="custom-progress-container">
-                                    <div class="progress-bar productive"></div>
-                                    <div class="progress-bar middle"></div>
-                                    <div class="progress-bar idle"></div>
-                                </div>
-                                <div class="progress-labels">
-                                    <span>Productive</span>
-                                    <span>Middle</span>
-                                    <span>Idle</span>
+                                <div>
+                                    <h4 class="text-primary-dark">{{ $user_activity_logs->sum('token_used') ?? '0' }}</h4>
+                                    <p class="mb-0 text-dark f-w-500 txt-ellipsis-1">Today<span
+                                            class="badge bg-white-300 text-danger-dark ms-2">{{ $user_activity_logs->where('created_at', '>=', \Carbon\Carbon::today())->sum('token_used') }}</span>
+                                    </p>
                                 </div>
 
                             </div>
@@ -59,25 +67,28 @@
                 </div>
             </div>
 
-            <div class="col-sm-6 col-lg-4 col-xxl-2 order--1-lg">
+            <div class="col-sm-6 col-lg-6 col-xxl-2 order--1-lg">
                 <div class="row">
                     <div class="col-12">
                         <div class="card bg-danger-300 product-sold-card">
                             <div class="card-body">
                                 <div>
-                                    <h5 class="text-danger-dark f-w-600 ">Product Sold</h5>
-                                    <div id="productSold"></div>
+                                    <h5 class="text-danger-dark f-w-600 ">Total AI Used</h5>
+                                    {{-- <div id="productSold"></div> --}}
+                                    <div class="d-flex justify-content-center my-2">
+                                        <i class="ti ti-flare f-s-60 text-danger-dark"></i>
+                                    </div>
                                 </div>
                                 <div>
-                                    <h4>$6.56k</h4>
-                                    <p class="mb-0 text-dark f-w-500 txt-ellipsis-1">Last Week<span
-                                            class="badge bg-white-300 text-danger-dark ms-2">-45%</span>
+                                    <h4>{{ $user_activity_logs->count() ?? '0' }} Times</h4>
+                                    <p class="mb-0 text-dark f-w-500 txt-ellipsis-1">Today<span
+                                            class="badge bg-white-300 text-danger-dark ms-2">{{ $user_activity_logs->where('created_at', '>=', \Carbon\Carbon::today())->count() }} Times</span>
                                     </p>
                                 </div>
-                                <a class="bg-danger h-35 w-35 d-flex-center b-r-50 product-sold-icon"
+                                {{-- <a class="bg-danger h-35 w-35 d-flex-center b-r-50 product-sold-icon"
                                    href="{{route('order_details')}}">
                                     <i class="iconoir-arrow-right f-w-600 f-s-18 animate__pulse animate__fadeOutRight  animate__infinite animate__slower"></i>
-                                </a>
+                                </a> --}}
                             </div>
                         </div>
                     </div>
@@ -86,9 +97,8 @@
                             <div class="card-body">
                                 <i class="ph-bold  ph-circle circle-bg-img"></i>
                                 <div>
-                                    <p class="text-success f-s-18 f-w-600 txt-ellipsis-1">📝 Store
-                                        Product</p>
-                                    <h2 class="text-success-dark mb-0">-6,876</h2>
+                                    <p class="text-success f-s-18 f-w-600 txt-ellipsis-1">Total Courses</p>
+                                    <h2 class="text-success-dark mb-0">{{ $courses->where('status', '!=', 0)->count() ?? '0' }}</h2>
                                 </div>
 
                             </div>
@@ -97,7 +107,7 @@
                 </div>
             </div>
 
-            <div class="col-md-7 col-lg-5">
+            {{-- <div class="col-md-7 col-lg-5">
                 <div class="card">
                     <div class="card-body p-0">
                         <div>
@@ -105,12 +115,15 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
-            <div class="col-md-5 col-lg-4 col-xxl-3 order--1-lg">
-                <div class="card order-detail-card">
-                    <div class="pt-3">
-                        <h5 class="pa-s-20">Orders details</h5>
+            <div class="col-md-12 col-lg-12 col-xxl-8 order--1-lg">
+                <div class="card order-detail-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Courses Approval Request</h5>
+                        <a href="{{ route('ai.leaderboard') }}" class="btn btn-primary rounded">
+                            View More
+                        </a>
                     </div>
                     <div class="card-body">
                         <ul class="order-content-list">

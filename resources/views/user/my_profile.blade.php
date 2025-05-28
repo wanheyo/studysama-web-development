@@ -229,7 +229,7 @@
                                                     {{-- <img src="{{asset('../assets/images/profile-app/01.png')}}" class="w-20 h-20" alt="instagram-check-mark"> --}}
                                                     
                                                 </h5>
-                                                <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '0' }}</span>
+                                                <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '1' }}</span>
                                             </div>
                                             
                                             <p>{{auth()->user()->email }}</p>
@@ -691,7 +691,7 @@
                             <div class="d-flex justify-content-center align-items-center px-lg-5 px-3 py-3 gap-5 mb-3">
                                 <div class="text-center">
                                     <p class="text-secondary">Level</p>
-                                    <h4 class="text-primary">{{ auth()->user()->userPoints?->level ?? '0' }}</h4>
+                                    <h4 class="text-primary">{{ auth()->user()->userPoints?->level ?? '1' }}</h4>
                                 </div>
                                 <div class="text-center">
                                     <p class="text-secondary">Total XP</p>

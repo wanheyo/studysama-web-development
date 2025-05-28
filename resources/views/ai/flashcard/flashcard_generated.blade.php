@@ -179,7 +179,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <a href="{{ route('ai.mcq') }}" class="btn btn-secondary">
+                        <a href="{{ route('ai.flashcard') }}" class="btn btn-secondary">
                             <i class="ti ti-home me-1"></i>Return Home
                         </a>
                         <button type="button" class="btn btn-primary" id="restart-session">

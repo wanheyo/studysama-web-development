@@ -24,8 +24,10 @@
                         <a href="" class="btn btn-primary">View Profile</a>
                     </div> --}}
                 </div>
-                <p class="f-m-light">Continue your learning journey</p>
+                <p class="f-m-light">We have jobs to be done, let's get started</p>
             </div>
+        </div>
+        <div class="row">
             <div class="col-sm-6 col-lg-6 col-xxl-2 order--1-lg">
                 <div class="row">
                     <div class="col-12">
@@ -34,7 +36,7 @@
                                 <i class="ph-bold ph-circle circle-bg-img"></i>
                                 <div>
                                     <p class="f-s-18 f-w-600 text-dark txt-ellipsis-1">My Level</p>
-                                    <h2 class="text-secondary-dark mb-0">{{ $user->userPoints?->level ?? '0' }}</h2>
+                                    <h2 class="text-secondary-dark mb-0">{{ $user->userPoints?->level ?? '1' }}</h2>
                                 </div>
                             </div>
                         </div>
@@ -104,7 +106,7 @@
                 </div>
             </div>
 
-            <div class="col-md-12 col-lg-8">
+            <div class="col-md-12 col-lg-12 col-xxl-8">
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">

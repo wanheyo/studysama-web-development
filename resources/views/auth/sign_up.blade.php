@@ -37,7 +37,8 @@
                                 </div>
                                 <div class="col-12">
                                     <div class="mb-3">
-                                        <label for="username" class="form-label">Username (16 characters)</label>
+                                        <label for="username" class="form-label" data-bs-placement="top" data-bs-toggle="tooltip" title="Username must contain around 4 to 16 characters">Username</label>
+                                        <i class="ti ti-info-circle f-s-16" data-bs-placement="top" data-bs-toggle="tooltip" title="Username must contain around 4 to 16 characters"></i>
                                         <input type="text" class="form-control" name="username" id="username" placeholder="Enter Your Username" value="{{ old('username') }}" maxlength="16" required>
                                         @error('username')
                                             <small class="text-danger">{{ $message }}</small>
@@ -101,7 +102,8 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="password" class="form-label">Password</label>
+                                        <label for="password" class="form-label" data-bs-placement="top" data-bs-toggle="tooltip" title="Password must contain at least 8 or more characters">Password</label>
+                                        <i class="ti ti-info-circle f-s-16" data-bs-placement="top" data-bs-toggle="tooltip" title="Password must contain at least 8 or more characters"></i>
                                         <input type="password" class="form-control" name="password" id="password" placeholder="Enter Your Password" required>
                                         @error('password')
                                             <small class="text-danger">{{ $message }}</small>
@@ -111,6 +113,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="password" class="form-label">Confirm Password</label>
+                                        <i class="ti ti-info-circle f-s-16" data-bs-placement="top" data-bs-toggle="tooltip" title="Password must contain at least 8 or more characters"></i>
                                         <input type="password" class="form-control" name="password_confirmation" id="password1" placeholder="Confirm Your Password" required>
                                     </div>
                                 </div>

@@ -29,26 +29,28 @@
                                         {{-- <p class="f-s-12 text-secondary">Get started with our app, just create an account and enjoy the experience.</p> --}}
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Email address</label>
-                                        <input type="email" name="email" class="form-control" value="{{ old('email') }}">
-                                        @error('email')
+                                        <label class="form-label">Email or Username</label>
+                                        <input type="text" name="login" class="form-control" value="{{ old('login') }}" required autofocus placeholder="Enter Your Email or Username">
+                                        @error('login')
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror
-                                        <div class="form-text text">We'll never share your email with anyone else.</div>
+                                        {{-- <div class="form-text text">We'll never share your email with anyone else.</div> --}}
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Password</label>
-                                        <input type="password" name="password" class="form-control">
+                                        <label class="form-label" data-bs-placement="top" data-bs-toggle="tooltip" title="Password must contain at least 8 or more characters">Password</label>
+                                        <i class="ti ti-info-circle f-s-16" data-bs-placement="top" data-bs-toggle="tooltip" title="Password must contain at least 8 or more characters"></i>
+
+                                        <input type="password" name="password" class="form-control" required placeholder="Enter Your Password">
                                         @error('password')
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <div class="mb-3 form-check">
+                                    {{-- <div class="mb-3 form-check">
                                         <input type="checkbox" class="form-check-input" id="formCheck1" name="remember">
                                         <label class="form-check-label" for="formCheck1">Remember me</label>
-                                    </div>
+                                    </div> --}}
                                     <div class="mb-3">
-                                        <button type="submit" class="btn btn-primary w-100 rounded">Submit</button>
+                                        <button type="submit" class="btn btn-primary w-100 rounded">Sign In</button>
                                     </div>
                                     {{-- Rest of the form --}}
                                     <div class="col-12">
@@ -74,4 +76,7 @@
 
     <!-- Bootstrap js-->
     <script src="{{asset('assets/vendor/bootstrap/bootstrap.bundle.min.js')}}"></script>
+
+    <!-- Tooltip js  -->
+    <script src="{{asset('assets/js/tooltips_popovers.js')}}"></script>
 @endsection
