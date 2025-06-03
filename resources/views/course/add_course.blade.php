@@ -84,7 +84,9 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">General Topics</label>
-                                            <select class="category-select w-100" name="topic" required>
+                                            {{-- <select class="category-select w-100" name="topic" required> --}}
+                                            <select class="form-select w-100" name="topic" required>
+                                                <option value="" selected disabled>Select Topic</option>
                                                 @foreach ($topics as $topic)
                                                     <option value="{{ $topic->id }}">{{ $topic->desc }}</option>
                                                 @endforeach
@@ -124,7 +126,7 @@
                             
                                 <div class="col-12">
                                     <div class="mt-4 d-flex justify-content-end gap-2 flex-column flex-sm-row text-end">
-                                        <button type="button" class="btn btn-light-secondary rounded">Cancel</button>
+                                        <a href="{{ url()->previous() }}" class="btn btn-light-secondary rounded">Cancel</a>
                                         <button type="submit" class="btn btn-primary rounded">Add Course</button>
                                     </div>
                                 </div>

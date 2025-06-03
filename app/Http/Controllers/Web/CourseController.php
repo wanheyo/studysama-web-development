@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\User;
 use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\Resource;
 use App\Models\UserBadge;
 use App\Models\UserCourse;
 use Illuminate\Http\Request;
@@ -146,7 +148,11 @@ class CourseController extends Controller
 
         // Build query for courses joined by the user
         $coursesQuery = DB::table('courses as c')
-            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id') // current user's enrollment
+            ->join('user_courses as uc', function ($join) use ($user) {
+                $join->on('uc.course_id', '=', 'c.id')
+                    ->where('uc.user_id', '=', $user->id)
+                    ->where('uc.status', '!=', 0); // ✅ filter out inactive user-course entries
+            })
             ->join('user_courses as tutor_uc', function ($join) {
                 $join->on('tutor_uc.course_id', '=', 'c.id')
                     ->where('tutor_uc.role_id', '=', 1); // get the actual tutor
@@ -340,11 +346,21 @@ class CourseController extends Controller
             // 'topic' => 'array',
             // 'topic.*' => 'exists:topics,id',
             'topic' => 'nullable|exists:topics,id',
+            'delete' => 'nullable|boolean',
             // 'availability' => 'nullable|in:1,2',
         ]);
 
         $course_id = Crypt::decrypt($course_id);
         $course = Course::find($course_id);
+
+        // Handle soft delete (status = 0)
+        if ($validated['delete'] ?? false) {
+            $course->status = 0;
+            $course->updated_at = now();
+            $course->save();
+
+            return redirect()->route('course.my_course')->with('success', 'Course has been deleted.');
+        }
 
         $course->name = $validated['name'];
         $course->desc = $validated['desc'] ?? $course->desc;
@@ -408,6 +424,30 @@ class CourseController extends Controller
         }
 
         return redirect()->route('course.my_course')->with('success', 'Course has been updated.');
+    }
+
+    public function delete_course(Request $request, $course_id)
+    {
+        $validated = $request->validate([
+            // 'name' => 'required|string|max:128',
+            // 'desc' => 'nullable|string',
+            // 'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            // 'topic' => 'nullable|exists:topics,id',
+            'status' => 'required|in:0',
+        ]);
+
+        $course_id = Crypt::decrypt($course_id);
+        $course = Course::find($course_id);
+
+        $course->status = $validated['status'];
+        // $course->updated_at = now();
+        $course->save();
+
+            return response()->json([
+            'success' => true,
+            'message' => 'Course deleted successfully',
+            'status' => $course->status
+        ]);
     }
 
     public function course_detail(Request $request, $course_id)
@@ -669,5 +709,140 @@ class CourseController extends Controller
         return redirect()->back()->with('success', 'Your review has been deleted.');
     }
 
-    
+    // ADMIN SIDE
+    public function admin_find_course(Request $request)
+    {
+        // Get all active topics
+        $topics = DB::table('topics as t')
+            ->where('t.status', 1)
+            ->select('t.*')
+            ->get();
+
+        // Start building the query
+        $coursesQuery = DB::table('courses as c')
+            ->join('user_courses as uc', function($join) {
+                $join->on('uc.course_id', '=', 'c.id')
+                    ->where('uc.role_id', 1); // Tutors only
+            })
+            ->join('users as u', 'uc.user_id', '=', 'u.id')
+            ->where('c.status', '!=', 0)
+            ->select([
+                'c.*',
+                'u.username as tutor_username',
+                'u.id as tutor_id',
+                'u.image as tutor_image'
+            ]);
+
+        // Search filter
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $coursesQuery->where(function($query) use ($searchTerm) {
+                $query->where('c.name', 'like', '%'.$searchTerm.'%')
+                    ->orWhere('c.desc', 'like', '%'.$searchTerm.'%');
+            });
+        }
+
+        // Topic filter
+        if ($request->filled('topics')) {
+            $coursesQuery->whereExists(function($query) use ($request) {
+                $query->select(DB::raw(1))
+                    ->from('topic_courses as tc')
+                    ->whereColumn('tc.course_id', 'c.id')
+                    ->whereIn('tc.topic_id', $request->topics);
+            });
+        }
+
+        // Rating filter
+        if ($request->filled('ratings')) {
+            $coursesQuery->where(function($query) use ($request) {
+                foreach ($request->ratings as $rating) {
+                    $query->orWhereBetween('c.average_rating', [$rating, $rating + 0.99]);
+                }
+            });
+        }
+
+        // Sorting
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'most_popular':
+                    $coursesQuery->orderBy('c.total_joined', 'desc');
+                    break;
+                case 'least_popular':
+                    $coursesQuery->orderBy('c.total_joined', 'asc');
+                    break;
+                case 'newest':
+                    $coursesQuery->orderBy('c.created_at', 'desc');
+                    break;
+                case 'oldest':
+                    $coursesQuery->orderBy('c.created_at', 'asc');
+                    break;
+            }
+        } else {
+            $coursesQuery->orderBy('c.created_at', 'desc');
+        }
+
+        // For AJAX requests
+        if ($request->ajax()) {
+            $courses = $coursesQuery->get();
+            
+            foreach ($courses as $course) {
+                $course->topics = DB::table('topic_courses as tc')
+                    ->join('topics as t', 'tc.topic_id', '=', 't.id')
+                    ->where('tc.course_id', $course->id)
+                    ->select('t.id', 't.name', 't.desc')
+                    ->get();
+            }
+
+            return response()->json([
+                'courses' => view('course.partials.course_items', compact('courses'))->render()
+            ]);
+        }
+
+        // Initial page load
+        $courses = $coursesQuery->get();
+
+        foreach ($courses as $course) {
+            $course->topics = DB::table('topic_courses as tc')
+                ->join('topics as t', 'tc.topic_id', '=', 't.id')
+                ->where('tc.course_id', $course->id)
+                ->select('t.id', 't.name', 't.desc')
+                ->get();
+
+            $course->lessons = Lesson::where('course_id', $course->id)
+                ->where('status', 1)
+                ->get();
+
+            foreach ($course->lessons as $lesson) {
+                $lesson->resources = Resource::where('lesson_id', $lesson->id)
+                    ->where('status', 1)
+                    ->get();
+            }
+        }
+
+        return view('admin.course.find_course', compact('courses', 'topics'));
+    }
+
+    public function admin_edit_course(Request $request, $course_id)
+    {
+        $validated = $request->validate([
+            // 'name' => 'required|string|max:128',
+            // 'desc' => 'nullable|string',
+            // 'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            // 'topic' => 'nullable|exists:topics,id',
+            'status' => 'required|in:0,1,2',
+        ]);
+
+        $course_id = Crypt::decrypt($course_id);
+        $course = Course::find($course_id);
+
+        $course->status = $validated['status'];
+        // $course->updated_at = now();
+        $course->save();
+
+            return response()->json([
+            'success' => true,
+            'message' => 'Course status updated successfully',
+            'status' => $course->status
+        ]);
+    }
 }

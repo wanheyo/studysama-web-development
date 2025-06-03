@@ -97,15 +97,22 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">General Topics</label>
-                                            <select class="category-select w-100" name="topic">
+                                            {{-- <select class="category-select w-100 form-select" name="topic" required> --}}
+                                            <select class="w-100 form-select" name="topic" required>
+                                                @if ($course->topics->isEmpty())
+                                                    <option value="" selected disabled>Select Topic</option>
+                                                @endif
+
                                                 @foreach ($topics as $topic)
-                                                    @foreach ($course->topics as $course_topic)
-                                                        <option value="{{ $topic->id }}" {{ $topic->id == $course_topic->id ? 'selected' : '' }}>
-                                                            {{ $topic->desc }}
-                                                        </option>
-                                                    @endforeach
+                                                    @php
+                                                        $isSelected = !$course->topics->isEmpty() && $course->topics->contains('id', $topic->id);
+                                                    @endphp
+                                                    <option value="{{ $topic->id }}" {{ $isSelected ? 'selected' : '' }}>
+                                                        {{ $topic->desc }}
+                                                    </option>
                                                 @endforeach
                                             </select>
+                                            <div class="invalid-feedback">Please select a topic.</div>
                                         </div>
                                     </div>
                             
@@ -136,12 +143,23 @@
                                         </label>
                                     </div> --}}
                                 </div>
+
+                                <!-- Add hidden input to mark delete -->
+                                <input type="hidden" name="delete" id="delete" value="0">
+
                             
                                 <div class="col-12">
+                                    <!-- Buttons -->
                                     <div class="mt-4 d-flex justify-content-end gap-2 flex-column flex-sm-row text-end">
-                                        <button type="button" class="btn btn-light-secondary rounded">Cancel</button>
+                                        <a href="{{ url()->previous() }}" class="btn btn-light-secondary rounded">Cancel</a>
+
+                                        <button type="button" class="btn btn-danger rounded" id="delete-course-btn">
+                                            <i class="fa-solid fa-trash"></i> Delete Course
+                                        </button>
+
                                         <button type="submit" class="btn btn-primary rounded">Submit Changes</button>
                                     </div>
+
                                 </div>
                             </form>
                         </div>
@@ -172,6 +190,9 @@
 
     <!-- Trumbowyg js -->
     <script src="{{asset('assets/vendor/trumbowyg/trumbowyg.min.js')}}"></script>
+
+    <!-- sweetalert js-->
+    <script src="{{asset('assets/vendor/sweetalert/sweetalert.js')}}"></script>
 
     <!-- add course -->
     <script src="{{asset('assets/js/course/edit_course.js')}}"></script>

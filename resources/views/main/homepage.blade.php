@@ -24,7 +24,7 @@
                         <a href="" class="btn btn-primary">View Profile</a>
                     </div> --}}
                 </div>
-                <p class="f-m-light">We have jobs to be done, let's get started</p>
+                <p class="f-m-light">Let's get started, continue learning with StudySama!</p>
             </div>
         </div>
         <div class="row">

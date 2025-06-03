@@ -107,30 +107,43 @@
                                             <input type="hidden" name="course_id" value="{{ $course->id }}">
                                             <input type="hidden" name="status" value="{{ $isJoined ? 0 : 1 }}">
                                             
-                                                @if($isJoined)
+                                                @if(auth()->user()->isAdmin() || auth()->user()->isSuperAdmin())
                                                     <!-- When joined - View Course goes to view route, dropdown has Leave option -->
                                                     <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($course->id)]) }}" class="btn btn-primary rounded">View Course</a>
 
                                                     <div class="btn-group dropdown-icon-none" role="group">
                                                         <button type="button" class="btn btn-outline-primary icon-btn b-r-22 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">:</button>
                                                         <ul class="dropdown-menu">
-                                                            <li>
-                                                                <button type="submit" class="dropdown-item leave-course-btn">Leave Course</button>
-                                                            </li>
                                                             <li><button type="submit" class="dropdown-item">Report Course</button></li>
                                                         </ul>
                                                     </div>
                                                 @else
-                                                    <!-- When not joined - Join Course submits the form, dropdown has Report option -->
-                                                    <button type="submit" class="btn btn-success">Join Course</button>
-                                                    
-                                                    <div class="btn-group" role="group">
-                                                        <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
-                                                        <ul class="dropdown-menu">
-                                                            <li><a class="dropdown-item" href="#">Report Course</a></li>
-                                                        </ul>
-                                                    </div>
+                                                    @if($isJoined)
+                                                        <!-- When joined - View Course goes to view route, dropdown has Leave option -->
+                                                        <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($course->id)]) }}" class="btn btn-primary rounded">View Course</a>
+
+                                                        <div class="btn-group dropdown-icon-none" role="group">
+                                                            <button type="button" class="btn btn-outline-primary icon-btn b-r-22 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">:</button>
+                                                            <ul class="dropdown-menu">
+                                                                <li>
+                                                                    <button type="submit" class="dropdown-item leave-course-btn">Leave Course</button>
+                                                                </li>
+                                                                <li><button type="submit" class="dropdown-item">Report Course</button></li>
+                                                            </ul>
+                                                        </div>
+                                                    @else
+                                                        <!-- When not joined - Join Course submits the form, dropdown has Report option -->
+                                                        <button type="submit" class="btn btn-success rounded">Join Course</button>
+                                                        
+                                                        <div class="btn-group" role="group">
+                                                            <button type="button" class="btn btn-outline-success icon-btn b-r-22 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                                            <ul class="dropdown-menu">
+                                                                <li><a class="dropdown-item" href="#">Report Course</a></li>
+                                                            </ul>
+                                                        </div>
+                                                    @endif
                                                 @endif
+                                                
                                         </form>
                                     @endif
                                 </div>

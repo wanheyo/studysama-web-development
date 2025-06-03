@@ -104,3 +104,22 @@ dropZone.addEventListener("drop", (e) => {
     if (file) 
         handleFile(file);
 });
+
+document.getElementById('delete-course-btn').addEventListener('click', function () {
+Swal.fire({
+    title: 'Are you sure?',
+    text: "This course will be marked as deleted and hidden from users.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Yes, delete it!',
+    reverseButtons: true,
+}).then((result) => {
+    if (result.isConfirmed) {
+        // Set delete flag and submit form
+        document.getElementById('delete').value = '1';
+        this.closest('form').submit();
+    }
+});
+});

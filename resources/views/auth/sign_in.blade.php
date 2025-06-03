@@ -45,10 +45,13 @@
                                             <div class="text-danger">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    {{-- <div class="mb-3 form-check">
-                                        <input type="checkbox" class="form-check-input" id="formCheck1" name="remember">
-                                        <label class="form-check-label" for="formCheck1">Remember me</label>
-                                    </div> --}}
+                                    <div class="mb-3 d-flex justify-content-between">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="formCheck1" name="remember">
+                                            <label class="form-check-label" for="formCheck1">Remember me</label>
+                                        </div>
+                                        <a href="" class="link-primary text-decoration-underline">Forgot Password?</a>
+                                    </div>
                                     <div class="mb-3">
                                         <button type="submit" class="btn btn-primary w-100 rounded">Sign In</button>
                                     </div>

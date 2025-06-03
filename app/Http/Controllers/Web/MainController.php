@@ -16,7 +16,11 @@ class MainController extends Controller
         $user = auth()->user();
 
         $coursesQuery = DB::table('courses as c')
-            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id') // current user's enrollment
+            ->join('user_courses as uc', function ($join) use ($user) {
+                $join->on('uc.course_id', '=', 'c.id')
+                    ->where('uc.user_id', '=', $user->id)
+                    ->where('uc.status', '!=', 0); // ✅ filter out inactive user-course entries
+            })
             ->join('user_courses as tutor_uc', function ($join) {
                 $join->on('tutor_uc.course_id', '=', 'c.id')
                     ->where('tutor_uc.role_id', '=', 1); // get the actual tutor
@@ -67,7 +71,21 @@ class MainController extends Controller
 
         $user_activity_logs = UserActivityLog::all();
 
-        $courses = Course::all();
+        $courses = Course::from('courses as c')
+        ->join('user_courses as uc', function($join) {
+            $join->on('uc.course_id', '=', 'c.id')
+                ->where('uc.role_id', 1); // Tutors only
+        })
+        ->join('users as u', 'uc.user_id', '=', 'u.id')
+        ->select([
+            'c.*',
+            'c.status as course_status',
+            'u.username as tutor_username',
+            'u.id as tutor_id',
+            'u.image as tutor_image'
+        ])
+        ->get();
+
 
         // $coursesQuery = DB::table('courses as c')
         //     ->join('user_courses as uc', 'uc.course_id', '=', 'c.id') // current user's enrollment

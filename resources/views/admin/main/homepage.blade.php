@@ -98,7 +98,7 @@
                                 <i class="ph-bold  ph-circle circle-bg-img"></i>
                                 <div>
                                     <p class="text-success f-s-18 f-w-600 txt-ellipsis-1">Total Courses</p>
-                                    <h2 class="text-success-dark mb-0">{{ $courses->where('status', '!=', 0)->count() ?? '0' }}</h2>
+                                    <h2 class="text-success-dark mb-0">{{ $courses->where('course_status', '!=', 0)->count() ?? '0' }}</h2>
                                 </div>
 
                             </div>
@@ -121,23 +121,29 @@
                 <div class="card order-detail-card p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Courses Approval Request</h5>
-                        <a href="{{ route('ai.leaderboard') }}" class="btn btn-primary rounded">
+                        <a href="{{ route('course.admin.find_course') }}" class="btn btn-primary rounded">
                             View More
                         </a>
                     </div>
                     <div class="card-body">
                         <ul class="order-content-list">
-                            <li class="bg-success-300">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h6 class="text-success-dark f-w-600 mb-0"> 📦#P98056745</h6>
-                                    <span class="badge text-light-success me-2">Delivered</span>
-                                </div>
-                                <div>
-                                    <p class="text-success mb-0 txt-ellipsis-2">Your order was delivered on
-                                        October 10, 2024. </p>
-                                </div>
-                            </li>
-                            <li class="bg-info-300">
+                            @forelse ($courses->where('status', 2) as $course)
+                                <li class="bg-success-subtle">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h5 class="text-success-dark f-w-600 mb-2"> Course waiting approval</h5>
+                                        <span class="badge text-light-success me-2">Not Yet Reviewed</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-success mb-0 txt-ellipsis-2">Course named <strong>{{ $course->name }}</strong>, created by <strong>{{ $course->tutor_username }}</strong>, is waiting for approval.</p>
+                                    </div>
+                                </li>
+                            @empty
+                                <div class="col-12 text-center h-50">
+                                            <p class="text-secondary">No courses approval request.</p>
+                                        </div>
+                            @endforelse
+                            
+                            {{-- <li class="bg-info-300">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <h6 class="text-info-dark f-w-600 mb-0"> 📦#5Qi4586781</h6>
                                     <span class="badge text-light-info me-2">Shipped</span>
@@ -192,13 +198,14 @@
                                     <p class="text-danger mb-0 txt-ellipsis-1"><span class="f-w-600">Date Ordered</span>:
                                         November 28, 2024</p>
                                 </div>
-                            </li>
+                            </li> --}}
                         </ul>
                     </div>
+                    
                 </div>
             </div>
 
-            <div class="col-lg-7 col-xxl-4">
+            {{-- <div class="col-lg-7 col-xxl-4">
                 <div class="p-3">
                     <h5>Top List Products</h5>
                 </div>
@@ -604,7 +611,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
         </div>
     </div>

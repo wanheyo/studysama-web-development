@@ -1,9 +1,9 @@
 //  **------product_list **
-  $('#product-Listtable').DataTable(
-    {
-      responsive:true
-    }
-  );
+  // $('#product-Listtable').DataTable(
+  //   {
+  //     responsive:true
+  //   }
+  // );
 
   document.addEventListener('DOMContentLoaded', (event) => {
     // Function to handle delete action

@@ -46,6 +46,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::get('homepage', [MainController::class, 'homepage'])->name('main.homepage');
         Route::get('search', [MainController::class, 'search'])->name('main.search');
 
+        // Admin
         Route::group(['prefix' => 'admin'], function () {
             Route::get('admin_homepage', [MainController::class, 'admin_homepage'])->name('main.admin.homepage');
         });
@@ -68,6 +69,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('add_course', [CourseController::class, 'add_course'])->name('course.add_course.post');
         Route::get('edit_course/{course_id}', [CourseController::class, 'show_edit_course'])->name('course.edit_course');
         Route::post('edit_course/{course_id}', [CourseController::class, 'edit_course'])->name('course.edit_course.post');
+        Route::post('delete_course/{course_id}', [CourseController::class, 'delete_course'])->name('course.delete_course');
         Route::get('course_detail/{course_id}', [CourseController::class, 'course_detail'])->name('course.course_detail');
         Route::post('update_review', [CourseController::class, 'update_review'])->name('course.update_review');
         Route::post('delete_review', [CourseController::class, 'delete_review'])->name('course.delete_review');
@@ -88,6 +90,12 @@ Route::middleware(['auth:web'])->group(function () {
             Route::get('resource/{resource_id}', [ResourceController::class, 'get_comments']);
             Route::post('store_comment', [ResourceController::class, 'store_comment']);
             // Add other routes as needed
+        });
+
+        // Admin
+        Route::group(['prefix' => 'admin'], function () {
+            Route::get('a_find_course', [CourseController::class, 'admin_find_course'])->name('course.admin.find_course');
+            Route::post('a_edit_course/{course_id}', [CourseController::class, 'admin_edit_course'])->name('course.admin.edit_course');
         });
     });
 

@@ -13,7 +13,7 @@
         <ul class="main-nav p-0 mt-2">
             @if (auth()->user()->isSuperadmin() || auth()->user()->isAdmin())
                 <li class="menu-title">
-                    <span>Admin</span>
+                    <span>Admin Dashboard</span>
                 </li>
                 <li>
                     <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#admin_dashboard">
@@ -24,6 +24,18 @@
                     <ul class="collapse" id="admin_dashboard">
                         <li><a href="{{route('main.admin.homepage')}}">Homepage</a></li>
                         {{-- <li><a href="{{route('ecommerce_dashboard')}}">Notification</a></li> --}}
+                    </ul>
+                </li>
+                <li>
+                    <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#admin_course">
+                        <i class="iconoir-book-stack"></i>
+                        course
+                        {{-- <span class="badge text-primary-dark bg-primary-300  badge-notification ms-2">4</span> --}}
+                    </a>
+                    <ul class="collapse" id="admin_course">
+                        <li><a href="{{route('course.admin.find_course')}}">All Courses</a></li>
+                        {{-- <li><a href="{{route('course.find_course')}}">Find Courses</a></li>
+                        <li><a href="{{route('course.add_course')}}">Add New Course</a></li> --}}
                     </ul>
                 </li>
             @endif

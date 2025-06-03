@@ -104,7 +104,11 @@ class UserController extends Controller
             ->get();
 
         $courses = DB::table('courses as c')
-            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id') // current user's enrollment
+            ->join('user_courses as uc', function ($join) use ($user) {
+                $join->on('uc.course_id', '=', 'c.id')
+                    ->where('uc.user_id', '=', $user->id)
+                    ->where('uc.status', '!=', 0); // ✅ filter out inactive user-course entries
+            })
             ->join('user_courses as tutor_uc', function ($join) {
                 $join->on('tutor_uc.course_id', '=', 'c.id')
                     ->where('tutor_uc.role_id', '=', 1); // get the actual tutor
@@ -280,7 +284,11 @@ class UserController extends Controller
             ->get();
 
         $courses = DB::table('courses as c')
-            ->join('user_courses as uc', 'uc.course_id', '=', 'c.id') // current user's enrollment
+            ->join('user_courses as uc', function ($join) use ($user) {
+                $join->on('uc.course_id', '=', 'c.id')
+                    ->where('uc.user_id', '=', $user->id)
+                    ->where('uc.status', '!=', 0); // ✅ filter out inactive user-course entries
+            })
             ->join('user_courses as tutor_uc', function ($join) {
                 $join->on('tutor_uc.course_id', '=', 'c.id')
                     ->where('tutor_uc.role_id', '=', 1); // get the actual tutor
