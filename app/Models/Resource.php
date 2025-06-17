@@ -22,7 +22,7 @@ class Resource extends Model
         'name',
         'desc', //nullable
         'link', //nullable
-        'category',
+        'category', 
         'total_visit',
         'status'
     ];

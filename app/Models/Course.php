@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Models\Topic;
+use App\Models\Folder;
+use App\Models\Lesson;
+use App\Models\TutorSlot;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -48,6 +51,11 @@ class Course extends Model
     public function folders()
     {
         return $this->hasMany(Folder::class);
+    }
+
+    public function lessons()
+    {
+        return $this->hasMany(Lesson::class);
     }
 
     public function tutorSlots()

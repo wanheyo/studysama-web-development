@@ -63,14 +63,14 @@ class User extends Authenticatable implements CanResetPassword
     // A user can follow many users
     public function following()
     {
-        return $this->belongsToMany(User::class, 'user_follow', 'follower_id', 'following_id')
+        return $this->belongsToMany(User::class, 'user_follow', 'user_follower_id', 'user_followed_id')
                     ->withTimestamps();
     }
 
     // A user can be followed by many users
     public function followers()
     {
-        return $this->belongsToMany(User::class, 'user_follow', 'following_id', 'follower_id')
+        return $this->belongsToMany(User::class, 'user_follow', 'user_followed_id', 'user_follower_id')
                     ->withTimestamps();
     }
 

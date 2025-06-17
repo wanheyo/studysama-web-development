@@ -59,6 +59,13 @@ Route::middleware(['auth:web'])->group(function () {
         Route::put('edit_profile', [UserController::class, 'edit_profile'])->name('user.edit_profile.put');
         Route::post('update_follow/{user_followed_id}', [UserController::class, 'update_follow'])->name('user.update_follow');
         Route::post('update_points', [UserController::class, 'update_user_points'])->name('user.update_points');
+
+        // Admin User
+        Route::group(['prefix' => 'user'], function () {
+            Route::get('a_find_user', [UserController::class, 'admin_find_user'])->name('user.admin.find_user');
+            // Route::post('a_edit_course/{course_id}', [CourseController::class, 'admin_edit_course'])->name('course.admin.edit_course');
+            Route::get('a_user_statistics', [UserController::class, 'admin_user_statistics'])->name('user.admin.user_statistics');
+        });
     });
     
     // Course
@@ -92,10 +99,11 @@ Route::middleware(['auth:web'])->group(function () {
             // Add other routes as needed
         });
 
-        // Admin
+        // Admin Course
         Route::group(['prefix' => 'admin'], function () {
             Route::get('a_find_course', [CourseController::class, 'admin_find_course'])->name('course.admin.find_course');
             Route::post('a_edit_course/{course_id}', [CourseController::class, 'admin_edit_course'])->name('course.admin.edit_course');
+            Route::get('a_course_statistics', [CourseController::class, 'admin_course_statistics'])->name('course.admin.course_statistics');
         });
     });
 

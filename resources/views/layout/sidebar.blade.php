@@ -34,8 +34,20 @@
                     </a>
                     <ul class="collapse" id="admin_course">
                         <li><a href="{{route('course.admin.find_course')}}">All Courses</a></li>
-                        {{-- <li><a href="{{route('course.find_course')}}">Find Courses</a></li>
-                        <li><a href="{{route('course.add_course')}}">Add New Course</a></li> --}}
+                        <li><a href="{{route('course.admin.course_statistics')}}">Statistics</a></li>
+                        {{-- <li><a href="{{route('course.add_course')}}">Add New Course</a></li> --}}
+                    </ul>
+                </li>
+                <li>
+                    <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#admin_user">
+                        <i class="iconoir-book-stack"></i>
+                        User
+                        {{-- <span class="badge text-primary-dark bg-primary-300  badge-notification ms-2">4</span> --}}
+                    </a>
+                    <ul class="collapse" id="admin_user">
+                        <li><a href="{{route('user.admin.find_user')}}">All User</a></li>
+                        <li><a href="{{route('user.admin.user_statistics')}}">Statistics</a></li>
+                        {{-- <li><a href="{{route('course.add_course')}}">Add New Course</a></li> --}}
                     </ul>
                 </li>
             @endif

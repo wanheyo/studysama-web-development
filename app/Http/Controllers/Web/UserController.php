@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Web;
 use App\Models\User;
 use App\Models\UserPoint;
 use App\Models\UserFollow;
+use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\Resource;
+use App\Models\UserBadge;
+use App\Models\UserCourse;
 use Illuminate\Http\Request;
 use App\Models\UserActivityLog;
 use Illuminate\Routing\Controller;
@@ -15,6 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -544,5 +550,305 @@ class UserController extends Controller
             'next_level' => $nextLevel,
             'xp_to_next_level' => $xpToNextLevel
         ]);
+    }
+
+    public function admin_find_user(Request $request)
+    {
+        // Get all active topics
+        $topics = DB::table('topics as t')
+            ->where('t.status', 1)
+            ->select('t.*')
+            ->get();
+
+        // Start building the query
+        $coursesQuery = DB::table('courses as c')
+            ->join('user_courses as uc', function($join) {
+                $join->on('uc.course_id', '=', 'c.id')
+                    ->where('uc.role_id', 1); // Tutors only
+            })
+            ->join('users as u', 'uc.user_id', '=', 'u.id')
+            ->where('c.status', '!=', 0)
+            ->select([
+                'c.*',
+                'u.username as tutor_username',
+                'u.id as tutor_id',
+                'u.image as tutor_image'
+            ]);
+
+        // Search filter
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $coursesQuery->where(function($query) use ($searchTerm) {
+                $query->where('c.name', 'like', '%'.$searchTerm.'%')
+                    ->orWhere('c.desc', 'like', '%'.$searchTerm.'%');
+            });
+        }
+
+        // Topic filter
+        if ($request->filled('topics')) {
+            $coursesQuery->whereExists(function($query) use ($request) {
+                $query->select(DB::raw(1))
+                    ->from('topic_courses as tc')
+                    ->whereColumn('tc.course_id', 'c.id')
+                    ->whereIn('tc.topic_id', $request->topics);
+            });
+        }
+
+        // Rating filter
+        if ($request->filled('ratings')) {
+            $coursesQuery->where(function($query) use ($request) {
+                foreach ($request->ratings as $rating) {
+                    $query->orWhereBetween('c.average_rating', [$rating, $rating + 0.99]);
+                }
+            });
+        }
+
+        // Sorting
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'most_popular':
+                    $coursesQuery->orderBy('c.total_joined', 'desc');
+                    break;
+                case 'least_popular':
+                    $coursesQuery->orderBy('c.total_joined', 'asc');
+                    break;
+                case 'newest':
+                    $coursesQuery->orderBy('c.created_at', 'desc');
+                    break;
+                case 'oldest':
+                    $coursesQuery->orderBy('c.created_at', 'asc');
+                    break;
+            }
+        } else {
+            $coursesQuery->orderBy('c.created_at', 'desc');
+        }
+
+        // For AJAX requests
+        if ($request->ajax()) {
+            $courses = $coursesQuery->get();
+            
+            foreach ($courses as $course) {
+                $course->topics = DB::table('topic_courses as tc')
+                    ->join('topics as t', 'tc.topic_id', '=', 't.id')
+                    ->where('tc.course_id', $course->id)
+                    ->select('t.id', 't.name', 't.desc')
+                    ->get();
+            }
+
+            return response()->json([
+                'courses' => view('course.partials.course_items', compact('courses'))->render()
+            ]);
+        }
+
+        // Initial page load
+        $courses = $coursesQuery->get();
+
+        foreach ($courses as $course) {
+            $course->topics = DB::table('topic_courses as tc')
+                ->join('topics as t', 'tc.topic_id', '=', 't.id')
+                ->where('tc.course_id', $course->id)
+                ->select('t.id', 't.name', 't.desc')
+                ->get();
+
+            $course->lessons = Lesson::where('course_id', $course->id)
+                ->where('status', 1)
+                ->get();
+
+            foreach ($course->lessons as $lesson) {
+                $lesson->resources = Resource::where('lesson_id', $lesson->id)
+                    ->where('status', 1)
+                    ->get();
+            }
+        }
+
+        $users = User::where('status', '!=', 0)
+            ->where('role', '!=', 'Superadmin')
+            ->with([
+                'userPoints',
+            ])
+            ->withCount(['following' => function ($query) {
+                $query->where('user_follow.status', '!=', 0); // only count active following
+            }])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        
+        // dd($users);
+
+        return view('admin.user.find_user', compact('courses', 'topics', 'users'));
+    }
+
+    // ADMIN SIDE
+    public function admin_user_statistics(Request $request)
+    {
+        // Get all active topics
+        $topics = DB::table('topics as t')
+            ->where('t.status', 1)
+            ->select('t.*')
+            ->get();
+
+        // Start building the query
+        $coursesQuery = DB::table('courses as c')
+            ->join('user_courses as uc', function($join) {
+                $join->on('uc.course_id', '=', 'c.id')
+                    ->where('uc.role_id', 1); // Tutors only
+            })
+            ->join('users as u', 'uc.user_id', '=', 'u.id')
+            ->where('c.status', '!=', 0)
+            ->select([
+                'c.*',
+                'u.username as tutor_username',
+                'u.id as tutor_id',
+                'u.image as tutor_image'
+            ]);
+
+        // Search filter
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $coursesQuery->where(function($query) use ($searchTerm) {
+                $query->where('c.name', 'like', '%'.$searchTerm.'%')
+                    ->orWhere('c.desc', 'like', '%'.$searchTerm.'%');
+            });
+        }
+
+        // Topic filter
+        if ($request->filled('topics')) {
+            $coursesQuery->whereExists(function($query) use ($request) {
+                $query->select(DB::raw(1))
+                    ->from('topic_courses as tc')
+                    ->whereColumn('tc.course_id', 'c.id')
+                    ->whereIn('tc.topic_id', $request->topics);
+            });
+        }
+
+        // Rating filter
+        if ($request->filled('ratings')) {
+            $coursesQuery->where(function($query) use ($request) {
+                foreach ($request->ratings as $rating) {
+                    $query->orWhereBetween('c.average_rating', [$rating, $rating + 0.99]);
+                }
+            });
+        }
+
+        // Sorting
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'most_popular':
+                    $coursesQuery->orderBy('c.total_joined', 'desc');
+                    break;
+                case 'least_popular':
+                    $coursesQuery->orderBy('c.total_joined', 'asc');
+                    break;
+                case 'newest':
+                    $coursesQuery->orderBy('c.created_at', 'desc');
+                    break;
+                case 'oldest':
+                    $coursesQuery->orderBy('c.created_at', 'asc');
+                    break;
+            }
+        } else {
+            $coursesQuery->orderBy('c.created_at', 'desc');
+        }
+
+        // For AJAX requests
+        if ($request->ajax()) {
+            $courses = $coursesQuery->get();
+            
+            foreach ($courses as $course) {
+                $course->topics = DB::table('topic_courses as tc')
+                    ->join('topics as t', 'tc.topic_id', '=', 't.id')
+                    ->where('tc.course_id', $course->id)
+                    ->select('t.id', 't.name', 't.desc')
+                    ->get();
+            }
+
+            return response()->json([
+                'courses' => view('course.partials.course_items', compact('courses'))->render()
+            ]);
+        }
+
+        // Initial page load
+        $courses = $coursesQuery->get();
+
+        foreach ($courses as $course) {
+            $course->topics = DB::table('topic_courses as tc')
+                ->join('topics as t', 'tc.topic_id', '=', 't.id')
+                ->where('tc.course_id', $course->id)
+                ->select('t.id', 't.name', 't.desc')
+                ->get();
+
+            $course->lessons = Lesson::where('course_id', $course->id)
+                ->where('status', 1)
+                ->get();
+
+            foreach ($course->lessons as $lesson) {
+                $lesson->resources = Resource::where('lesson_id', $lesson->id)
+                    ->where('status', 1)
+                    ->get();
+            }
+        }
+
+        $topicCourseCounts = DB::table('topic_courses as tc')
+            ->join('topics as t', 'tc.topic_id', '=', 't.id')
+            ->join('courses as c', 'tc.course_id', '=', 'c.id')
+            ->where('c.status', '!=', 0)
+            ->select('t.name', DB::raw('COUNT(tc.course_id) as course_count'))
+            ->groupBy('tc.topic_id', 't.name')
+            ->get();
+
+        // MONTHLY COURSE TOTALS (e.g., Jan, Feb, ...)
+        $monthlyCourses = DB::table('courses as c')
+            ->join('user_courses as uc', fn($join) =>
+                $join->on('uc.course_id', '=', 'c.id')->where('uc.role_id', 1)
+            )
+            ->where('c.status', '!=', 0)
+            ->select([
+                DB::raw("DATE_FORMAT(c.created_at, '%b %Y') as label"),
+                DB::raw("YEAR(c.created_at) as year_number"),
+                DB::raw("MONTH(c.created_at) as month_number"),
+                DB::raw("COUNT(*) as total")
+            ])
+            ->groupBy(
+                DB::raw("DATE_FORMAT(c.created_at, '%b %Y')"),
+                DB::raw("YEAR(c.created_at)"),
+                DB::raw("MONTH(c.created_at)")
+            )
+            ->orderByRaw("YEAR(c.created_at), MONTH(c.created_at)")
+            ->get();
+
+        
+        // WEEKLY COURSE TOTALS (last 7 days)
+        $weeklyCourses = DB::table('courses as c')
+            ->join('user_courses as uc', fn($join) => 
+                $join->on('uc.course_id', '=', 'c.id')->where('uc.role_id', 1)
+            )
+            ->where('c.status', '!=', 0)
+            ->whereBetween('c.created_at', [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()])
+            ->select([
+                DB::raw("DATE_FORMAT(c.created_at, '%a') as label"),
+                DB::raw("DATE(c.created_at) as group_date"),
+                DB::raw("COUNT(*) as total")
+            ])
+            ->groupBy(DB::raw("DATE_FORMAT(c.created_at, '%a')"), DB::raw("DATE(c.created_at)"))
+            ->orderBy('group_date')
+            ->get();
+
+
+
+        // DAILY COURSE TOTALS (last 24 hours, by hour)
+        $dailyCourses = DB::table('courses as c')
+            ->join('user_courses as uc', fn($join) =>
+                $join->on('uc.course_id', '=', 'c.id')->where('uc.role_id', 1)
+            )
+            ->where('c.status', '!=', 0)
+            ->whereBetween('c.created_at', [Carbon::now()->subHours(23), Carbon::now()])
+            ->select(DB::raw("HOUR(c.created_at) as label"), DB::raw("COUNT(*) as total"))
+            ->groupBy(DB::raw("HOUR(c.created_at)"))
+            ->orderBy(DB::raw("HOUR(c.created_at)"))
+            ->get();
+
+
+
+        return view('admin.user.statistics_user', compact('courses', 'topics', 'topicCourseCounts', 'monthlyCourses', 'weeklyCourses', 'dailyCourses'));
     }
 }
