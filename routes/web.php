@@ -61,9 +61,9 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('update_points', [UserController::class, 'update_user_points'])->name('user.update_points');
 
         // Admin User
-        Route::group(['prefix' => 'user'], function () {
+        Route::group(['prefix' => 'admin'], function () {
             Route::get('a_find_user', [UserController::class, 'admin_find_user'])->name('user.admin.find_user');
-            // Route::post('a_edit_course/{course_id}', [CourseController::class, 'admin_edit_course'])->name('course.admin.edit_course');
+            Route::post('a_edit_user/{user_id}', [UserController::class, 'admin_edit_user'])->name('user.admin.edit_user');
             Route::get('a_user_statistics', [UserController::class, 'admin_user_statistics'])->name('user.admin.user_statistics');
         });
     });

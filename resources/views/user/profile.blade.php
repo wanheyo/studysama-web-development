@@ -208,7 +208,7 @@
                                 <div class="card-body">
                                     <div class="profile-container">
                                         <div class="image-details">
-                                            <div class="profile-image"></div>
+                                            <div class="profile-image" style="background-image: url('{{ asset('assets/images/profile-app/mountain2.jpg') }}');"></div>
                                             <div class="profile-pic">
                                                 <div class="avatar-upload">
                                                     <div class="avatar-preview">
@@ -277,7 +277,14 @@
                                                             :
                                                         </button>
                                                         <ul class="dropdown-menu">
-                                                            <li><a class="dropdown-item" href="#"><i class="ti ti-share"></i> Share profile</a></li>
+                                                            <li>
+                                                                <a href="javascript:void(0);"
+                                                                class="dropdown-item"
+                                                                onclick="copyLink(this)"
+                                                                data-link="{{ route('user.profile', ['user_id' => encrypt($user->id), 'shared' => 1]) }}">
+                                                                    <i class="ti ti-share"></i> Share profile
+                                                                </a>
+                                                            </li>
                                                             <li><a class="dropdown-item" href="#"><i class="ti ti-exclamation-circle"></i> Report</a></li>
                                                         </ul>
                                                     </div>
@@ -340,7 +347,10 @@
                                                             </div>
                                                             <div class="btn-group">
                                                                 <a href="{{ $social->link }}" target="_blank" class="btn btn-sm btn-outline-primary">Go here</a>
-                                                                <button type="button" class="btn btn-sm btn-outline-secondary copy-link" data-link="{{ $social->link }}">
+                                                                <button type="button"
+                                                                        class="btn btn-sm btn-outline-secondary"
+                                                                        data-link="{{ $social->link }}"
+                                                                        onclick="copyLink(this)">
                                                                     <i class="ti ti-copy"></i>
                                                                 </button>
                                                             </div>
@@ -1024,6 +1034,50 @@
             }
         });
     });
+
+    window.copyLink = function(element) {
+        const link = element.getAttribute('data-link');
+
+        // Fallback copy method using textarea
+        const tempInput = document.createElement("textarea");
+        tempInput.value = link;
+        tempInput.style.position = "absolute";
+        tempInput.style.left = "-9999px";
+        document.body.appendChild(tempInput);
+        tempInput.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Copied!',
+                    text: 'Link copied to clipboard.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+            } else {
+                throw new Error('Copy failed');
+            }
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: 'Unable to copy the link.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+            console.error('Copy failed:', err);
+        }
+
+        document.body.removeChild(tempInput);
+    };
 </script>
 
 <!--customizer-->

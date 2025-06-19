@@ -33,7 +33,7 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="d-flex align-items-center gap-2 mb-3">
-                            <h5>Course Statistics</h5>
+                            <h5>Course Statistics Overview</h5>
                             {{-- <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '0' }} | {{ auth()->user()->userPoints?->xp ?? '0' }} XP</span> --}}
                         </div>
                     </div>

@@ -147,38 +147,40 @@
 
                     </li> --}}
 
-                    <li class="header-searchbar">
-                        <a aria-controls="offcanvasRight" class="d-block head-icon"
-                            data-bs-target="#offcanvasRight" data-bs-toggle="offcanvas"
-                            href="#" role="button">
-                            <i class="iconoir-search"></i>
-                        </a>
+                    @auth
+                        <li class="header-searchbar">
+                            <a aria-controls="offcanvasRight" class="d-block head-icon"
+                                data-bs-target="#offcanvasRight" data-bs-toggle="offcanvas"
+                                href="#" role="button">
+                                <i class="iconoir-search"></i>
+                            </a>
 
-                        <div aria-labelledby="offcanvasRight"
-                            class="offcanvas offcanvas-end header-searchbar-canvas"
-                            id="offcanvasRight"
-                            tabindex="-1">
-                            <div class="header-searchbar-header">
-                                <div class="d-flex justify-content-between mb-3">
-                                    <form action="#" class="app-form app-icon-form w-100">
-                                        <div class="position-relative">
-                                            <input id="liveSearch" class="form-control search-filter" placeholder="Search..." type="search" autocomplete="off">
-                                            <i class="ti ti-search text-dark"></i>
-                                        </div>
-                                    </form>
+                            <div aria-labelledby="offcanvasRight"
+                                class="offcanvas offcanvas-end header-searchbar-canvas"
+                                id="offcanvasRight"
+                                tabindex="-1">
+                                <div class="header-searchbar-header">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <form action="#" class="app-form app-icon-form w-100">
+                                            <div class="position-relative">
+                                                <input id="liveSearch" class="form-control search-filter" placeholder="Search..." type="search" autocomplete="off">
+                                                <i class="ti ti-search text-dark"></i>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <p class="mb-0 text-secondary f-s-15 mt-2">Search result:</p>
                                 </div>
-                                <p class="mb-0 text-secondary f-s-15 mt-2">Search result:</p>
-                            </div>
-                            <div class="offcanvas-body app-scroll p-0">
-                                <div>
-                                    <ul id="searchResults" class="search-list">
-                                        <!-- AJAX results will go here -->
-                                    </ul>
+                                <div class="offcanvas-body app-scroll p-0">
+                                    <div>
+                                        <ul id="searchResults" class="search-list">
+                                            <!-- AJAX results will go here -->
+                                        </ul>
+                                    </div>
                                 </div>
-                            </div>
 
-                        </div>
-                    </li>
+                            </div>
+                        </li>
+                    @endauth
 
                     {{-- <li class="header-apps">
                         <a aria-controls="appscanvasRights" class="d-block head-icon"
@@ -838,6 +840,20 @@
                             </div>
                         </li>
                     @endauth
+
+                    @guest
+                        <li class="py-2">
+                            <a href="{{ route('login') }}" class="btn btn-primary w-100 b-r-22 d-flex align-items-center justify-content-center">
+                                <i class="iconoir-log-in me-2"></i> Login
+                            </a>
+                        </li>
+                        <li class="py-2">
+                            <a href="{{ route('register') }}" class="btn btn-outline-primary w-100 b-r-22 d-flex align-items-center justify-content-center">
+                                <i class="iconoir-user-plus me-2"></i> Register
+                            </a>
+                        </li>
+                    @endguest
+
                 </ul>
             </div>
         </div>

@@ -36,6 +36,7 @@ class UserController extends Controller
         $credentials = [
             $login_type => $request->login,
             'password' => $request->password,
+            'status' => 1 // ✅ Only allow active users
         ];
 
         if (Auth::attempt($credentials, $request->remember)) {
@@ -49,18 +50,32 @@ class UserController extends Controller
                 ]);
             }
 
-            if(Auth::user()->isAdmin() || Auth::user()->isSuperadmin()) {
+            if (Auth::user()->isAdmin() || Auth::user()->isSuperadmin()) {
                 return redirect()->intended(route('main.admin.homepage'));
             } else {
                 return redirect()->intended(route('main.homepage'));
             }
-            
+        }
+
+        // 🔍 Additional check if account exists but status is not active
+        $userModel = \App\Models\User::where($login_type, $request->login)->first();
+        if ($userModel) {
+            if ($userModel->status == 0) {
+                return back()->withErrors([
+                    'login' => 'This account has been deleted.',
+                ])->onlyInput('login');
+            } elseif ($userModel->status == 2) {
+                return back()->withErrors([
+                    'login' => 'Your account is under review. Please wait for approval.',
+                ])->onlyInput('login');
+            }
         }
 
         return back()->withErrors([
             'login' => 'The provided credentials do not match our records.',
         ])->onlyInput('login');
     }
+
 
     public function sign_up(Request $request)
     {
@@ -552,6 +567,7 @@ class UserController extends Controller
         ]);
     }
 
+    // ADMIN SIDE
     public function admin_find_user(Request $request)
     {
         // Get all active topics
@@ -678,177 +694,112 @@ class UserController extends Controller
         return view('admin.user.find_user', compact('courses', 'topics', 'users'));
     }
 
-    // ADMIN SIDE
-    public function admin_user_statistics(Request $request)
+    public function admin_edit_user(Request $request, $user_id)
     {
-        // Get all active topics
-        $topics = DB::table('topics as t')
-            ->where('t.status', 1)
-            ->select('t.*')
-            ->get();
+        $validated = $request->validate([
+            // 'name' => 'required|string|max:128',
+            // 'desc' => 'nullable|string',
+            // 'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            // 'topic' => 'nullable|exists:topics,id',
+            'status' => 'required|in:0,1,2',
+        ]);
 
-        // Start building the query
-        $coursesQuery = DB::table('courses as c')
-            ->join('user_courses as uc', function($join) {
-                $join->on('uc.course_id', '=', 'c.id')
-                    ->where('uc.role_id', 1); // Tutors only
-            })
-            ->join('users as u', 'uc.user_id', '=', 'u.id')
-            ->where('c.status', '!=', 0)
-            ->select([
-                'c.*',
-                'u.username as tutor_username',
-                'u.id as tutor_id',
-                'u.image as tutor_image'
-            ]);
+        $user_id = Crypt::decrypt($user_id);
+        $user = User::find($user_id);
 
-        // Search filter
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $coursesQuery->where(function($query) use ($searchTerm) {
-                $query->where('c.name', 'like', '%'.$searchTerm.'%')
-                    ->orWhere('c.desc', 'like', '%'.$searchTerm.'%');
-            });
-        }
-
-        // Topic filter
-        if ($request->filled('topics')) {
-            $coursesQuery->whereExists(function($query) use ($request) {
-                $query->select(DB::raw(1))
-                    ->from('topic_courses as tc')
-                    ->whereColumn('tc.course_id', 'c.id')
-                    ->whereIn('tc.topic_id', $request->topics);
-            });
-        }
-
-        // Rating filter
-        if ($request->filled('ratings')) {
-            $coursesQuery->where(function($query) use ($request) {
-                foreach ($request->ratings as $rating) {
-                    $query->orWhereBetween('c.average_rating', [$rating, $rating + 0.99]);
-                }
-            });
-        }
-
-        // Sorting
-        if ($request->filled('sort')) {
-            switch ($request->sort) {
-                case 'most_popular':
-                    $coursesQuery->orderBy('c.total_joined', 'desc');
-                    break;
-                case 'least_popular':
-                    $coursesQuery->orderBy('c.total_joined', 'asc');
-                    break;
-                case 'newest':
-                    $coursesQuery->orderBy('c.created_at', 'desc');
-                    break;
-                case 'oldest':
-                    $coursesQuery->orderBy('c.created_at', 'asc');
-                    break;
-            }
-        } else {
-            $coursesQuery->orderBy('c.created_at', 'desc');
-        }
-
-        // For AJAX requests
-        if ($request->ajax()) {
-            $courses = $coursesQuery->get();
-            
-            foreach ($courses as $course) {
-                $course->topics = DB::table('topic_courses as tc')
-                    ->join('topics as t', 'tc.topic_id', '=', 't.id')
-                    ->where('tc.course_id', $course->id)
-                    ->select('t.id', 't.name', 't.desc')
-                    ->get();
-            }
+        $user->status = $validated['status'];
+        // $course->updated_at = now();
+        $user->save();
 
             return response()->json([
-                'courses' => view('course.partials.course_items', compact('courses'))->render()
-            ]);
-        }
+            'success' => true,
+            'message' => 'User status updated successfully',
+            'status' => $user->status
+        ]);
+    }
 
-        // Initial page load
-        $courses = $coursesQuery->get();
-
-        foreach ($courses as $course) {
-            $course->topics = DB::table('topic_courses as tc')
-                ->join('topics as t', 'tc.topic_id', '=', 't.id')
-                ->where('tc.course_id', $course->id)
-                ->select('t.id', 't.name', 't.desc')
-                ->get();
-
-            $course->lessons = Lesson::where('course_id', $course->id)
-                ->where('status', 1)
-                ->get();
-
-            foreach ($course->lessons as $lesson) {
-                $lesson->resources = Resource::where('lesson_id', $lesson->id)
-                    ->where('status', 1)
-                    ->get();
-            }
-        }
-
-        $topicCourseCounts = DB::table('topic_courses as tc')
-            ->join('topics as t', 'tc.topic_id', '=', 't.id')
-            ->join('courses as c', 'tc.course_id', '=', 'c.id')
-            ->where('c.status', '!=', 0)
-            ->select('t.name', DB::raw('COUNT(tc.course_id) as course_count'))
-            ->groupBy('tc.topic_id', 't.name')
+    public function admin_user_statistics(Request $request)
+    {
+        // Get all users (excluding superadmin and inactive)
+        $users = User::where('status', '!=', 0)
+            ->where('role', '!=', 'Superadmin')
+            ->with(['userPoints'])
+            ->withCount(['following' => function ($query) {
+                $query->where('user_follow.status', '!=', 0);
+            }])
             ->get();
 
-        // MONTHLY COURSE TOTALS (e.g., Jan, Feb, ...)
-        $monthlyCourses = DB::table('courses as c')
-            ->join('user_courses as uc', fn($join) =>
-                $join->on('uc.course_id', '=', 'c.id')->where('uc.role_id', 1)
-            )
-            ->where('c.status', '!=', 0)
+        // User role distribution for pie chart
+        $roleDistribution = User::where('status', '!=', 0)
+            ->where('role', '!=', 'Superadmin')
+            ->select('role', DB::raw('COUNT(*) as user_count'))
+            ->groupBy('role')
+            ->get();
+
+        // MONTHLY USER REGISTRATION TRENDS
+        $monthlyUsers = User::where('status', '!=', 0)
+            ->where('role', '!=', 'Superadmin')
             ->select([
-                DB::raw("DATE_FORMAT(c.created_at, '%b %Y') as label"),
-                DB::raw("YEAR(c.created_at) as year_number"),
-                DB::raw("MONTH(c.created_at) as month_number"),
+                DB::raw("DATE_FORMAT(created_at, '%b %Y') as label"),
+                DB::raw("YEAR(created_at) as year_number"),
+                DB::raw("MONTH(created_at) as month_number"),
                 DB::raw("COUNT(*) as total")
             ])
             ->groupBy(
-                DB::raw("DATE_FORMAT(c.created_at, '%b %Y')"),
-                DB::raw("YEAR(c.created_at)"),
-                DB::raw("MONTH(c.created_at)")
+                DB::raw("DATE_FORMAT(created_at, '%b %Y')"),
+                DB::raw("YEAR(created_at)"),
+                DB::raw("MONTH(created_at)")
             )
-            ->orderByRaw("YEAR(c.created_at), MONTH(c.created_at)")
+            ->orderByRaw("YEAR(created_at), MONTH(created_at)")
             ->get();
 
-        
-        // WEEKLY COURSE TOTALS (last 7 days)
-        $weeklyCourses = DB::table('courses as c')
-            ->join('user_courses as uc', fn($join) => 
-                $join->on('uc.course_id', '=', 'c.id')->where('uc.role_id', 1)
-            )
-            ->where('c.status', '!=', 0)
-            ->whereBetween('c.created_at', [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()])
+        // WEEKLY USER REGISTRATION (last 7 days)
+        $weeklyUsers = User::where('status', '!=', 0)
+            ->where('role', '!=', 'Superadmin')
+            ->whereBetween('created_at', [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()])
             ->select([
-                DB::raw("DATE_FORMAT(c.created_at, '%a') as label"),
-                DB::raw("DATE(c.created_at) as group_date"),
+                DB::raw("DATE_FORMAT(created_at, '%a') as label"),
+                DB::raw("DATE(created_at) as group_date"),
                 DB::raw("COUNT(*) as total")
             ])
-            ->groupBy(DB::raw("DATE_FORMAT(c.created_at, '%a')"), DB::raw("DATE(c.created_at)"))
+            ->groupBy(DB::raw("DATE_FORMAT(created_at, '%a')"), DB::raw("DATE(created_at)"))
             ->orderBy('group_date')
             ->get();
 
-
-
-        // DAILY COURSE TOTALS (last 24 hours, by hour)
-        $dailyCourses = DB::table('courses as c')
-            ->join('user_courses as uc', fn($join) =>
-                $join->on('uc.course_id', '=', 'c.id')->where('uc.role_id', 1)
-            )
-            ->where('c.status', '!=', 0)
-            ->whereBetween('c.created_at', [Carbon::now()->subHours(23), Carbon::now()])
-            ->select(DB::raw("HOUR(c.created_at) as label"), DB::raw("COUNT(*) as total"))
-            ->groupBy(DB::raw("HOUR(c.created_at)"))
-            ->orderBy(DB::raw("HOUR(c.created_at)"))
+        // DAILY USER REGISTRATION (last 24 hours, by hour)
+        $dailyUsers = User::where('status', '!=', 0)
+            ->where('role', '!=', 'Superadmin')
+            ->whereBetween('created_at', [Carbon::now()->subHours(23), Carbon::now()])
+            ->select(DB::raw("HOUR(created_at) as label"), DB::raw("COUNT(*) as total"))
+            ->groupBy(DB::raw("HOUR(created_at)"))
+            ->orderBy(DB::raw("HOUR(created_at)"))
             ->get();
 
+        // User engagement stats (users with high followers, ratings, etc.)
+        $topUsers = User::where('status', '!=', 0)
+            ->where('role', '!=', 'Superadmin')
+            ->orderBy('total_follower', 'desc')
+            ->take(10)
+            ->get();
 
+        // Average user metrics
+        $avgStats = User::where('status', '!=', 0)
+            ->where('role', '!=', 'Superadmin')
+            ->select([
+                DB::raw('AVG(total_follower) as avg_followers'),
+                DB::raw('AVG(average_rating) as avg_rating'),
+                DB::raw('COUNT(*) as total_users')
+            ])
+            ->first();
 
-        return view('admin.user.statistics_user', compact('courses', 'topics', 'topicCourseCounts', 'monthlyCourses', 'weeklyCourses', 'dailyCourses'));
+        return view('admin.user.statistics_user', compact(
+            'users', 
+            'roleDistribution', 
+            'monthlyUsers', 
+            'weeklyUsers', 
+            'dailyUsers', 
+            'topUsers', 
+            'avgStats'
+        ));
     }
 }

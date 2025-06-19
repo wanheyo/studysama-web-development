@@ -15,7 +15,7 @@
                     <li class="">
                         <a href="#" class="f-s-14 f-w-500">
                       <span>
-                        <i class="ph-duotone  ph-stack f-s-16"></i> User
+                        <i class="ph-duotone ph-users f-s-16"></i> User
                       </span>
                         </a>
                     </li>
@@ -85,37 +85,18 @@
                                         <!-- Email -->
                                         <td>
                                             {{ $user->email }}
-                                            {{-- @foreach ($course->topics as $topic)
-                                                <span class="badge text-light-primary small text-truncate d-inline-block" 
-                                                    style="max-width: 70%; overflow: hidden; text-overflow: ellipsis;">
-                                                    {{ $topic->name }}
-                                                </span>
-                                            @endforeach --}}
                                         </td>
                                         
-                                        <!-- Tutor -->
+                                        <!-- Name -->
                                         <td>
                                             {{ $user->name }}
-                                            {{-- <a href="{{ route('user.profile', ['user_id' => encrypt($course->tutor_id), 'shared' => 0]) }}" 
-                                                style="cursor: pointer; text-decoration: none; color: inherit;" 
-                                                class="d-flex align-items-center gap-2">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="h-35 w-35 d-flex-center b-r-22 overflow-hidden me-2">
-                                                        <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/woman.jpg') }}" 
-                                                            alt="Tutor Avatar" class="img-fluid">
-                                                    </div>
-                                                    <div class="d-flex">
-                                                        <span class="fw-medium">{{ $course->tutor_username }}</span>
-                                                    </div>
-                                                </div>
-                                            </a> --}}
                                         </td>
                                         
                                         <!-- Dates -->
                                         <td>{{ \Carbon\Carbon::parse($user->created_at)->format('d/m/Y h:i A') }}</td>
                                         <td>{{ \Carbon\Carbon::parse($user->updated_at)->format('d/m/Y h:i A') }}</td>
                                         
-                                        <!-- Rating -->
+                                        <!-- Role -->
                                         @php
                                             $role = $user->role;
                                             if ($role == "Superadmin" || $role == "Admin") {
@@ -147,7 +128,7 @@
                                                 <i class="ti ti-eye text-info"></i>
                                             </a>
                                             <button type="button" class="btn btn-light-success icon-btn b-r-4 edit-user-btn" 
-                                                    data-course-id="{{ encrypt($user->id) }}">
+                                                    data-user-id="{{ encrypt($user->id) }}">
                                                 <i class="ti ti-edit text-success"></i>
                                             </button>
                                         </td>
@@ -161,6 +142,7 @@
                             </table>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -264,7 +246,7 @@
                         <!-- Status -->
                         <div class="mb-3">
                             <label class="form-label">Status</label>
-                            <select class="form-select" id="modalCourseStatus" name="status" required>
+                            <select class="form-select" id="modalUserStatus" name="status" required>
                                 <option value="1">Active</option>
                                 <option value="2">In Review</option>
                             </select>
@@ -273,8 +255,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger me-2" id="deleteCourseBtn">Delete User</button>
-                    <button type="button" class="btn btn-success" id="updateCourseBtn">Update Status</button>
+                    {{-- <button type="button" class="btn btn-danger me-2" id="deleteUserBtn">Delete User</button> --}}
+                    <button type="button" class="btn btn-success" id="updateUserBtn">Update Status</button>
                 </div>
             </div>
         </div>
@@ -289,8 +271,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete this course? This action cannot be undone.</p>
-                    <p class="text-muted"><strong>Course:</strong> <span id="deleteCourseName"></span></p>
+                    <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+                    <p class="text-muted"><strong>User:</strong> <span id="deleteUserName"></span></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -317,6 +299,8 @@
                 scrollCollapse: true,
                 autoWidth: false,
                 responsive: false,
+                "pageLength": 10,           // Show 10 records per page
+                "lengthMenu": [10, 25, 50, 100], // Page length options
                 // ... your other DataTable options
             });
 
@@ -454,17 +438,26 @@
                     document.getElementById('modalUserCreatedAt').value = row.dataset.createdAt;
                     document.getElementById('modalUserUpdatedAt').value = row.dataset.updatedAt;
 
-                    
+                    // Set current status
+                    const statusBadge = row.querySelector('td:nth-child(9) .badge');
+                    let currentStatus = '1'; // default to active
+                    if (statusBadge.textContent.includes('Active')) {
+                        currentStatus = '1';
+                    } else if (statusBadge.textContent.includes('Review')) {
+                        currentStatus = '2';
+                    }
+                    document.getElementById('modalUserStatus').value = currentStatus;
+
                     // Show modal
                     new bootstrap.Modal(document.getElementById('userDetailModal')).show();
                 });
             });
             
-            // Function to update course status via AJAX
-            function updateCourseStatus(courseId, status, successMessage) {
+            // Function to update user status via AJAX
+            function updateUserStatus(userId, status, successMessage) {
                 // Show loading state
-                const updateBtn = document.getElementById('updateCourseBtn');
-                const deleteBtn = document.getElementById('deleteCourseBtn');
+                const updateBtn = document.getElementById('updateUserBtn');
+                const deleteBtn = document.getElementById('deleteUserBtn');
                 const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
                 
                 // Disable buttons and show loading
@@ -476,7 +469,7 @@
                     updateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
                 }
                 
-                fetch(`/course/admin/a_edit_course/${courseId}`, {
+                fetch(`/user/admin/a_edit_user/${userId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -498,10 +491,10 @@
                     console.log('Success:', data);
                     
                     // Hide modals
-                    const courseModal = bootstrap.Modal.getInstance(document.getElementById('courseDetailModal'));
+                    const userModal = bootstrap.Modal.getInstance(document.getElementById('userDetailModal'));
                     const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
                     
-                    if (courseModal) courseModal.hide();
+                    if (userModal) userModal.hide();
                     if (deleteModal) deleteModal.hide();
                     
                     // Show success message
@@ -509,10 +502,10 @@
                     
                     // Update the table row status if not deleted
                     if (status !== '0') {
-                        updateTableRowStatus(courseId, status);
+                        updateTableRowStatus(userId, status);
                     } else {
                         // Remove the row from table if deleted
-                        removeTableRow(courseId);
+                        removeTableRow(userId);
                     }
                 })
                 .catch(error => {
@@ -532,8 +525,8 @@
             }
             
             // Function to update table row status
-            function updateTableRowStatus(courseId, status) {
-                const editBtn = document.querySelector(`[data-course-id="${courseId}"]`);
+            function updateTableRowStatus(userId, status) {
+                const editBtn = document.querySelector(`[data-user-id="${userId}"]`);
                 if (editBtn) {
                     const row = editBtn.closest('tr');
                     const statusCell = row.querySelector('td:nth-child(9)');
@@ -559,8 +552,8 @@
             }
             
             // Function to remove table row
-            function removeTableRow(courseId) {
-                const editBtn = document.querySelector(`[data-course-id="${courseId}"]`);
+            function removeTableRow(userId) {
+                const editBtn = document.querySelector(`[data-user-id="${userId}"]`);
                 if (editBtn) {
                     const row = editBtn.closest('tr');
                     row.style.transition = 'opacity 0.3s ease';
@@ -602,8 +595,8 @@
             }
             
             // Update status button handler
-            document.getElementById('updateCourseBtn').addEventListener('click', function() {
-                const selectedStatus = document.getElementById('modalCourseStatus').value;
+            document.getElementById('updateUserBtn').addEventListener('click', function() {
+                const selectedStatus = document.getElementById('modalUserStatus').value;
                 let statusText = '';
                 
                 switch(selectedStatus) {
@@ -617,22 +610,22 @@
                         statusText = 'updated';
                 }
                 
-                updateCourseStatus(currentCourseId, selectedStatus, `Course has been ${statusText} successfully.`);
+                updateUserStatus(currentUserId, selectedStatus, `User has been ${statusText} successfully.`);
             });
             
             // Delete button handler
-            document.getElementById('deleteCourseBtn').addEventListener('click', function() {
-                const courseName = document.getElementById('modalCourseTitle').value;
-                document.getElementById('deleteCourseName').textContent = courseName;
+            document.getElementById('deleteUserBtn').addEventListener('click', function() {
+                const userName = document.getElementById('modalUserTitle').value;
+                document.getElementById('deleteUserName').textContent = userName;
                 
                 // Hide course detail modal and show delete confirmation
-                bootstrap.Modal.getInstance(document.getElementById('courseDetailModal')).hide();
+                bootstrap.Modal.getInstance(document.getElementById('userDetailModal')).hide();
                 new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
             });
             
             // Confirm delete handler
             document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-                updateCourseStatus(currentCourseId, '0', 'Course has been deleted successfully.');
+                updateCourseStatus(currentUserId, '0', 'User has been deleted successfully.');
             });
         });
     </script>

@@ -323,6 +323,8 @@
                 scrollCollapse: true,
                 autoWidth: false,
                 responsive: false,
+                "pageLength": 10,           // Show 10 records per page
+                "lengthMenu": [10, 25, 50, 100], // Page length options
                 // ... your other DataTable options
             });
 
