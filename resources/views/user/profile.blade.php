@@ -26,7 +26,7 @@
                     <li class="">
                         <a href="#" class="f-s-14 f-w-500">
                         <span>
-                            <i class="ph-duotone  ph-stack f-s-16"></i> Profile
+                            <i class="ph-duotone ph-user-circle f-s-16"></i> Profile
                         </span>
                         </a>
                     </li>
@@ -56,9 +56,9 @@
                                 <span class="visually-hidden">unread messages</span> --}}
                                 </li>
                                 <li class="tab-link fw-medium f-s-16 f-w-600" data-tab="2"><i
-                                        class="ti ti-clipboard-data fw-bold"></i> Created Course</li>
+                                        class="ti ti-book-upload fw-bold"></i> Created Course</li>
                                 <li class="tab-link fw-medium f-s-16 f-w-600" data-tab="3"><i
-                                        class="ti ti-photo-heart fw-bold"></i> Joined Course</li>
+                                        class="ti ti-book-download fw-bold"></i> Joined Course</li>
                                 <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="4"><i class="ti ti-users fw-bold"></i>
                                     Follower</li>
                                 <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="5"><i class="ti ti-users fw-bold"></i>
@@ -66,8 +66,9 @@
                                 <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="6"><i class="ti ti-chart-radar fw-bold"></i>
                                     Level Progression</li>
                                 <li class="app-divider-v dashed p-0 m-2"></li>
-                                <li><i class="ti ti-help fs-5 pe-2"></i><span
-                                        class="flex-grow-1">Help</span>
+                                <li data-bs-toggle="modal" data-bs-target="#helpModal" style="cursor: pointer;" class="d-flex align-items-center gap-2">
+                                    <i class="ti ti-help fs-5"></i>
+                                    <span class="flex-grow-1">Help</span>
                                 </li>
                             </ul>
                         </div>
@@ -208,13 +209,28 @@
                                 <div class="card-body">
                                     <div class="profile-container">
                                         <div class="image-details">
+                                            @guest
+                                                <div class="alert alert-border-primary my-2" role="alert">
+                                                    <h6>
+                                                        <i class="ti ti-info-circle f-s-18 me-2 text-primary"></i>
+                                                        Your are not logged in.
+                                                    </h6>
+                                                    <p>
+                                                        Please login to follow this user or view more details.
+                                                    </p>
+                                                    <div class="text-end">
+                                                        <a href="" class="link-primary text-d-underline" data-bs-dismiss="alert">I know</a>
+                                                        <a href="{{ route('login') }}" class="link-primary text-d-underline ms-2">Login</a>
+                                                    </div>
+                                                </div>
+                                            @endguest
                                             <div class="profile-image" style="background-image: url('{{ asset('assets/images/profile-app/mountain2.jpg') }}');"></div>
                                             <div class="profile-pic">
                                                 <div class="avatar-upload">
                                                     <div class="avatar-preview">
                                                         <div id="imgPreview">
                                                             <img alt="avatar" class="b-r-50 h-100 w-100 object-cover rounded-circle"
-                                                                 src="{{ $user->image 
+                                                                src="{{ $user->image 
                                                                     ? asset('storage/uploads/profile_picture/' . $user->image) 
                                                                     : asset('assets/images/avtar/woman.jpg') }}">
                                                         </div>
@@ -290,6 +306,28 @@
                                                     </div>
                                                 </div>
                                             @endauth
+
+                                            @guest
+                                                <div class="my-2">
+                                                    <a href="{{ route('login') }}" class="btn btn-primary b-r-22">Login</a>
+
+                                                    <div class="btn-group dropdown-icon-none">
+                                                        <button class="btn btn-light-primary icon-btn b-r-22 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            :
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a href="javascript:void(0);"
+                                                                class="dropdown-item"
+                                                                onclick="copyLink(this)"
+                                                                data-link="{{ route('user.profile', ['user_id' => encrypt($user->id), 'shared' => 1]) }}">
+                                                                    <i class="ti ti-share"></i> Share profile
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            @endguest
                                         </div>
                                     </div>
                                 </div>
@@ -896,6 +934,29 @@
             </div> --}}
         </div>
     </div>
+
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalLabel">Profile Help</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul>
+                        <li> 1. Lorem ipsum dolor sit amet.</li>
+                        <li> 2. Unde reprehenderit nulla fugiat ut.</li>
+                        <li> 3. Error velit quisquam quam exercitationem.</li>
+                        <li> 4. Veritatis delectus atque itaque reprehenderit.</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <style>
         .swal2-toast {

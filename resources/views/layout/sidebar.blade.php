@@ -211,7 +211,7 @@
 
 
             <li class="no-sub">
-                <a class="" href="mailto:teqlathemes@gmail.com">
+                <a href="mailto:wanirfan100@gmail.com?subject=Support%20Request&body=Please%20describe%20your%20issue.">
                     <i class="iconoir-chat-bubble-question"></i> Support
                 </a>
             </li> 

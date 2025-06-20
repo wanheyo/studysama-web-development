@@ -528,7 +528,7 @@
                                 </div>
                             </div>
                         </div>
-                    </li> --}}
+                    </li>
 
                     <li class="header-dark">
                         <div class="sun-logo head-icon">
@@ -538,8 +538,8 @@
                             <i class="iconoir-half-moon"></i>
                         </div>
                     </li>
-
-                    {{-- <li class="header-notification">
+                    
+                    <li class="header-notification">
                         <a aria-controls="notificationcanvasRight"
                            class="d-block head-icon position-relative"
                            data-bs-target="#notificationcanvasRight"

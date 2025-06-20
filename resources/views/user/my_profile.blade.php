@@ -26,7 +26,7 @@
                     <li class="">
                         <a href="#" class="f-s-14 f-w-500">
                       <span>
-                        <i class="ph-duotone  ph-stack f-s-16"></i> Profile
+                        <i class="ph-duotone ph-user-circle f-s-16"></i> Profile
                       </span>
                         </a>
                     </li>
@@ -56,9 +56,9 @@
                             <span class="visually-hidden">unread messages</span> --}}
                                 </li>
                                 <li class="tab-link fw-medium f-s-16 f-w-600" data-tab="2"><i
-                                        class="ti ti-clipboard-data fw-bold"></i> Created Course</li>
+                                        class="ti ti-book-upload fw-bold"></i> Created Course</li>
                                 <li class="tab-link fw-medium f-s-16 f-w-600" data-tab="3"><i
-                                        class="ti ti-photo-heart fw-bold"></i> Joined Course</li>
+                                        class="ti ti-book-download fw-bold"></i> Joined Course</li>
                                 <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="4"><i class="ti ti-users fw-bold"></i>
                                     Follower</li>
                                 <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="5"><i class="ti ti-users fw-bold"></i>
@@ -66,8 +66,9 @@
                                 <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="6"><i class="ti ti-chart-radar fw-bold"></i>
                                     Level Progression</li>
                                 <li class="app-divider-v dashed p-0 m-2"></li>
-                                <li><i class="ti ti-help fs-5 pe-2"></i><span
-                                        class="flex-grow-1">Help</span>
+                                <li data-bs-toggle="modal" data-bs-target="#helpModal" style="cursor: pointer;" class="d-flex align-items-center gap-2">
+                                    <i class="ti ti-help fs-5"></i>
+                                    <span class="flex-grow-1">Help</span>
                                 </li>
                             </ul>
                         </div>
@@ -784,6 +785,28 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalLabel">Profile Help</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul>
+                        <li> 1. Lorem ipsum dolor sit amet.</li>
+                        <li> 2. Unde reprehenderit nulla fugiat ut.</li>
+                        <li> 3. Error velit quisquam quam exercitationem.</li>
+                        <li> 4. Veritatis delectus atque itaque reprehenderit.</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

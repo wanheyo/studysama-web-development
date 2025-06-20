@@ -24,7 +24,7 @@
                     <li class="">
                         <a href="#" class="f-s-14 f-w-500">
                             <span>
-                                <i class="ph-duotone  ph-stack f-s-16"></i> Course
+                                <i class="ph-duotone ph-book f-s-16"></i> Course
                             </span>
                         </a>
                     </li>
@@ -32,7 +32,7 @@
                         <a href="{{ route('course.find_course') }}" class="f-s-14 f-w-500">Find Courses</a>
                     </li>
                     <li>
-                        <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}" class="f-s-14 f-w-500">Course Details</a>
+                        <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}" class="f-s-14 f-w-500">{{ $course->name }}</a>
                     </li>
                     <li class="active">
                         <a href="#" class="f-s-14 f-w-500">Lessons</a>
@@ -88,13 +88,14 @@
 
                                 <li class="app-divider-v dashed p-0 m-2"></li>
                                 @if ($isTutor)
-                                    <li data-bs-target="#lessonAddModal" data-bs-toggle="modal" class="my-3 border border-dashed rounded-pill hover-effect">
+                                    <li data-bs-target="#lessonAddModal" data-bs-toggle="modal" class="my-3 border border-dashed rounded-pill hover-effect d-flex align-items-center gap-2">
                                         <i class="ti ti-folder-plus fs-5 pe-2"></i>
                                         <span class="flex-grow-1">Create New Lesson</span>
                                     </li>
                                 @endif
-                                <li><i class="ti ti-help fs-5 pe-2"></i><span
-                                        class="flex-grow-1">Help</span>
+                                <li data-bs-toggle="modal" data-bs-target="#helpModal" style="cursor: pointer;" class="d-flex align-items-center gap-2">
+                                    <i class="ti ti-help fs-5"></i>
+                                    <span class="flex-grow-1">Help</span>
                                 </li>
                                 {{-- <li><i class="ti ti-adjustments-alt fs-5 pe-2"></i> <span
                                         class="flex-grow-1">Settings</span>
@@ -929,6 +930,28 @@
             </div>
         </div>
         <!-- File manager end -->
+
+        <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="helpModalLabel">Lesson Help</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul>
+                            <li> 1. Lorem ipsum dolor sit amet.</li>
+                            <li> 2. Unde reprehenderit nulla fugiat ut.</li>
+                            <li> 3. Error velit quisquam quam exercitationem.</li>
+                            <li> 4. Veritatis delectus atque itaque reprehenderit.</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Resource card thumbnail style -->
         <style>

@@ -21,7 +21,7 @@
                     <li class="">
                         <a class="f-s-14 f-w-500" href="#">
                       <span>
-                        <i class="ph-duotone  ph-stack f-s-16"></i> Course
+                        <i class="ph-duotone ph-book f-s-16"></i> Course
                       </span>
                         </a>
                     </li>
@@ -29,7 +29,7 @@
                         <a href="{{ route('course.find_course') }}" class="f-s-14 f-w-500">Find Courses</a>
                     </li>
                     <li class="active">
-                        <a class="f-s-14 f-w-500" href="#">Course Details</a>
+                        <a class="f-s-14 f-w-500" href="#">{{ $course->name }}</a>
                     </li>
                 </ul>
             </div>
@@ -62,7 +62,7 @@
                                     </p>
                                     <p class="mb-0">
                                         <strong><i class="iconoir-calendar"></i> Created by </strong>
-                                        <a href="" class="text-info text-decoration-none">
+                                        <a href="{{ route('user.profile', ['user_id' => encrypt($tutor->id), 'shared' => 0]) }}" class="text-info text-decoration-none">
                                             {{"@" . $tutor->username }}
                                         </a>: 
                                         {{ $course->created_at->diffForHumans() }}
@@ -335,7 +335,7 @@
                     <div class="card-body">
                         <div class="profile-container mb-5">
                             <div class="image-details">
-                                <div class="profile-image"></div>
+                                <div class="profile-image" style="background-image: url('{{ asset('assets/images/profile-app/mountain2.jpg') }}');"></div>
                                 <div class="profile-pic">
                                     <div class="avatar-upload">
                                         <div class="avatar-preview">
@@ -351,7 +351,7 @@
                             </div>
                             <div class="person-details">
                                 <h5 class="f-w-600">{{ $tutor->username }}
-                                    <img src="{{asset('assets/images/profile-app/01.png')}}" class="w-20 h-20" alt="instagram-check-mark">
+                                    {{-- <img src="{{asset('assets/images/profile-app/01.png')}}" class="w-20 h-20" alt="instagram-check-mark"> --}}
                                 </h5>
                                 <p>{{ $tutor->email }}</p>
                                 {{-- <div class="details">
@@ -368,7 +368,7 @@
                             </div>
                         </div>
                         <h5 class="mb-3">About me</h5>
-                        <p class="text-muted f-s-13">{{ $tutor->bio }}</p>
+                        <p class="text-muted f-s-13 mb-3" style="text-align: justify;">{{ $tutor->bio }}</p>
                         <div class="about-list">
                             <div>
                                 <span class="fw-medium"><i class="ti ti-user"></i> Name</span>

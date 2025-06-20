@@ -21,12 +21,18 @@
                     <li class="">
                         <a href="#" class="f-s-14 f-w-500">
                       <span>
-                        <i class="ph-duotone  ph-stack f-s-16"></i> Course
+                        <i class="ph-duotone ph-book f-s-16"></i> Course
                       </span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('course.find_course') }}" class="f-s-14 f-w-500">Find Courses</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}" class="f-s-14 f-w-500">{{ $course->name }}</a>
+                    </li>
                     <li class="active">
-                        <a href="#" class="f-s-14 f-w-500">Edit Course - {{ $course->name }}</a>
+                        <a href="#" class="f-s-14 f-w-500">Edit Course</a>
                     </li>
                 </ul>
             </div>

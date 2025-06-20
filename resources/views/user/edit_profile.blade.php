@@ -20,7 +20,7 @@
                     <li class="">
                         <a href="#" class="f-s-14 f-w-500">
                             <span>
-                                <i class="ph-duotone  ph-stack f-s-16 "></i> Profile
+                                <i class="ph-duotone ph-user-circle f-s-16 "></i> Profile
                             </span>
                         </a>
                     </li>
@@ -175,7 +175,7 @@
                                         @csrf
                                         @method('PUT')
                                         <div class="image-details">
-                                            <div class="profile-image"></div>
+                                            <div class="profile-image" style="background-image: url('{{ asset('assets/images/profile-app/mountain2.jpg') }}');"></div>
                                             <div class="profile-pic">
                                                 <div class="avatar-upload">
                                                     <div class="avatar-edit">
@@ -262,15 +262,15 @@
                                                     <div class="input-group">
                                                         <span class="input-group-text">+60</span>
                                                         <input type="tel" 
-                                                               class="form-control" 
-                                                               id="phone_num" 
-                                                               name="phone_num" 
-                                                               pattern="[0-9]{1,3}-[0-9]{6,8}" 
-                                                               placeholder="xx-xxxxxxxx"
-                                                               title="Malaysian phone number format: 1x-xxxxxxx (mobile) or 0x-xxxxxxx (landline)"
-                                                               oninput="formatMalaysianPhone(this)"
-                                                               onpaste="handlePhonePaste(event)"
-                                                               value="{{ auth()->user()->phone_num ? substr(auth()->user()->phone_num, 3) : '' }}">
+                                                            class="form-control" 
+                                                            id="phone_num" 
+                                                            name="phone_num" 
+                                                            pattern="[0-9]{1,3}-[0-9]{6,8}" 
+                                                            placeholder="xx-xxxxxxxx"
+                                                            title="Malaysian phone number format: 1x-xxxxxxx (mobile) or 0x-xxxxxxx (landline)"
+                                                            oninput="formatMalaysianPhone(this)"
+                                                            onpaste="handlePhonePaste(event)"
+                                                            value="{{ auth()->user()->phone_num ? substr(auth()->user()->phone_num, 3) : '' }}">
                                                     </div>
                                                     <small class="text-muted">Formats: 1x-xxxxxxx (mobile) or 0x-xxxxxxx (landline)</small>
                                                 </div>
@@ -488,7 +488,7 @@
 
                                             <div class="col-12 mt-5">
                                                 <div class="text-end">
-                                                    <button class="btn btn-primary"
+                                                    <button class="btn btn-primary b-r-22 rounded"
                                                             type="submit">Save Change
                                                     </button>
                                                 </div>
