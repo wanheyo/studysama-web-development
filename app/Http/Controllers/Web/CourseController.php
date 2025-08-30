@@ -523,9 +523,23 @@ class CourseController extends Controller
             abort(404); // or redirect with a message
         }
 
-        // dd($user_review);
+        $joined_users = DB::table('user_courses as uc')
+            ->join('courses as c', 'uc.course_id', '=', 'c.id')
+            ->where('c.id', $course_id)
+            ->where('uc.status', 1)
+            ->select('uc.*')
+            ->get();
 
-        return view('course.course_detail', compact('course', 'topics', 'user_courses', 'tutor', 'tutor_follow', 'tutor_courses', 'course_comments', 'user_review'));
+        $joined_users = UserCourse::with('user')
+            ->where('course_id', $course_id)
+            ->where('status', 1)
+            ->where('role_id', 3) // Only students
+            ->get();
+
+
+        // dd($joined_users);
+
+        return view('course.course_detail', compact('course', 'topics', 'user_courses', 'tutor', 'tutor_follow', 'tutor_courses', 'course_comments', 'user_review', 'joined_users'));
     }
 
     public function join_leave_course(Request $request)

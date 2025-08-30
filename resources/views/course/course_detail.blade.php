@@ -57,9 +57,13 @@
 
                             <div class="product-details-btn row align-items-center mt-4">
                                 <div class="col-12 col-md-6 text-start mb-3 mb-md-0">
-                                    <p class="mb-1">
+                                    {{-- <p class="mb-1">
+                                        <strong><i class="iconoir-group"></i> Total Joined:</strong> {{ $course->total_joined }}
+                                    </p> --}}
+                                    <p class="mb-1" data-bs-toggle="modal" data-bs-target="#joinedUsersModal" style="cursor: pointer;">
                                         <strong><i class="iconoir-group"></i> Total Joined:</strong> {{ $course->total_joined }}
                                     </p>
+
                                     <p class="mb-0">
                                         <strong><i class="iconoir-calendar"></i> Created by </strong>
                                         <a href="{{ route('user.profile', ['user_id' => encrypt($tutor->id), 'shared' => 0]) }}" class="text-info text-decoration-none">
@@ -269,9 +273,7 @@
                                                 <i class="ti ti-dots-vertical"></i>
                                             </a>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#"><i class="ti ti-share"></i> Share </a></li>
-                                                <li><a class="dropdown-item" href="#"><i class="ti ti-edit"></i> Edit </a></li>
-                                                <li><a class="dropdown-item" href="#"><i class="ti ti-trash"></i> Delete</a></li>
+                                                <li><a class="dropdown-item" href="#"><i class="ti ti-alert-triangle"></i> Report </a></li>
                                             </ul>
                                         </div>
                                     </div>
@@ -280,7 +282,7 @@
                         @endforeach
                         <h5 class="mb-3">Leave a Review</h5>
                         @if($isJoined && !$isTutor)
-                            <form id="review-form" method="POST" action="{{ route('course.update_review') }}">
+                            <form id="review-form" method="POST" action="{{ route('course.update_review') }}" onsubmit="return validateReviewForm()">
                                 @csrf
                                 <input type="hidden" name="user_course_id" value="{{ $user_review?->id ?? $user_courses->where('user_id', auth()->user()->id)->first()?->id }}">
                                 <input type="hidden" name="action" id="action" value="update">
@@ -423,6 +425,42 @@
         <!-- Product Details end -->
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="joinedUsersModal" tabindex="-1" aria-labelledby="joinedUsersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h1 class="modal-title fs-5 text-white" id="joinedUsersModalLabel">Users Joined This Course</h1>
+                    <button aria-label="Close" class="btn-close m-0"
+                                            data-bs-dismiss="modal"
+                                            type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-unstyled">
+                        @forelse ($joined_users as $joined)
+                            <li class="d-flex align-items-center justify-content-between mb-3">
+                                <a href="{{ route('user.profile', ['user_id' => encrypt($joined->user->id), 'shared' => 0]) }}" class="d-flex align-items-center text-decoration-none text-dark">
+                                    <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-relative bg-danger" style="width: 50px; height: 50px;">
+                                        <img src="{{ $joined->user->image 
+                                                    ? asset('storage/uploads/profile_picture/' . $joined->user->image) 
+                                                    : asset('assets/images/avtar/1.png') }}" alt="image" class="img-fluid">
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-0 fw-medium text-ellipsis">{{ '@' . $joined->user->username }}</h6>
+                                        <p class="text-muted mb-0">{{ $joined->user->name }}</p>
+                                    </div>
+                                </a>
+                            </li>
+                        @empty
+                            <p class="text-center text-secondary">No users have joined this course yet.</p>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <style>
         .swal2-toast {
             width: auto !important;
@@ -531,6 +569,15 @@
             });
         });
     });
+
+    function validateReviewForm() {
+        const rating = document.getElementById('rating-input').value;
+        if (!rating || rating < 1 || rating > 5) {
+            alert('Please select a star rating before submitting.');
+            return false;
+        }
+        return true;
+    }
 </script>   
 
 <!--customizer-->

@@ -77,10 +77,133 @@ class ResourceController extends Controller
         ]);
     }
 
+    // public function add_resource(Request $request)
+    // {
+    //     try {
+    //         // Validate input
+    //         $validatedData = $request->validate([
+    //             'name' => 'required|string|max:255',
+    //             'desc' => 'nullable|string|max:500',
+    //             'category' => 'required|integer',
+    //             'link' => 'nullable|string|max:255',
+    //             'lesson_id' => 'required|integer|exists:lessons,id',
+                
+    //             'file_name' => 'nullable|string|max:255',
+    //             'file_type' => 'nullable|string|max:255',
+    //             'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,tiff,doc,docx,pdf,txt,rtf,odt,zip,rar,7z|max:5120',
+    //         ]);
+
+    //         // Get authenticated user
+    //         $user = Auth::user();
+            
+    //         // Check if the user exists
+    //         if (!$user) {
+    //             return redirect()->back()->with('error', 'User not authenticated');
+    //         }
+
+    //         DB::beginTransaction();
+            
+    //         try {
+    //             $resource_file = null;
+    //             $resourceFilePath = null;
+
+    //             // Handle file upload if present
+    //             if ($request->hasFile('file')) {
+    //                 $file = $request->file('file');
+    //                 $originalName = $file->getClientOriginalName();
+    //                 // $fileType = $file->getClientMimeType();
+    //                 $fileType = $file->getClientOriginalExtension(); // Just 'pdf', 'docx', etc.
+                    
+    //                 // Store the file
+    //                 // $request->file('profile_image')->storeAs('uploads/profile_picture', $filename, 'public');
+    //                 $resourceFilePath = $file->store('uploads/resource_file', 'public');
+    //                 $storedFileName = basename($resourceFilePath); // Extract the filename only
+
+    //                 // Create resource file record
+    //                 $resource_file = ResourceFile::create([
+    //                     'name' => $storedFileName,
+    //                     'type' => $fileType,
+    //                     'created_at' => now(),
+    //                     'updated_at' => now(),
+    //                 ]);
+    //             }
+
+    //             // Create resource record
+    //             $resource = Resource::create([
+    //                 'name' => $validatedData['name'],
+    //                 'desc' => $validatedData['desc'] ?? null,
+    //                 'category' => $validatedData['category'],
+    //                 'link' => $validatedData['link'] ?? null,
+    //                 'lesson_id' => $validatedData['lesson_id'],
+    //                 'file_id' => $resource_file->id ?? null,
+    //                 'status' => 1, // Assuming active status
+    //                 'total_visit' => 0
+    //             ]);
+
+    //             DB::commit();
+                
+    //             // Flash success message to the session
+    //             session()->flash('success', 'Resource added successfully');
+                
+    //             // Redirect back to the lesson page
+    //             return redirect()->back();
+                
+    //         } catch (\Exception $e) {
+    //             DB::rollBack();
+                
+    //             // Log the error
+    //             \Log::error('Resource creation failed', [
+    //                 'error' => $e->getMessage(),
+    //                 'trace' => $e->getTraceAsString(),
+    //             ]);
+                
+    //             return redirect()->back()->with('error', 'Failed to add resource. ' . $e->getMessage())->withInput();
+    //         }
+    //     } catch (ValidationException $e) {
+    //         // Handle validation errors
+    //         return redirect()->back()->withErrors($e->errors())->withInput();
+    //     } catch (\Exception $e) {
+    //         // Log the error
+    //         \Log::error('Resource creation failed', [
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString(),
+    //         ]);
+            
+    //         return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.')->withInput();
+    //     }
+    // }
+
     public function add_resource(Request $request)
     {
         try {
-            // Validate input
+            // Define supported file types for better error messages
+            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z';
+            
+            // Manual file checks BEFORE validation to provide custom error messages
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileExtension = strtolower($file->getClientOriginalExtension());
+                $fileSizeInMB = round($file->getSize() / 1024 / 1024, 2); // Convert bytes to MB
+                $maxSizeInMB = 5;
+                
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 'zip', 'rar', '7z'];
+                
+                // Check file type
+                if (!in_array($fileExtension, $allowedExtensions)) {
+                    return redirect()->back()
+                        ->with('error', "The file type '.{$fileExtension}' is not supported.")
+                        ->withInput();
+                }
+                
+                // Check file size
+                if ($fileSizeInMB > $maxSizeInMB) {
+                    return redirect()->back()
+                        ->with('error', "The uploaded file is too large ({$fileSizeInMB}MB). Maximum file size allowed is {$maxSizeInMB}MB.")
+                        ->withInput();
+                }
+            }
+            
+            // Validate input with custom messages (after manual file checks)
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
                 'desc' => 'nullable|string|max:500',
@@ -91,6 +214,13 @@ class ResourceController extends Controller
                 'file_name' => 'nullable|string|max:255',
                 'file_type' => 'nullable|string|max:255',
                 'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,tiff,doc,docx,pdf,txt,rtf,odt,zip,rar,7z|max:5120',
+            ], [
+                // Custom validation messages
+                'file.mimes' => 'The uploaded file type is not supported.',
+                'file.max' => 'The file size must not exceed 5MB.',
+                'lesson_id.exists' => 'The selected lesson does not exist.',
+                'category.required' => 'Please select a category.',
+                'name.required' => 'Resource name is required.',
             ]);
 
             // Get authenticated user
@@ -111,11 +241,9 @@ class ResourceController extends Controller
                 if ($request->hasFile('file')) {
                     $file = $request->file('file');
                     $originalName = $file->getClientOriginalName();
-                    // $fileType = $file->getClientMimeType();
                     $fileType = $file->getClientOriginalExtension(); // Just 'pdf', 'docx', etc.
                     
                     // Store the file
-                    // $request->file('profile_image')->storeAs('uploads/profile_picture', $filename, 'public');
                     $resourceFilePath = $file->store('uploads/resource_file', 'public');
                     $storedFileName = basename($resourceFilePath); // Extract the filename only
 

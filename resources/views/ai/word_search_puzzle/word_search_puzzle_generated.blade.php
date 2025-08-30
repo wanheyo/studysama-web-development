@@ -103,9 +103,9 @@
                                                 <button class="btn btn-warning w-100 mb-2" id="show-hint">
                                                     <i class="ti ti-bulb me-1"></i>Get a Hint
                                                 </button>
-                                                <button class="btn btn-danger w-100" id="give-up">
+                                                {{-- <button class="btn btn-danger w-100" id="give-up">
                                                     <i class="ti ti-flag me-1"></i>Give Up & Show Solution
-                                                </button>
+                                                </button> --}}
                                             </div>
                                         </div>
                                     </div>
@@ -150,9 +150,9 @@
                         <a href="{{ route('ai.word_search_puzzle') }}" class="btn btn-secondary">
                             <i class="ti ti-home me-1"></i>Return Home
                         </a>
-                        <button type="button" class="btn btn-primary" id="restart-puzzle">
+                        {{-- <button type="button" class="btn btn-primary" id="restart-puzzle">
                             <i class="ti ti-refresh me-1"></i>Try Again
-                        </button>
+                        </button> --}}
                     </div>
                 </div>
             </div>
@@ -1097,21 +1097,21 @@
             }
             
             // Give Up button functionality
-            document.getElementById('give-up').addEventListener('click', function() {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You're about to reveal all the hidden words!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, show me the solution'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        revealSolution();
-                    }
-                });
-            });
+            // document.getElementById('give-up').addEventListener('click', function() {
+            //     Swal.fire({
+            //         title: 'Are you sure?',
+            //         text: "You're about to reveal all the hidden words!",
+            //         icon: 'warning',
+            //         showCancelButton: true,
+            //         confirmButtonColor: '#d33',
+            //         cancelButtonColor: '#3085d6',
+            //         confirmButtonText: 'Yes, show me the solution'
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             revealSolution();
+            //         }
+            //     });
+            // });
             
             // Reveal the solution
             function revealSolution() {
@@ -1200,9 +1200,9 @@
             }
             
             // Restart puzzle button
-            document.getElementById('restart-puzzle').addEventListener('click', function() {
-                location.reload();
-            });
+            // document.getElementById('restart-puzzle').addEventListener('click', function() {
+            //     location.reload();
+            // });
             
             // Keyboard shortcuts
             document.addEventListener('keydown', function(event) {

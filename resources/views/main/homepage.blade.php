@@ -55,8 +55,8 @@
                                 </div>
                                 <div>
                                     <h4 class="text-primary-dark">{{ $user->userPoints?->xp ?? '0' }} XP</h4>
-                                    <p class="mb-0 text-dark f-w-500 txt-ellipsis-1">This week<span
-                                            class="badge bg-white-300 text-danger-dark ms-2">77 XP</span>
+                                    {{-- <p class="mb-0 text-dark f-w-500 txt-ellipsis-1">This week<span
+                                            class="badge bg-white-300 text-danger-dark ms-2">77 XP</span> --}}
                                     </p>
                                 </div>
 
@@ -80,9 +80,9 @@
                                 </div>
                                 <div>
                                     <h4>{{ $user->userPoints?->current_streak ?? '0' }} Days</h4>
-                                    <p class="mb-0 text-dark f-w-500 txt-ellipsis-1">Longest<span
+                                    {{-- <p class="mb-0 text-dark f-w-500 txt-ellipsis-1">Longest<span
                                             class="badge bg-white-300 text-danger-dark ms-2">{{ $user->userPoints?->longest_streak ?? '0' }} Days</span>
-                                    </p>
+                                    </p> --}}
                                 </div>
                                 {{-- <a class="bg-danger h-35 w-35 d-flex-center b-r-50 product-sold-icon"
                                    href="{{route('order_details')}}">
@@ -123,7 +123,7 @@
                                         <div class="card-body">
                                             <div class="mt-3">
                                                 <h6 class="mb-0 text-truncate">MCQ</h6>
-                                                <p class="mb-0">10 Questions</p>
+                                                <p class="mb-0">5 Questions</p>
                                             </div>
                                             <i class="iconoir-task-list icon-bg text-white"></i>
                                         </div>

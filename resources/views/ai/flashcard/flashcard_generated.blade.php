@@ -88,7 +88,7 @@
                                                                     <div class="flashcard-text">{{ $flashcard['frontside'] }}</div>
                                                                 </div>
                                                                 <div class="card-footer bg-primary">
-                                                                    <button type="button" class="btn btn-outline-success w-100 flip-btn rounded" data-index="{{ $index }}">
+                                                                    <button type="button" class="btn btn-outline-warning w-100 flip-btn rounded" data-index="{{ $index }}">
                                                                         <i class="ti ti-refresh me-1"></i>Flip Card
                                                                     </button>
                                                                 </div>
@@ -182,9 +182,9 @@
                         <a href="{{ route('ai.flashcard') }}" class="btn btn-secondary">
                             <i class="ti ti-home me-1"></i>Return Home
                         </a>
-                        <button type="button" class="btn btn-primary" id="restart-session">
+                        {{-- <button type="button" class="btn btn-primary" id="restart-session">
                             <i class="ti ti-refresh me-1"></i>Restart Session
-                        </button>
+                        </button> --}}
                     </div>
                 </div>
             </div>
@@ -705,9 +705,9 @@
         }
         
         // Restart session button
-        document.getElementById('restart-session').addEventListener('click', function() {
-            location.reload();
-        });
+        // document.getElementById('restart-session').addEventListener('click', function() {
+        //     location.reload();
+        // });
 
         function formatNumber(n) {
             if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'b';

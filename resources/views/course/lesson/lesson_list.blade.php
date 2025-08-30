@@ -269,11 +269,11 @@
                                                                         <i class="ti ti-dots-vertical"></i>
                                                                     </a>
                                                                     <ul class="dropdown-menu">
-                                                                        <li><a class="dropdown-item view-item-btn" href="#">
+                                                                        {{-- <li><a class="dropdown-item view-item-btn" href="#">
                                                                             <i class="ti ti-file-export text-primary"></i> View</a>
-                                                                        </li>
+                                                                        </li> --}}
                                                                         <li><a class="dropdown-item edit-folder-list" data-bs-toggle="modal" href="#" role="button">
-                                                                            <i class="ti ti-edit text-success"></i> Edit</a>
+                                                                            <i class="ti ti-alert-triangle text-success"></i> Report</a>
                                                                         </li>
                                                                     </ul>
                                                                 </div>
@@ -1595,10 +1595,7 @@
                                             <small class="text-muted mr-2"> ${createdAt}</small>
                                         </div>
                                         <p class="mb-1">${commentText}</p>
-                                        <div class="d-flex gap-2">
-                                            <a href="#" class="text-muted fs-12">Like</a>
-                                            <a href="#" class="text-muted fs-12">Reply</a>
-                                        </div>
+                                        
                                     </div>
                                 </div>
                             `;
@@ -1676,10 +1673,7 @@
                                                 <small class="text-muted mr-2"> ${comment.created_at}</small>
                                             </div>
                                             <p class="mb-1">${comment.content}</p>
-                                            <div class="d-flex gap-2">
-                                                <a href="#" class="text-muted fs-12">Like</a>
-                                                <a href="#" class="text-muted fs-12">Reply</a>
-                                            </div>
+                                            
                                         </div>
                                     </div>
                                 `;
