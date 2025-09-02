@@ -60,13 +60,22 @@
                                         </div>
                                     </div>
                             
-                                    <div class="mb-3">
+                                    <div class="mb-3 position-relative">
                                         <label class="form-label">Course Title</label>
-                                        <input type="text" class="form-control" name="name" required>
+                                        <input type="text" class="form-control" name="name" id="course_title" required autocomplete="off">
                                         <div class="invalid-feedback">
                                             Please enter a course title.
                                         </div>
+
+                                        <!-- Suggestions dropdown -->
+                                        <ul id="course_suggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></ul>
+
+                                        <!-- Inline duplicate warning -->
+                                        <small id="course_exists_warning" class="text-danger mt-1" style="display:none;">
+                                            ⚠️ This course already exists!
+                                        </small>
                                     </div>
+
                             
                                     <div class="mb-3">
                                         <label class="form-label">Course Description</label>
@@ -182,7 +191,9 @@
                 }, 100);
             @endif
         });
-    </script>   
+
+        const courseSearchUrl = "{{ route('course.ajax_search_course') }}";
+    </script>
 
     <!--customizer-->
     <div id="customizer"></div>

@@ -6,11 +6,12 @@ use App\Models\Topic;
 use App\Models\Folder;
 use App\Models\Lesson;
 use App\Models\TutorSlot;
+use App\Models\UserCourse;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Course extends Model
 {
@@ -47,6 +48,18 @@ class Course extends Model
                     ->withPivot(['role_id', 'rating', 'comment', 'status'])
                     ->withTimestamps();
     }
+
+    public function userCourses()
+    {
+        return $this->hasMany(UserCourse::class);
+    }
+
+    public function tutors()
+    {
+        return $this->belongsToMany(User::class, 'user_courses')
+            ->whereIn('user_courses.role_id', [1, 2]);
+    }
+
 
     public function folders()
     {

@@ -265,8 +265,24 @@ class CourseController extends Controller
             ->select('t.*')
             ->get();
 
-        // dd($topics);
+        $courses = Course::where('status', 1)->get();
+        
+        // dd($courses);
         return view('course.add_course', compact('topics'));
+    }
+
+    public function ajax_search_course(Request $request)
+    {
+        $search = $request->get('q');
+
+        $courses = Course::where('status', 1)
+            ->where('name', 'LIKE', "%{$search}%")
+            ->with(['tutors' => function ($query) {
+                $query->select('users.id', 'users.username'); // only what we need
+            }])
+            ->get(['id', 'name']);
+
+        return response()->json($courses);
     }
 
     public function add_course(Request $request)

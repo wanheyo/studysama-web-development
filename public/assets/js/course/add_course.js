@@ -17,9 +17,95 @@ $('#description-editor').trumbowyg({
 });
 
 // select js
-$(document).ready(function() {
+$(document).ready(function () {
     $('.category-select').select2();
-});   
+
+    let hideSuggestionsTimeout;
+    const $courseInput = $('#course_title');
+    const $suggestionBox = $('#course_suggestions');
+    const $warning = $('#course_exists_warning');
+
+    // 🛠 Helper: Hide warning
+    function hideWarning() {
+        $warning.hide().text('');
+    }
+
+    // 🛠 Helper: Render suggestions
+    function renderSuggestions(data) {
+        $suggestionBox.empty();
+        data.forEach(course => {
+            $suggestionBox.append(`<li class="list-group-item">${course.name}</li>`);
+        });
+
+        // Auto-hide suggestions if user stops typing
+        clearTimeout(hideSuggestionsTimeout);
+        hideSuggestionsTimeout = setTimeout(() => {
+            $suggestionBox.empty();
+        }, 1500);
+    }
+
+    // 🛠 Helper: Check exact match + show warning if exists
+    function checkExactMatch(data, inputVal) {
+        let exactMatch = data.find(c => c.name.toLowerCase() === inputVal.toLowerCase());
+        if (exactMatch) {
+            let tutorNames = exactMatch.tutors.map(t => t.username).join(', ');
+            $warning
+                .text(`⚠️ This course name already exists! Created by ${tutorNames}, You might want to choose a different name.`)
+                .show();
+        } else {
+            hideWarning();
+        }
+    }
+
+    // 🔎 Search on typing
+    $courseInput.on('keyup', function () {
+        let query = $(this).val().trim();
+
+        if (!query) {
+            $suggestionBox.empty();
+            hideWarning();
+            return;
+        }
+
+        if (query.length > 2) {
+            $.ajax({
+                url: courseSearchUrl,
+                type: "GET",
+                data: { q: query },
+                success: function (data) {
+                    console.log("AJAX response:", data);
+
+                    if (data.length > 0) {
+                        renderSuggestions(data);
+                        checkExactMatch(data, query);
+                    } else {
+                        hideWarning();
+                    }
+                }
+            });
+        } else {
+            $suggestionBox.empty();
+            hideWarning();
+        }
+    });
+
+    // 🖱️ Click on suggestion
+    $(document).on('click', '#course_suggestions li', function () {
+        let selectedName = $(this).text();
+        $courseInput.val(selectedName);
+        $suggestionBox.empty();
+
+        // Check match again
+        $.ajax({
+            url: courseSearchUrl,
+            type: "GET",
+            data: { q: selectedName },
+            success: function (data) {
+                checkExactMatch(data, selectedName);
+            }
+        });
+    });
+});
 
 // file upload js
 FilePond.registerPlugin(FilePondPluginFileValidateType);
@@ -31,7 +117,7 @@ FilePond.registerPlugin(FilePondPluginImageExifOrientation);
 const pondInput = FilePond.create(
     document.querySelector('#addProduct'),
     {
-      labelIdle: `<i class="fa-solid fa-cloud-upload fa-fw fs-4"></i> <div class="filepond--label-action text-decoration-none">Upload Your Product Images</div>`,
+    labelIdle: `<i class="fa-solid fa-cloud-upload fa-fw fs-4"></i> <div class="filepond--label-action text-decoration-none">Upload Your Product Images</div>`,
     }
 );
 

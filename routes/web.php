@@ -74,6 +74,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::get('my_course', [CourseController::class, 'my_course'])->name('course.my_course');
         Route::get('add_course', [CourseController::class, 'show_add_course'])->name('course.add_course');
         Route::post('add_course', [CourseController::class, 'add_course'])->name('course.add_course.post');
+        Route::get('ajax_search_course', [CourseController::class, 'ajax_search_course'])->name('course.ajax_search_course');
         Route::get('edit_course/{course_id}', [CourseController::class, 'show_edit_course'])->name('course.edit_course');
         Route::post('edit_course/{course_id}', [CourseController::class, 'edit_course'])->name('course.edit_course.post');
         Route::post('delete_course/{course_id}', [CourseController::class, 'delete_course'])->name('course.delete_course');
