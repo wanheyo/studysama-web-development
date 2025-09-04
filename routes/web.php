@@ -88,6 +88,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('course_detail/{course_id}/add_lesson', [LessonController::class, 'add_lesson'])->name('course.lesson.add_lesson.post');
         Route::post('course_detail/update_lesson/{lesson_id}', [LessonController::class, 'update_lesson'])->name('course.lesson.update_lesson');
         Route::post('course_detail/delete_lesson/{lesson_id}', [LessonController::class, 'delete_lesson'])->name('course.lesson.delete_lesson');
+        Route::post('course_detail/reorder_lesson', [LessonController::class, 'reorder_lesson'])->name('course.lesson.reorder_lesson');
 
         // Course->Lesson->Resource
         Route::post('resource/add_resource', [ResourceController::class, 'add_resource'])->name('resource.add_resource');

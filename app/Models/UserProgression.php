@@ -5,9 +5,8 @@ namespace App\Models;
 use App\Models\Resource;
 use App\Models\UserCourse;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Comment extends Model
+class UserProgression extends Model
 {
     use HasFactory;
 
@@ -16,9 +15,8 @@ class Comment extends Model
     protected $fillable = [
         'user_course_id',
         'resource_id',
-        'comment_text',
+        'desc',
         'status',
-        'file_id'
     ];
 
     public function userCourse()
@@ -29,10 +27,5 @@ class Comment extends Model
     public function resource()
     {
         return $this->belongsTo(Resource::class);
-    }
-
-    public function file()
-    {
-        return $this->belongsTo(File::class);
     }
 }

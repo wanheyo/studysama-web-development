@@ -25,18 +25,21 @@ class LessonController extends Controller
             ->firstOrFail();
 
         $lessons = Lesson::with(['resources' => function ($query) {
-                $query->where('status', 1)
+            $query->where('status', 1)
                 ->with(['resourceFile' => function ($query) {
                     $query->where('status', 1);
                 }])
                 ->with(['comments' => function ($query) {
                     $query->where('status', 1)
-                    ->with(['userCourse.user']);
+                        ->with(['userCourse.user']);
                 }]);
-            }])
-            ->where('course_id', $course_id)
-            ->where('status', 1)
-            ->get();
+        }])
+        ->where('course_id', $course_id)
+        ->where('status', 1)
+        ->orderByRaw('CASE WHEN order_index IS NULL THEN 1 ELSE 0 END, order_index ASC')
+        ->orderBy('id', 'ASC') // fallback if order_index is null
+        ->get();
+
 
         $totalLessons = $lessons->count();
         $totalResources = 0;
@@ -125,5 +128,21 @@ class LessonController extends Controller
         $lesson->save();
 
         return redirect()->back()->with('success', 'Lesson deleted successfully!');
+    }
+
+    public function reorder_lesson(Request $request)
+    {
+        $validated = $request->validate([
+            'lessons' => 'required|array',
+            'lessons.*.id' => 'required|integer|exists:lessons,id',
+            'lessons.*.order_index' => 'required|integer',
+        ]);
+
+        foreach ($validated['lessons'] as $lessonData) {
+            Lesson::where('id', $lessonData['id'])
+                ->update(['order_index' => $lessonData['order_index']]);
+        }
+
+        return response()->json(['success' => true]);
     }
 }

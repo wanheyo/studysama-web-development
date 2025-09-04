@@ -49,12 +49,14 @@
                     <div class="card-header">
                         {{-- <h5>Lesson List</h5> --}}
                         <div class="d-flex align-items-center justify-content-between">
-                            <h5>Lesson List</h5>
-                            {{-- <button class="btn btn-light-primary b-r-22"
-                                    data-bs-target="#folderModal"
-                                    data-bs-toggle="modal"
-                                    type="button">Create Lesson
-                            </button> --}}
+                        <h5>Lesson List</h5>
+                            @if ($isTutor)
+                                <div id="reorder-actions">
+                                    <button id="reorder-btn" class="btn btn-light-primary b-r-22" type="button">
+                                    <i class="ti ti-edit"></i> Reorder
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                     </div>
                     <div class="card-body">
@@ -62,9 +64,13 @@
                             <ul id="lesson-list" class="filemenu-list mt-3 tabs">
                                 @if ($lessons->isNotEmpty())
                                     @foreach ($lessons as $index => $lesson)
-                                        <li class="tab-link {{ $index == 0 ? 'active' : '' }}" data-tab="{{ $lesson->id }}">
-                                            <i class="ti ti-folder-filled fs-5 pe-2"></i> <span class="flex-grow-1">{{ $lesson->name }}</span>
-                                            {{-- {{ $lesson->resources->count() }} Resources --}}
+                                        <li class="tab-link d-flex align-items-center justify-content-between {{ $index == 0 ? 'active' : '' }}"
+                                                data-tab="{{ $lesson->id }}" data-id="{{ $lesson->id }}">
+                                            <div class="d-flex align-items-center">
+                                                <i class="ti ti-folder-filled fs-5 pe-2"></i>
+                                                <span class="flex-grow-1">{{ $lesson->name }}</span>
+                                            </div>
+                                            <i class="ti ti-menu-order ms-2 drag-handle" aria-hidden="true"></i>
                                         </li>
                                     @endforeach
                                 @else
@@ -1104,6 +1110,13 @@
                 width: 100%;
                 padding: 10px;
             }
+
+            #lesson-list .drag-handle { display: none; }
+
+            /* show handles only in reorder mode */
+            #lesson-list.reorder-active .drag-handle { display: inline-block; cursor: grab; }
+
+            .sortable-ghost { opacity: 0.6; background: #f8f9fa; }
         </style>
 
     </div>
@@ -1814,7 +1827,102 @@
                 document.getElementById('delete_flag').value = '1';
                 document.getElementById('updateResourceForm').submit();
             });
+
+            
+
+            const list = document.getElementById('lesson-list');
+            const actions = document.getElementById('reorder-actions');
+            let sortable = null;
+
+            function attachInitialListener() {
+                const btn = document.getElementById('reorder-btn');
+                if (btn) btn.addEventListener('click', enterReorder);
+            }
+
+            function enterReorder() {
+                // show UI
+                list.classList.add('reorder-active');
+                actions.innerHTML = `
+                    <button id="save-order-btn" class="btn btn-success b-r-22 me-2" type="button">
+                        <i class="ti ti-check"></i>
+                    </button>
+                    <button id="cancel-order-btn" class="btn btn-danger b-r-22" type="button">
+                        <i class="ti ti-x"></i>
+                    </button>
+                `;
+
+                // init Sortable once
+                if (!sortable) {
+                sortable = new Sortable(list, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onStart: function () { /* optional: do something */ },
+                });
+                }
+
+                // attach listeners to newly created buttons
+                document.getElementById('save-order-btn').addEventListener('click', saveOrder);
+                document.getElementById('cancel-order-btn').addEventListener('click', exitReorder);
+            }
+
+            function exitReorder() {
+                // hide UI
+                list.classList.remove('reorder-active');
+
+                // destroy sortable to clean up
+                if (sortable) {
+                    try { sortable.destroy(); } catch (e) { console.warn('sortable destroy error', e); }
+                    sortable = null;
+                }
+
+                // restore actions HTML and reattach listener
+                actions.innerHTML = `
+                    <button id="reorder-btn" class="btn btn-light-primary b-r-22" type="button">
+                        <i class="ti ti-edit"></i> Reorder
+                    </button>
+                    `;
+                attachInitialListener();
+            }
+
+            function saveOrder() {
+                const ids = Array.from(list.querySelectorAll("li[data-id]")).map((li, index) => ({
+                    id: li.dataset.id,
+                    order_index: index + 1
+                }));
+
+                console.log("Sending new order:", ids);
+
+                fetch("{{ route('course.lesson.reorder_lesson') }}", {
+                    method: "POST",
+                    headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({ lessons: ids })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("Order updated successfully!");
+                    } else {
+                        console.error("Update failed:", data);
+                    }
+                    exitReorder();
+                })
+                .catch(err => {
+                    console.error("Error:", err);
+                    exitReorder();
+                });
+            }
+
+            // start: attach listener to existing reorder button
+            attachInitialListener();
+
+            // Debug helpers (optional):
+            // console.log('lesson-list exists?', !!list, 'reorder-actions exists?', !!actions);
         });
+
     </script>    
 
     <!--customizer-->
@@ -1828,6 +1936,9 @@
 
     <!-- sweetalert js-->
     <script src="{{asset('assets/vendor/sweetalert/sweetalert.js')}}"></script>
+
+    <!-- draggable js  -->
+    <script src="{{asset('assets/vendor/sortable/Sortable.min.js')}}"></script>
 
     <!--js-->
     {{-- <script src="{{asset('assets/js/filemanager.js')}}"></script> --}}
