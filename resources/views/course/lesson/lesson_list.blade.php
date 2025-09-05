@@ -244,13 +244,46 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="card-body p-4" id="newFolder">
+                                    <div class="card-body p-4 lesson-container" id="newFolder">
                                         <div class="row">
                                             <div class="col-12 mb-3">
                                                 <div class="card card-light-primary">
-                                                    <div class ="card-header">
-                                                        <h4 class="mb-0">{{ $lesson->name }}</h4>
+                                                    <div class="card-header">
+                                                        <h4 class="mb-4">{{ $lesson->name }}</h4>
+                                                        <div class="row align-items-center">
+                                                            <div class="col-10">
+                                                                @php
+                                                                    $totalResources = $lesson->resources->count();
+                                                                    $checkedCount = $lesson->resources->sum(function ($resource) {
+                                                                        return $resource->userProgressions->where('status', 1)->count();
+                                                                    });
+
+                                                                    // avoid division by zero
+                                                                    $percentage = $totalResources > 0 ? round(($checkedCount / $totalResources) * 100, 1) : 0;
+                                                                @endphp
+
+                                                                <div class="progress w-100 h-15 lesson-progress-bar"
+                                                                    role="progressbar"
+                                                                    aria-valuenow="{{ $percentage }}"
+                                                                    aria-valuemin="0"
+                                                                    aria-valuemax="100"
+                                                                    data-lesson="{{ $lesson->id }}">
+                                                                    <div class="progress-bar bg-primary progress-bar-striped text-white" 
+                                                                        style="width: {{ $percentage }}%">
+                                                                        {{ $percentage }}%
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-2 text-end">
+                                                                <span class="badge bg-primary text-white lesson-progress"
+                                                                    data-lesson="{{ $lesson->id }}">
+                                                                    {{ $checkedCount }} / {{ $totalResources }} Completed
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                     </div>
+
                                                     <div class="card-body resource-details-content">
                                                         <div class="mb-3">
                                                             <h6>Description</h6>
@@ -260,6 +293,13 @@
                                                             <h6>Learning Outcome</h6>
                                                             <p class="text-secondary f-s-16">{{ $lesson->learn_outcome ?? 'No learning outcome included' }}</p>
                                                         </div>
+                                                        {{-- <div class="mb-3">
+                                                            <h6>Progress</h6>
+                                                            <div class="progress w-100" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                                                aria-valuemax="100">
+                                                                <div class="progress-bar bg-primary progress-bar-striped text-white" style="width: 12.5%"> 12.5% </div>
+                                                            </div>
+                                                        </div> --}}
                                                     </div>
                                                 </div>
                                             </div>
@@ -269,19 +309,27 @@
                                                     <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4 col-xxl-4">
                                                         <div class="card hover-effect card-light-{{ $resource->category == 1 ? 'info' : 'success' }}">
                                                             <div class="card-body position-relative">
-                                                                <!-- Dropdown -->
                                                                 <div class="dropdown folder-dropdown" style="position: absolute; right: 15px; top: 15px;">
-                                                                    <a aria-expanded="true" class="" data-bs-toggle="dropdown" role="button">
-                                                                        <i class="ti ti-dots-vertical"></i>
-                                                                    </a>
-                                                                    <ul class="dropdown-menu">
-                                                                        {{-- <li><a class="dropdown-item view-item-btn" href="#">
-                                                                            <i class="ti ti-file-export text-primary"></i> View</a>
-                                                                        </li> --}}
-                                                                        <li><a class="dropdown-item edit-folder-list" data-bs-toggle="modal" href="#" role="button">
-                                                                            <i class="ti ti-alert-triangle text-success"></i> Report</a>
-                                                                        </li>
-                                                                    </ul>
+                                                                    {{-- just once for testing --}}
+                                                                    {{-- @dump($resource->progression) --}}
+
+                                                                    @php
+                                                                        // progressions is always a collection (empty if none)
+                                                                        $progression = $resource->userProgressions->first();
+                                                                        $isChecked = $progression && $progression->status == 1;
+                                                                    @endphp
+
+                                                                    @if (!$isTutor)
+                                                                        <i class="ti {{ $isChecked ? 'ti-circle-check-filled' : 'ti-circle' }} 
+                                                                                fs-3 toggle-progression 
+                                                                                text-{{ $resource->category == 1 ? 'info' : 'success' }}"
+                                                                            data-resource="{{ $resource->id }}"
+                                                                            data-course="{{ $course->id }}"
+                                                                            data-category="{{ $resource->category }}"
+                                                                            style="cursor: pointer;">
+                                                                        </i>
+                                                                    @endif
+
                                                                 </div>
                                                     
                                                                 <!-- Category ribbon -->
@@ -1921,6 +1969,74 @@
 
             // Debug helpers (optional):
             // console.log('lesson-list exists?', !!list, 'reorder-actions exists?', !!actions);
+
+            document.querySelectorAll('.toggle-progression').forEach(icon => {
+                icon.addEventListener('click', function () {
+                    let resourceId = this.dataset.resource;
+                    let courseId   = this.dataset.course;
+                    let isChecked = this.classList.contains('ti-circle-check-filled') ? 1 : 0;
+                    let newStatus = isChecked ? 0 : 1;
+
+                    fetch("{{ route('resource.toggle_progression') }}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            resource_id: resourceId,
+                            course_id: courseId,
+                            status: newStatus
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update icon color instantly
+                            if (newStatus === 1) {
+                                this.classList.add('ti-circle-check-filled');
+                                this.classList.remove('ti-circle');
+                                // this.classList.remove('text-muted');
+                                // this.classList.add(`text-${this.dataset.category == 1 ? 'info' : 'success'}`);
+                            } else {
+                                this.classList.add('ti-circle');
+                                this.classList.remove('ti-circle-check-filled');
+                                // this.classList.remove('text-info', 'text-success');
+                                // this.classList.add('text-muted');
+                            }
+
+                            const lessonContainer = this.closest('.lesson-container');
+                            const lessonBadge = lessonContainer?.querySelector('.lesson-progress');
+                            const lessonBar = lessonContainer?.querySelector('.lesson-progress-bar .progress-bar');
+
+                            if (lessonBadge && lessonBar) {
+                                let [checked, total] = lessonBadge.textContent.trim()
+                                    .replace('Completed', '') // strip trailing text
+                                    .split('/')
+                                    .map(x => parseInt(x));
+
+                                if (newStatus === 1) {
+                                    checked++;
+                                } else {
+                                    checked--;
+                                }
+
+                                // Clamp between 0 and total
+                                checked = Math.max(0, Math.min(checked, total));
+
+                                // Update badge
+                                lessonBadge.textContent = `${checked} / ${total} Completed`;
+
+                                // Update progress bar
+                                let percentage = total > 0 ? Math.round((checked / total) * 100) : 0;
+                                lessonBar.style.width = percentage + '%';
+                                lessonBar.textContent = percentage + '%';
+                                lessonBar.parentElement.setAttribute('aria-valuenow', percentage);
+                            }
+                        }
+                    });
+                });
+            });
         });
 
     </script>    

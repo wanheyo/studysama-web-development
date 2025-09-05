@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use App\Models\Lesson;
-use App\Models\ResourceFile;
 use App\Models\Comment;
+use App\Models\ResourceFile;
+use App\Models\UserProgression;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -37,9 +38,13 @@ class Resource extends Model
         return $this->belongsTo(ResourceFile::class, 'file_id');
     }
 
-
     public function comments()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    public function userProgressions()
+    {
+        return $this->hasMany(UserProgression::class, 'resource_id');
     }
 }

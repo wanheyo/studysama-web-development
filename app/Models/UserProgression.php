@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Resource;
 use App\Models\UserCourse;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class UserProgression extends Model
 {

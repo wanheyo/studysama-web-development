@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Web;
 
 use App\Models\User;
+use App\Models\UserCourse;
+use App\Models\UserProgression;
 use App\Models\Comment;
 use App\Models\Resource;
 use App\Models\ResourceFile;
@@ -478,4 +480,42 @@ class ResourceController extends Controller
             return redirect()->back()->with('error', 'Resource deletion failed: ' . $e->getMessage());
         }
     }
+
+    public function toggle_progression(Request $request)
+    {
+        $request->validate([
+            'resource_id' => 'required|exists:resources,id',
+            'course_id'   => 'required|exists:courses,id',
+            'status'      => 'required|in:0,1',
+        ]);
+
+        $userCourse = UserCourse::where('course_id', $request->course_id)
+            ->where('user_id', auth()->id())
+            ->where('status', 1)
+            ->first();
+
+        if (!$userCourse) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active course enrollment found for this user.',
+            ], 404);
+        }
+
+
+        $progression = UserProgression::updateOrCreate(
+            [
+                'user_course_id' => $userCourse->id,
+                'resource_id'    => $request->resource_id,
+            ],
+            [
+                'status' => $request->status, // 1 = checked, 0 = unchecked
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'progression' => $progression,
+        ]);
+    }
+
 }

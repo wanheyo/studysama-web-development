@@ -32,14 +32,19 @@ class LessonController extends Controller
                 ->with(['comments' => function ($query) {
                     $query->where('status', 1)
                         ->with(['userCourse.user']);
-                }]);
+                }])
+                ->with(['userProgressions' => function ($query) {
+                $query->whereHas('userCourse', function ($subQuery) {
+                    $subQuery->where('user_id', auth()->id())
+                            ->where('status', 1); // only active user_course
+                });
+            }]);
         }])
         ->where('course_id', $course_id)
         ->where('status', 1)
         ->orderByRaw('CASE WHEN order_index IS NULL THEN 1 ELSE 0 END, order_index ASC')
-        ->orderBy('id', 'ASC') // fallback if order_index is null
+        ->orderBy('id', 'ASC')
         ->get();
-
 
         $totalLessons = $lessons->count();
         $totalResources = 0;
