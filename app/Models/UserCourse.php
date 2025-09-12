@@ -5,8 +5,9 @@ namespace App\Models;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Course;
-use App\Models\Attendance;
 use App\Models\Comment;
+use App\Models\Attendance;
+use App\Models\Certificate;
 use App\Models\UserProgression;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -58,5 +59,10 @@ class UserCourse extends Model
     public function progressions()
     {
         return $this->hasMany(UserProgression::class);
+    }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\User;
 use App\Models\UserCourse;
+use App\Models\Lesson;
 use App\Models\UserProgression;
 use App\Models\Comment;
 use App\Models\Resource;
@@ -481,40 +482,124 @@ class ResourceController extends Controller
         }
     }
 
+    // public function toggle_progression(Request $request)
+    // {
+    //     $request->validate([
+    //         'resource_id' => 'required|exists:resources,id',
+    //         'course_id'   => 'required|exists:courses,id',
+    //         'status'      => 'required|in:0,1',
+    //     ]);
+
+    //     $userCourse = UserCourse::where('course_id', $request->course_id)
+    //         ->where('user_id', auth()->id())
+    //         ->where('status', 1)
+    //         ->first();
+
+    //     if (!$userCourse) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'No active course enrollment found for this user.',
+    //         ], 404);
+    //     }
+
+
+    //     $progression = UserProgression::updateOrCreate(
+    //         [
+    //             'user_course_id' => $userCourse->id,
+    //             'resource_id'    => $request->resource_id,
+    //         ],
+    //         [
+    //             'status' => $request->status, // 1 = checked, 0 = unchecked
+    //         ]
+    //     );
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'progression' => $progression,
+    //     ]);
+    // }
+
     public function toggle_progression(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'resource_id' => 'required|exists:resources,id',
             'course_id'   => 'required|exists:courses,id',
             'status'      => 'required|in:0,1',
         ]);
 
-        $userCourse = UserCourse::where('course_id', $request->course_id)
+        // find resource
+        $resource = Resource::findOrFail($data['resource_id']);
+
+        // ensure user_course exists
+        $userCourse = UserCourse::where('course_id', $data['course_id'])
             ->where('user_id', auth()->id())
             ->where('status', 1)
             ->first();
 
-        if (!$userCourse) {
+        if (! $userCourse) {
             return response()->json([
                 'success' => false,
-                'message' => 'No active course enrollment found for this user.',
+                'message' => 'No active enrollment found for this user/course.'
             ], 404);
         }
 
-
+        // create/update progression
         $progression = UserProgression::updateOrCreate(
             [
                 'user_course_id' => $userCourse->id,
-                'resource_id'    => $request->resource_id,
+                'resource_id'    => $resource->id,
             ],
             [
-                'status' => $request->status, // 1 = checked, 0 = unchecked
+                'status' => $data['status'],
             ]
         );
+
+        // --- Compute lesson-level counts
+        $lessonId = $resource->lesson_id; // assumes resources table has lesson_id
+        $lessonResourceIds = Resource::where('lesson_id', $lessonId)
+            ->where('status', 1)
+            ->pluck('id');
+
+        $lessonTotal = $lessonResourceIds->count();
+
+        $lessonChecked = UserProgression::whereIn('resource_id', $lessonResourceIds)
+            ->where('user_course_id', $userCourse->id)
+            ->where('status', 1)
+            ->count();
+
+        // --- Compute course-level counts
+        $lessonIdsInCourse = Lesson::where('course_id', $data['course_id'])
+            ->where('status', 1)
+            ->pluck('id');
+
+        $courseResourceIds = Resource::whereIn('lesson_id', $lessonIdsInCourse)
+            ->where('status', 1)
+            ->pluck('id');
+
+        $courseTotal = $courseResourceIds->count();
+
+        $courseChecked = UserProgression::whereIn('resource_id', $courseResourceIds)
+            ->where('user_course_id', $userCourse->id)
+            ->where('status', 1)
+            ->count();
+
+        $lessonPercentage = $lessonTotal > 0 ? round(($lessonChecked / $lessonTotal) * 100, 1) : 0;
+        $coursePercentage = $courseTotal > 0 ? round(($courseChecked / $courseTotal) * 100, 1) : 0;
 
         return response()->json([
             'success' => true,
             'progression' => $progression,
+            'lesson' => [
+                'id' => $lessonId,
+                'checked' => (int)$lessonChecked,
+                'total' => (int)$lessonTotal,
+                'percentage' => $lessonPercentage,
+            ],
+            'course' => [
+                'checked' => (int)$courseChecked,
+                'total' => (int)$courseTotal,
+                'percentage' => $coursePercentage,
+            ],
         ]);
     }
 

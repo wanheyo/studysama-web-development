@@ -25,6 +25,8 @@ class Course extends Model
         'total_visit',
         'total_joined',
         'image',
+        'version_major',
+        'version_minor',
         'average_rating',
         'status'
     ];

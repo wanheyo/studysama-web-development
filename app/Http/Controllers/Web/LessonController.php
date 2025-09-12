@@ -48,17 +48,21 @@ class LessonController extends Controller
 
         $totalLessons = $lessons->count();
         $totalResources = 0;
+        $totalChecked   = 0;
         $totalComments = 0;
 
         foreach($lessons as $lesson) {
             
             $totalResources = $lesson->resources->count() + $totalResources;
+            $totalChecked   += $lesson->resources->sum(fn($resource) => $resource->userProgressions->where('status', 1)->count());
             $totalComments = $lesson->resources->sum(function ($resource) {
                 return $resource->comments->count();
             }) + $totalComments;
         }
 
-        return view('course.lesson.lesson_list', compact('course', 'lessons', 'totalLessons', 'totalResources', 'totalComments'));
+        $courseProgress = $totalResources > 0 ? round(($totalChecked / $totalResources) * 100, 1) : 0;
+
+        return view('course.lesson.lesson_list', compact('course', 'lessons', 'totalLessons', 'totalResources', 'totalChecked', 'totalComments', 'courseProgress'));
     }
 
     public function add_lesson(Request $request, $course_id)

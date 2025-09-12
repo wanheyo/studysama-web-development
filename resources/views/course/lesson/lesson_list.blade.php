@@ -64,12 +64,28 @@
                             <ul id="lesson-list" class="filemenu-list mt-3 tabs">
                                 @if ($lessons->isNotEmpty())
                                     @foreach ($lessons as $index => $lesson)
+                                        @php
+                                            $totalResources = $lesson->resources->count();
+                                            $checkedCount = $lesson->resources->sum(function ($resource) {
+                                                return $resource->userProgressions->where('status', 1)->count();
+                                            });
+                                            $isCompleted = $totalResources > 0 && $checkedCount === $totalResources;
+                                        @endphp
+
                                         <li class="tab-link d-flex align-items-center justify-content-between {{ $index == 0 ? 'active' : '' }}"
-                                                data-tab="{{ $lesson->id }}" data-id="{{ $lesson->id }}">
+                                            data-tab="{{ $lesson->id }}" data-id="{{ $lesson->id }}">
                                             <div class="d-flex align-items-center">
-                                                <i class="ti ti-folder-filled fs-5 pe-2"></i>
+                                                @if ($isCompleted)
+                                                    <i class="ti ti-circle-check-filled fs-5 pe-2 lesson-status-icon"
+                                                    data-lesson="{{ $lesson->id }}"></i>
+                                                @else
+                                                    <i class="ti ti-folder-filled fs-5 pe-2 lesson-status-icon"
+                                                    data-lesson="{{ $lesson->id }}"></i>
+                                                @endif
                                                 <span class="flex-grow-1">{{ $lesson->name }}</span>
                                             </div>
+
+                                            <div>{{ $totalResources }}</div>
                                             <i class="ti ti-menu-order ms-2 drag-handle" aria-hidden="true"></i>
                                         </li>
                                     @endforeach
@@ -112,12 +128,16 @@
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <h5>Overview</h5>
+                        <h5>Course Overview</h5>
                     </div>
 
                     <div class="card-body">
                         <div class="mb-3">
-                            {{-- <div id="polar2"></div> --}}
+                            <div id="course-progress-chart"
+                                data-total-resources="{{ $totalResources }}"
+                                data-checked-resources="{{ $totalChecked }}"
+                                data-progress="{{ $courseProgress }}">
+                            </div>
                         </div>
                         <div class="file-manager-sidebar mb-4"> 
                             <div class="d-flex align-items-center position-relative">
@@ -244,13 +264,12 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="card-body p-4 lesson-container" id="newFolder">
+                                    <div class="card-body p-4 lesson-container" id="newFolder" data-lesson="{{ $lesson->id }}">
                                         <div class="row">
                                             <div class="col-12 mb-3">
                                                 <div class="card card-light-primary">
                                                     <div class="card-header">
-                                                        <h4 class="mb-4">{{ $lesson->name }}</h4>
-                                                        <div class="row align-items-center">
+                                                        <div class="row">
                                                             <div class="col-10">
                                                                 @php
                                                                     $totalResources = $lesson->resources->count();
@@ -262,7 +281,9 @@
                                                                     $percentage = $totalResources > 0 ? round(($checkedCount / $totalResources) * 100, 1) : 0;
                                                                 @endphp
 
-                                                                <div class="progress w-100 h-15 lesson-progress-bar"
+                                                                <h4 class="mb-4"><i class="ti {{ $percentage == 100 ? 'ti-circle-check-filled' : '' }} fs-5 lesson-progress-icon"></i> {{ $lesson->name }}</h4>
+
+                                                                {{-- <div class="progress w-100 h-15 lesson-progress-bar"
                                                                     role="progressbar"
                                                                     aria-valuenow="{{ $percentage }}"
                                                                     aria-valuemin="0"
@@ -272,11 +293,11 @@
                                                                         style="width: {{ $percentage }}%">
                                                                         {{ $percentage }}%
                                                                     </div>
-                                                                </div>
+                                                                </div> --}}
                                                             </div>
 
                                                             <div class="col-2 text-end">
-                                                                <span class="badge bg-primary text-white lesson-progress"
+                                                                <span class="badge bg-primary text-white px-3 py-2 b-r-22 lesson-progress"
                                                                     data-lesson="{{ $lesson->id }}">
                                                                     {{ $checkedCount }} / {{ $totalResources }} Completed
                                                                 </span>
@@ -326,6 +347,7 @@
                                                                             data-resource="{{ $resource->id }}"
                                                                             data-course="{{ $course->id }}"
                                                                             data-category="{{ $resource->category }}"
+                                                                            data-lesson="{{ $lesson->id }}"
                                                                             style="cursor: pointer;">
                                                                         </i>
                                                                     @endif
@@ -433,9 +455,11 @@
                                                                     <span><i class="ti ti-download"></i> {{ $resource->resourceFile->total_download ?? 0 }}</span>
                                                                     <span><i class="ti ti-message"></i> {{ $resource->comments->count() }}</span>
                                                                 </div>
+
                                                                 <button type="button" class="btn btn-light-{{ $resource->category == 1 ? 'info' : 'success' }} icon-btn b-r-22 hover-icon-white" 
                                                                         data-bs-target="#resourceDetailModal" 
                                                                         data-bs-toggle="modal"
+                                                                        data-lesson-id="{{ $lesson->id }}"
                                                                         data-resource-id="{{ $resource->id }}"
                                                                         data-resource-name="{{ $resource->name }}"
                                                                         data-resource-description="{{ $resource->desc ?? '' }}"
@@ -446,7 +470,8 @@
                                                                         data-resource-views="{{ $resource->total_visit ?? 0 }}"
                                                                         data-resource-downloads="{{ $resource->resourceFile->total_download ?? 0 }}"
                                                                         data-resource-comments="{{ $resource->comments->count() }}"
-                                                                        data-resource-created="{{ $resource->created_at->format('M d, Y') }}">
+                                                                        data-resource-created="{{ $resource->created_at->format('M d, Y') }}"
+                                                                        data-resource-ischecked="{{ $isChecked ? '1' : '0' }}">
                                                                     <i class="ti ti-chevron-up text-{{ $resource->category == 1 ? 'info' : 'success' }}"></i>
                                                                 </button>
                                                             </div>
@@ -496,6 +521,12 @@
                                                         <a id="downloadBtn" href="#" class="btn btn-primary" download>
                                                             <i class="ti ti-download me-1"></i> Download
                                                         </a>
+                                                        {{-- @php
+                                                            // progressions is always a collection (empty if none)
+                                                            $progression = $resource->userProgressions->first();
+                                                            $isChecked = $progression && $progression->status == 1;
+                                                        @endphp --}}
+
                                                         @if ($isTutor)
                                                             <button class="btn btn-light-primary" 
                                                                     data-bs-toggle="modal" 
@@ -503,7 +534,28 @@
                                                                     data-resource-id="">
                                                                 <i class="ti ti-edit"></i> Edit
                                                             </button>
+                                                        @else
+                                                            <button class="btn btn-light-success" id="resourceDetailModalCompleteBtn">
+                                                                Complete
+                                                            </button>
                                                         @endif
+
+                                                        {{-- @php
+                                                            // progressions is always a collection (empty if none)
+                                                            $progression = $resource->userProgressions->first();
+                                                            $isChecked = $progression && $progression->status == 1;
+                                                        @endphp --}}
+
+                                                        {{-- @if (!$isTutor)
+                                                            <i class="ti {{ $isChecked ? 'ti-circle-check-filled' : 'ti-circle' }} 
+                                                                    fs-3 toggle-progression 
+                                                                    text-{{ $resource->category == 1 ? 'info' : 'success' }}"
+                                                                data-resource="{{ $resource->id }}"
+                                                                data-course="{{ $course->id }}"
+                                                                data-category="{{ $resource->category }}"
+                                                                style="cursor: pointer;">
+                                                            </i>
+                                                        @endif --}}
                                                     </div>
                                                 </div>
                                             </div>
@@ -1437,6 +1489,7 @@
 
                 // Extract all data attributes
                 const resourceData = {
+                    lessonId: button.getAttribute('data-lesson-id'),
                     id: button.getAttribute('data-resource-id'),
                     name: button.getAttribute('data-resource-name'),
                     description: button.getAttribute('data-resource-description'),
@@ -1447,7 +1500,8 @@
                     views: button.getAttribute('data-resource-views'),
                     downloads: button.getAttribute('data-resource-downloads'),
                     comments: button.getAttribute('data-resource-comments'),
-                    created: button.getAttribute('data-resource-created')
+                    created: button.getAttribute('data-resource-created'),
+                    isChecked: button.getAttribute('data-resource-ischecked') === '1'
                 };
                 
                 // Update modal header
@@ -1471,6 +1525,159 @@
 
                 // Set edit button
                 const editBtn = document.querySelector('#resourceDetailModal button[data-bs-target="#resourceEditModal"]');
+                
+                // Set complete button state
+                const completeBtn = document.getElementById('resourceDetailModalCompleteBtn');
+                completeBtn.textContent = resourceData.isChecked ? 'Mark as Incomplete' : 'Mark as Complete';
+
+                completeBtn.setAttribute('data-lesson', resourceData.lessonId);
+                completeBtn.setAttribute('data-resource', resourceData.id);
+                completeBtn.setAttribute('data-course', '{{ $course->id }}');
+                completeBtn.setAttribute('data-category', resourceData.category);
+
+                completeBtn.classList.toggle('btn-light-success', !resourceData.isChecked);
+                completeBtn.classList.toggle('btn-success', resourceData.isChecked);
+
+                // Update button label & icon based on isChecked
+                // if (resourceData.isChecked) {
+                //     completeBtn.innerHTML = `Mark as Incomplete <i class="ti ti-circle-check-filled"></i>`;
+                // } else {
+                //     completeBtn.innerHTML = `Mark as Complete <i class="ti ti-circle"></i>`;
+                // }
+
+                // Attach lesson & resource IDs to the button for later toggle
+                // completeBtn.setAttribute('data-lesson-id', resourceData.lessonId);
+                // completeBtn.setAttribute('data-resource-id', resourceData.id);
+
+                completeBtn.addEventListener('click', function() {
+                    const lessonId = this.getAttribute('data-lesson');
+                    const resourceId = this.getAttribute('data-resource');
+                    const courseId = this.getAttribute('data-course');
+                    const category = this.getAttribute('data-category');
+                    
+                    let isChecked = this.textContent.includes('Incomplete');
+                    let newStatus = isChecked ? 0 : 1;
+
+                    fetch("{{ route('resource.toggle_progression') }}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            resource_id: resourceId,
+                            course_id: courseId,
+                            status: newStatus
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update icon color instantly
+                            if (newStatus === 1) {
+                                this.textContent = 'Mark as Incomplete';
+                                this.classList.remove('btn-light-success');
+                                this.classList.add('btn-success');
+                            } else {
+                                this.textContent = 'Mark as Complete';
+                                this.classList.remove('btn-success');
+                                this.classList.add('btn-light-success');
+                            }
+
+                            // Update the toggle icon in the lesson too
+                            const toggleIcon = document.querySelector(`.toggle-progression[data-resource="${resourceId}"][data-lesson="${lessonId}"]`);
+                            if (toggleIcon) {
+                                if (newStatus === 1) {
+                                    toggleIcon.classList.add('ti-circle-check-filled');
+                                    toggleIcon.classList.remove('ti-circle');
+                                } else {
+                                    toggleIcon.classList.add('ti-circle');
+                                    toggleIcon.classList.remove('ti-circle-check-filled');
+                                }
+                            }
+
+                            const modalBtn = document.getElementById('resourceDetailModalCompleteBtn');
+                            if (modalBtn && modalBtn.dataset.resource === String(resourceId) && modalBtn.dataset.lesson === String(lessonId)) 
+                            {
+                                if (newStatus === 1) {
+                                    modalBtn.textContent = 'Mark as Incomplete';
+                                    modalBtn.classList.remove('btn-light-success');
+                                    modalBtn.classList.add('btn-success');
+                                } else {
+                                    modalBtn.textContent = 'Mark as Complete';
+                                    modalBtn.classList.remove('btn-success');
+                                    modalBtn.classList.add('btn-light-success');
+                                }
+                            }
+
+                            // after fetch success inside your toggle handler
+                            const triggerBtn = document.querySelector(`[data-resource-id="${resourceId}"]`);
+                            if (triggerBtn) {
+                                triggerBtn.setAttribute('data-resource-ischecked', newStatus);
+                            }
+
+                            // const lessonContainer = this.closest('.lesson-container');
+                            const lessonContainer = document.querySelector(`.lesson-container[data-lesson="${lessonId}"]`);
+                            const lessonBadge = lessonContainer?.querySelector('.lesson-progress');
+                            const lessonBadgeIcon = lessonContainer?.querySelector('.lesson-progress-icon');
+                            // const lessonBar = lessonContainer?.querySelector('.lesson-progress-bar .progress-bar');
+
+                            if (lessonBadge) {
+                                let [checked, total] = lessonBadge.textContent.trim()
+                                    .replace('Completed', '') // strip trailing text
+                                    .split('/')
+                                    .map(x => parseInt(x));
+
+                                if (newStatus === 1) {
+                                    checked++;
+                                } else {
+                                    checked--;
+                                }
+
+                                // Clamp between 0 and total
+                                checked = Math.max(0, Math.min(checked, total));
+
+                                // Update badge
+                                lessonBadge.textContent = `${checked} / ${total} Completed`;
+
+                                if (lessonBadgeIcon) {
+                                    if (checked === total && total > 0) {
+                                        lessonBadgeIcon.classList.remove('ti-folder-filled');
+                                        lessonBadgeIcon.classList.add('ti-circle-check-filled');
+                                    } else {
+                                        lessonBadgeIcon.classList.remove('ti-circle-check-filled');
+                                        lessonBadgeIcon.classList.add('ti-folder-filled');
+                                    }
+                                }
+
+                                // Update progress bar
+                                let percentage = total > 0 ? Math.round((checked / total) * 100) : 0;
+                                // lessonBar.style.width = percentage + '%';
+                                // lessonBar.textContent = percentage + '%';
+                                // lessonBar.parentElement.setAttribute('aria-valuenow', percentage);
+
+                                // --- Update lesson tab icon dynamically (now inside the same scope)
+                                const lessonIcon = document.querySelector(
+                                    `.lesson-status-icon[data-lesson="${lessonId}"]`
+                                );
+                                if (lessonIcon) {
+                                    if (checked === total && total > 0) {
+                                        lessonIcon.classList.remove('ti-folder-filled');
+                                        lessonIcon.classList.add('ti-circle-check-filled');
+                                    } else {
+                                        lessonIcon.classList.remove('ti-circle-check-filled');
+                                        lessonIcon.classList.add('ti-folder-filled');
+                                    }
+                                }
+
+                                // update course chart
+                                if (window.courseProgressChart) {
+                                    window.courseProgressChart.updateSeries([data.course.percentage]);
+                                }
+                            } 
+                        }
+                    });
+                })
 
                 if (editBtn) {
                     editBtn.setAttribute('data-resource-id', resourceData.id);
@@ -1974,6 +2181,7 @@
                 icon.addEventListener('click', function () {
                     let resourceId = this.dataset.resource;
                     let courseId   = this.dataset.course;
+                    let lessonId   = this.dataset.lesson;
                     let isChecked = this.classList.contains('ti-circle-check-filled') ? 1 : 0;
                     let newStatus = isChecked ? 0 : 1;
 
@@ -2005,11 +2213,33 @@
                                 // this.classList.add('text-muted');
                             }
 
-                            const lessonContainer = this.closest('.lesson-container');
-                            const lessonBadge = lessonContainer?.querySelector('.lesson-progress');
-                            const lessonBar = lessonContainer?.querySelector('.lesson-progress-bar .progress-bar');
+                            const modalBtn = document.getElementById('resourceDetailModalCompleteBtn');
+                            if (modalBtn && modalBtn.dataset.resource === String(resourceId) && modalBtn.dataset.lesson === String(lessonId)) 
+                            {
+                                if (newStatus === 1) {
+                                    modalBtn.textContent = 'Mark as Incomplete';
+                                    modalBtn.classList.remove('btn-light-success');
+                                    modalBtn.classList.add('btn-success');
+                                } else {
+                                    modalBtn.textContent = 'Mark as Complete';
+                                    modalBtn.classList.remove('btn-success');
+                                    modalBtn.classList.add('btn-light-success');
+                                }
+                            }
 
-                            if (lessonBadge && lessonBar) {
+                            // after fetch success inside your toggle handler
+                            const triggerBtn = document.querySelector(`[data-resource-id="${resourceId}"]`);
+                            if (triggerBtn) {
+                                triggerBtn.setAttribute('data-resource-ischecked', newStatus);
+                            }
+
+                            // const lessonContainer = this.closest('.lesson-container');
+                            const lessonContainer = document.querySelector(`.lesson-container[data-lesson="${lessonId}"]`);
+                            const lessonBadge = lessonContainer?.querySelector('.lesson-progress');
+                            const lessonBadgeIcon = lessonContainer?.querySelector('.lesson-progress-icon');
+                            // const lessonBar = lessonContainer?.querySelector('.lesson-progress-bar .progress-bar');
+
+                            if (lessonBadge) {
                                 let [checked, total] = lessonBadge.textContent.trim()
                                     .replace('Completed', '') // strip trailing text
                                     .split('/')
@@ -2027,16 +2257,95 @@
                                 // Update badge
                                 lessonBadge.textContent = `${checked} / ${total} Completed`;
 
+                                // Update badge
+                                lessonBadge.textContent = `${checked} / ${total} Completed`;
+
+                                if (lessonBadgeIcon) {
+                                    if (checked === total && total > 0) {
+                                        lessonBadgeIcon.classList.remove('ti-folder-filled');
+                                        lessonBadgeIcon.classList.add('ti-circle-check-filled');
+                                    } else {
+                                        lessonBadgeIcon.classList.remove('ti-circle-check-filled');
+                                        lessonBadgeIcon.classList.add('ti-folder-filled');
+                                    }
+                                }
+
                                 // Update progress bar
                                 let percentage = total > 0 ? Math.round((checked / total) * 100) : 0;
-                                lessonBar.style.width = percentage + '%';
-                                lessonBar.textContent = percentage + '%';
-                                lessonBar.parentElement.setAttribute('aria-valuenow', percentage);
+                                // lessonBar.style.width = percentage + '%';
+                                // lessonBar.textContent = percentage + '%';
+                                // lessonBar.parentElement.setAttribute('aria-valuenow', percentage);
+
+                                // --- Update lesson tab icon dynamically (now inside the same scope)
+                                const lessonIcon = document.querySelector(
+                                    `.lesson-status-icon[data-lesson="${lessonId}"]`
+                                );
+                                if (lessonIcon) {
+                                    if (checked === total && total > 0) {
+                                        lessonIcon.classList.remove('ti-folder-filled');
+                                        lessonIcon.classList.add('ti-circle-check-filled');
+                                    } else {
+                                        lessonIcon.classList.remove('ti-circle-check-filled');
+                                        lessonIcon.classList.add('ti-folder-filled');
+                                    }
+                                }
+
+                                // update course chart
+                                if (window.courseProgressChart) {
+                                    window.courseProgressChart.updateSeries([data.course.percentage]);
+                                }
                             }
                         }
                     });
                 });
             });
+
+            // let progress = document.querySelector("#course-progress-chart").dataset.progress;
+            let progress = parseFloat(document.querySelector("#course-progress-chart").dataset.progress) || 0;
+
+            var options = {
+                series: [progress],
+                chart: {
+                    type: 'radialBar',
+                    offsetY: -20,
+                    sparkline: { enabled: true }
+                },
+                colors: ['rgba(var(--primary),1)'],
+                plotOptions: {
+                    radialBar: {
+                        startAngle: -90,
+                        endAngle: 90,
+                        track: {
+                            background: "#e7e7e7",
+                            strokeWidth: '97%',
+                            margin: 5,
+                            dropShadow: {
+                                enabled: true,
+                                top: 2,
+                                left: 0,
+                                color: '#999',
+                                opacity: 1,
+                                blur: 2,
+                            }
+                        },
+                        dataLabels: {
+                            name: { show: false },
+                            value: {
+                                offsetY: -4,
+                                fontSize: '22px'
+                            }
+                        }
+                    }
+                },
+                grid: { padding: { top: -20 } },
+                labels: ['Overall Progress'],
+            };
+
+            window.courseProgressChart = new ApexCharts(
+                document.querySelector("#course-progress-chart"),
+                options
+            );
+            window.courseProgressChart.render();
         });
 
     </script>    
