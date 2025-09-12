@@ -600,7 +600,27 @@ class ResourceController extends Controller
                 'total' => (int)$courseTotal,
                 'percentage' => $coursePercentage,
             ],
+            'overview' => [
+                'completedLessons' => Lesson::where('course_id', $data['course_id'])
+                    ->where('status', 1)
+                    ->get()
+                    ->filter(function ($lesson) use ($userCourse) {
+                        $lessonResourceIds = $lesson->resources()->where('status', 1)->pluck('id');
+                        $total = $lessonResourceIds->count();
+                        $checked = UserProgression::whereIn('resource_id', $lessonResourceIds)
+                            ->where('user_course_id', $userCourse->id)
+                            ->where('status', 1)
+                            ->count();
+                        return $total > 0 && $total === $checked; // only completed if ALL resources done
+                    })->count(),
+                'totalLessons' => Lesson::where('course_id', $data['course_id'])
+                    ->where('status', 1)
+                    ->count(),
+                'completedResources' => (int)$courseChecked,
+                'totalResources' => (int)$courseTotal,
+            ]
         ]);
+
     }
 
 }

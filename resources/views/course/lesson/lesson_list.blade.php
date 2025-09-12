@@ -65,11 +65,11 @@
                                 @if ($lessons->isNotEmpty())
                                     @foreach ($lessons as $index => $lesson)
                                         @php
-                                            $totalResources = $lesson->resources->count();
+                                            $totalResourcesForLesson = $lesson->resources->count();
                                             $checkedCount = $lesson->resources->sum(function ($resource) {
                                                 return $resource->userProgressions->where('status', 1)->count();
                                             });
-                                            $isCompleted = $totalResources > 0 && $checkedCount === $totalResources;
+                                            $isCompleted = $totalResources > 0 && $checkedCount === $totalResourcesForLesson;
                                         @endphp
 
                                         <li class="tab-link d-flex align-items-center justify-content-between {{ $index == 0 ? 'active' : '' }}"
@@ -85,7 +85,7 @@
                                                 <span class="flex-grow-1">{{ $lesson->name }}</span>
                                             </div>
 
-                                            <div>{{ $totalResources }}</div>
+                                            <div>{{ $totalResourcesForLesson }}</div>
                                             <i class="ti ti-menu-order ms-2 drag-handle" aria-hidden="true"></i>
                                         </li>
                                     @endforeach
@@ -136,46 +136,58 @@
                             <div id="course-progress-chart"
                                 data-total-resources="{{ $totalResources }}"
                                 data-checked-resources="{{ $totalChecked }}"
-                                data-progress="{{ $courseProgress }}">
+                                data-progress="{{ $courseProgress }}"
+                                data-bs-placement="top" data-bs-toggle="tooltip" title="Course Progress Percentage">
                             </div>
                         </div>
                         <div class="file-manager-sidebar mb-4"> 
                             <div class="d-flex align-items-center position-relative">
-                        <span class="text-light-primary h-40 w-40 d-flex-center b-r-10 position-absolute">
-                            <i class="ph-bold ph-folder f-s-20"></i>
-                        </span>
-                            <div class="flex-grow-1 ms-5">
-                                <h6 class="mb-0">Lesson</h6>
-                                {{-- <p class="text-secondary mb-0">{{ $totalLessons ?? 0}} Created</p> --}}
-                            </div>
-                            <p class="text-secondary f-w-500 mb-0">{{ $totalLessons ?? 0}} Created</p>
-                            </div>
-                        </div>
-                        <div class="file-manager-sidebar mb-4">
-                            <div class="d-flex align-items-center position-relative">
-                        <span class="text-light-success h-40 w-40 d-flex-center b-r-10 position-absolute">
-                          <i class="ph-bold  ph-file f-s-22"></i>
-                        </span>
-                                <div class="flex-grow-1 ms-5  ">
-                                    <h6 class="mb-0">Resource</h6>
-                                    {{-- <p class="text-secondary mb-0">{{ $totalResources ?? 0 }} Shared</p> --}}
+                                <span class="text-light-primary h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                    <i class="ph-bold ph-folder f-s-20"></i>
+                                </span>
+                                <div class="flex-grow-1 ms-5">
+                                    <h6 class="mb-0">Lesson</h6>
+                                    <p id="lesson-status"
+                                    class="text-{{ $totalCompletedLessons == $totalLessons ? 'success' : 'secondary' }} mb-0">
+                                        {{ $totalCompletedLessons == $totalLessons ? 'Completed' : 'Uncompleted' }}
+                                    </p>
                                 </div>
-                                <p class="text-secondary f-w-500 mb-0">{{ $totalResources ?? 0 }} Shared</p>
+                                <p id="lesson-count" class="text-secondary f-w-500 mb-0">
+                                    {{ $totalCompletedLessons ?? 0 }} / {{ $totalLessons ?? 0}}
+                                </p>
                             </div>
                         </div>
+
                         <div class="file-manager-sidebar mb-4">
                             <div class="d-flex align-items-center position-relative">
-                        <span class="text-light-danger h-40 w-40 d-flex-center b-r-10 position-absolute">
-                          <i class="ph-bold  ph-chat-circle-dots f-s-20"></i>
-                        </span>
+                                <span class="text-light-success h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                    <i class="ph-bold ph-file f-s-22"></i>
+                                </span>
+                                <div class="flex-grow-1 ms-5">
+                                    <h6 class="mb-0">Resource</h6>
+                                    <p id="resource-status"
+                                    class="text-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} mb-0">
+                                        {{ $totalCompletedResources == $totalResources ? 'Completed' : 'Uncompleted' }}
+                                    </p>
+                                </div>
+                                <p id="resource-count" class="text-secondary f-w-500 mb-0">
+                                    {{ $totalCompletedResources ?? 0 }} / {{ $totalResources ?? 0 }}
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- <div class="file-manager-sidebar mb-4">
+                            <div class="d-flex align-items-center position-relative">
+                                <span class="text-light-danger h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                    <i class="ph-bold  ph-chat-circle-dots f-s-20"></i>
+                                </span>
                                 <div class="flex-grow-1 ms-5  ">
                                     <h6 class="mb-0">Comment</h6>
-                                    
-                                    {{-- <p class="text-secondary mb-0">{{ $totalComments ?? 0 }} Chit Chat</p> --}}
+                                    <p class="text-secondary mb-0">Completed</p>
                                 </div>
                                 <p class="text-secondary f-w-500 mb-0">{{ $totalComments ?? 0 }} Made</p>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
 
@@ -1675,6 +1687,22 @@
                                     window.courseProgressChart.updateSeries([data.course.percentage]);
                                 }
                             } 
+
+                            // ✅ Update lesson summary
+                            let lessonStatus = document.getElementById("lesson-status");
+                            lessonStatus.textContent = (data.overview.completedLessons === data.overview.totalLessons) ? "Completed" : "Uncompleted";
+                            lessonStatus.className = `text-${data.overview.completedLessons === data.overview.totalLessons ? 'success' : 'secondary'} mb-0`;
+
+                            document.getElementById("lesson-count").textContent =
+                                `${data.overview.completedLessons} / ${data.overview.totalLessons}`;
+
+                            // ✅ Update resource summary
+                            let resourceStatus = document.getElementById("resource-status");
+                            resourceStatus.textContent = (data.overview.completedResources === data.overview.totalResources) ? "Completed" : "Uncompleted";
+                            resourceStatus.className = `text-${data.overview.completedResources === data.overview.totalResources ? 'success' : 'secondary'} mb-0`;
+
+                            document.getElementById("resource-count").textContent =
+                                `${data.overview.completedResources} / ${data.overview.totalResources}`;
                         }
                     });
                 })
@@ -2295,6 +2323,22 @@
                                     window.courseProgressChart.updateSeries([data.course.percentage]);
                                 }
                             }
+
+                            // ✅ Update lesson summary
+                            let lessonStatus = document.getElementById("lesson-status");
+                            lessonStatus.textContent = (data.overview.completedLessons === data.overview.totalLessons) ? "Completed" : "Uncompleted";
+                            lessonStatus.className = `text-${data.overview.completedLessons === data.overview.totalLessons ? 'success' : 'secondary'} mb-0`;
+
+                            document.getElementById("lesson-count").textContent =
+                                `${data.overview.completedLessons} / ${data.overview.totalLessons}`;
+
+                            // ✅ Update resource summary
+                            let resourceStatus = document.getElementById("resource-status");
+                            resourceStatus.textContent = (data.overview.completedResources === data.overview.totalResources) ? "Completed" : "Uncompleted";
+                            resourceStatus.className = `text-${data.overview.completedResources === data.overview.totalResources ? 'success' : 'secondary'} mb-0`;
+
+                            document.getElementById("resource-count").textContent =
+                                `${data.overview.completedResources} / ${data.overview.totalResources}`;
                         }
                     });
                 });
