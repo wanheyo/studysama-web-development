@@ -115,20 +115,20 @@
                                         <span class="flex-grow-1">Create New Lesson</span>
                                     </li>
                                 @endif
+                                {{-- <li><i class="ti ti-certificate{{ $courseProgress >= 100 ? '' : '-off' }} fs-5 pe-2"></i> <span
+                                        class="flex-grow-1">Certificate</span>
+                                </li> --}}
                                 <li data-bs-toggle="modal" data-bs-target="#helpModal" style="cursor: pointer;" class="d-flex align-items-center gap-2">
                                     <i class="ti ti-help fs-5"></i>
                                     <span class="flex-grow-1">Help</span>
                                 </li>
-                                {{-- <li><i class="ti ti-adjustments-alt fs-5 pe-2"></i> <span
-                                        class="flex-grow-1">Settings</span>
-                                </li> --}}
                             </ul>
                         </div>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <h5>Course Overview</h5>
+                        <h5 class="mb-3">Course Overview</h5>
                     </div>
 
                     <div class="card-body">
@@ -1537,175 +1537,6 @@
 
                 // Set edit button
                 const editBtn = document.querySelector('#resourceDetailModal button[data-bs-target="#resourceEditModal"]');
-                
-                // Set complete button state
-                const completeBtn = document.getElementById('resourceDetailModalCompleteBtn');
-                completeBtn.textContent = resourceData.isChecked ? 'Mark as Incomplete' : 'Mark as Complete';
-
-                completeBtn.setAttribute('data-lesson', resourceData.lessonId);
-                completeBtn.setAttribute('data-resource', resourceData.id);
-                completeBtn.setAttribute('data-course', '{{ $course->id }}');
-                completeBtn.setAttribute('data-category', resourceData.category);
-
-                completeBtn.classList.toggle('btn-light-success', !resourceData.isChecked);
-                completeBtn.classList.toggle('btn-success', resourceData.isChecked);
-
-                // Update button label & icon based on isChecked
-                // if (resourceData.isChecked) {
-                //     completeBtn.innerHTML = `Mark as Incomplete <i class="ti ti-circle-check-filled"></i>`;
-                // } else {
-                //     completeBtn.innerHTML = `Mark as Complete <i class="ti ti-circle"></i>`;
-                // }
-
-                // Attach lesson & resource IDs to the button for later toggle
-                // completeBtn.setAttribute('data-lesson-id', resourceData.lessonId);
-                // completeBtn.setAttribute('data-resource-id', resourceData.id);
-
-                completeBtn.addEventListener('click', function() {
-                    const lessonId = this.getAttribute('data-lesson');
-                    const resourceId = this.getAttribute('data-resource');
-                    const courseId = this.getAttribute('data-course');
-                    const category = this.getAttribute('data-category');
-                    
-                    let isChecked = this.textContent.includes('Incomplete');
-                    let newStatus = isChecked ? 0 : 1;
-
-                    fetch("{{ route('resource.toggle_progression') }}", {
-                        method: "POST",
-                        headers: {
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            resource_id: resourceId,
-                            course_id: courseId,
-                            status: newStatus
-                        })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Update icon color instantly
-                            if (newStatus === 1) {
-                                this.textContent = 'Mark as Incomplete';
-                                this.classList.remove('btn-light-success');
-                                this.classList.add('btn-success');
-                            } else {
-                                this.textContent = 'Mark as Complete';
-                                this.classList.remove('btn-success');
-                                this.classList.add('btn-light-success');
-                            }
-
-                            // Update the toggle icon in the lesson too
-                            const toggleIcon = document.querySelector(`.toggle-progression[data-resource="${resourceId}"][data-lesson="${lessonId}"]`);
-                            if (toggleIcon) {
-                                if (newStatus === 1) {
-                                    toggleIcon.classList.add('ti-circle-check-filled');
-                                    toggleIcon.classList.remove('ti-circle');
-                                } else {
-                                    toggleIcon.classList.add('ti-circle');
-                                    toggleIcon.classList.remove('ti-circle-check-filled');
-                                }
-                            }
-
-                            const modalBtn = document.getElementById('resourceDetailModalCompleteBtn');
-                            if (modalBtn && modalBtn.dataset.resource === String(resourceId) && modalBtn.dataset.lesson === String(lessonId)) 
-                            {
-                                if (newStatus === 1) {
-                                    modalBtn.textContent = 'Mark as Incomplete';
-                                    modalBtn.classList.remove('btn-light-success');
-                                    modalBtn.classList.add('btn-success');
-                                } else {
-                                    modalBtn.textContent = 'Mark as Complete';
-                                    modalBtn.classList.remove('btn-success');
-                                    modalBtn.classList.add('btn-light-success');
-                                }
-                            }
-
-                            // after fetch success inside your toggle handler
-                            const triggerBtn = document.querySelector(`[data-resource-id="${resourceId}"]`);
-                            if (triggerBtn) {
-                                triggerBtn.setAttribute('data-resource-ischecked', newStatus);
-                            }
-
-                            // const lessonContainer = this.closest('.lesson-container');
-                            const lessonContainer = document.querySelector(`.lesson-container[data-lesson="${lessonId}"]`);
-                            const lessonBadge = lessonContainer?.querySelector('.lesson-progress');
-                            const lessonBadgeIcon = lessonContainer?.querySelector('.lesson-progress-icon');
-                            // const lessonBar = lessonContainer?.querySelector('.lesson-progress-bar .progress-bar');
-
-                            if (lessonBadge) {
-                                let [checked, total] = lessonBadge.textContent.trim()
-                                    .replace('Completed', '') // strip trailing text
-                                    .split('/')
-                                    .map(x => parseInt(x));
-
-                                if (newStatus === 1) {
-                                    checked++;
-                                } else {
-                                    checked--;
-                                }
-
-                                // Clamp between 0 and total
-                                checked = Math.max(0, Math.min(checked, total));
-
-                                // Update badge
-                                lessonBadge.textContent = `${checked} / ${total} Completed`;
-
-                                if (lessonBadgeIcon) {
-                                    if (checked === total && total > 0) {
-                                        lessonBadgeIcon.classList.remove('ti-folder-filled');
-                                        lessonBadgeIcon.classList.add('ti-circle-check-filled');
-                                    } else {
-                                        lessonBadgeIcon.classList.remove('ti-circle-check-filled');
-                                        lessonBadgeIcon.classList.add('ti-folder-filled');
-                                    }
-                                }
-
-                                // Update progress bar
-                                let percentage = total > 0 ? Math.round((checked / total) * 100) : 0;
-                                // lessonBar.style.width = percentage + '%';
-                                // lessonBar.textContent = percentage + '%';
-                                // lessonBar.parentElement.setAttribute('aria-valuenow', percentage);
-
-                                // --- Update lesson tab icon dynamically (now inside the same scope)
-                                const lessonIcon = document.querySelector(
-                                    `.lesson-status-icon[data-lesson="${lessonId}"]`
-                                );
-                                if (lessonIcon) {
-                                    if (checked === total && total > 0) {
-                                        lessonIcon.classList.remove('ti-folder-filled');
-                                        lessonIcon.classList.add('ti-circle-check-filled');
-                                    } else {
-                                        lessonIcon.classList.remove('ti-circle-check-filled');
-                                        lessonIcon.classList.add('ti-folder-filled');
-                                    }
-                                }
-
-                                // update course chart
-                                if (window.courseProgressChart) {
-                                    window.courseProgressChart.updateSeries([data.course.percentage]);
-                                }
-                            } 
-
-                            // ✅ Update lesson summary
-                            let lessonStatus = document.getElementById("lesson-status");
-                            lessonStatus.textContent = (data.overview.completedLessons === data.overview.totalLessons) ? "Completed" : "Uncompleted";
-                            lessonStatus.className = `text-${data.overview.completedLessons === data.overview.totalLessons ? 'success' : 'secondary'} mb-0`;
-
-                            document.getElementById("lesson-count").textContent =
-                                `${data.overview.completedLessons} / ${data.overview.totalLessons}`;
-
-                            // ✅ Update resource summary
-                            let resourceStatus = document.getElementById("resource-status");
-                            resourceStatus.textContent = (data.overview.completedResources === data.overview.totalResources) ? "Completed" : "Uncompleted";
-                            resourceStatus.className = `text-${data.overview.completedResources === data.overview.totalResources ? 'success' : 'secondary'} mb-0`;
-
-                            document.getElementById("resource-count").textContent =
-                                `${data.overview.completedResources} / ${data.overview.totalResources}`;
-                        }
-                    });
-                })
 
                 if (editBtn) {
                     editBtn.setAttribute('data-resource-id', resourceData.id);
@@ -1719,6 +1550,178 @@
                     editBtn.setAttribute('data-resource-downloads', resourceData.downloads);
                     editBtn.setAttribute('data-resource-comments', resourceData.comments);
                     editBtn.setAttribute('data-resource-created', resourceData.created);
+                }
+                
+                // Set complete button state
+                const completeBtn = document.getElementById('resourceDetailModalCompleteBtn');
+
+                if(completeBtn){
+                    completeBtn.textContent = resourceData.isChecked ? 'Mark as Incomplete' : 'Mark as Complete';
+
+                    completeBtn.setAttribute('data-lesson', resourceData.lessonId);
+                    completeBtn.setAttribute('data-resource', resourceData.id);
+                    completeBtn.setAttribute('data-course', '{{ $course->id }}');
+                    completeBtn.setAttribute('data-category', resourceData.category);
+
+                    completeBtn.classList.toggle('btn-light-success', !resourceData.isChecked);
+                    completeBtn.classList.toggle('btn-success', resourceData.isChecked);
+
+                    // Update button label & icon based on isChecked
+                    // if (resourceData.isChecked) {
+                    //     completeBtn.innerHTML = `Mark as Incomplete <i class="ti ti-circle-check-filled"></i>`;
+                    // } else {
+                    //     completeBtn.innerHTML = `Mark as Complete <i class="ti ti-circle"></i>`;
+                    // }
+
+                    // Attach lesson & resource IDs to the button for later toggle
+                    // completeBtn.setAttribute('data-lesson-id', resourceData.lessonId);
+                    // completeBtn.setAttribute('data-resource-id', resourceData.id);
+
+                    completeBtn.addEventListener('click', function() {
+                        const lessonId = this.getAttribute('data-lesson');
+                        const resourceId = this.getAttribute('data-resource');
+                        const courseId = this.getAttribute('data-course');
+                        const category = this.getAttribute('data-category');
+                        
+                        let isChecked = this.textContent.includes('Incomplete');
+                        let newStatus = isChecked ? 0 : 1;
+
+                        fetch("{{ route('resource.toggle_progression') }}", {
+                            method: "POST",
+                            headers: {
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                resource_id: resourceId,
+                                course_id: courseId,
+                                status: newStatus
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Update icon color instantly
+                                if (newStatus === 1) {
+                                    this.textContent = 'Mark as Incomplete';
+                                    this.classList.remove('btn-light-success');
+                                    this.classList.add('btn-success');
+                                } else {
+                                    this.textContent = 'Mark as Complete';
+                                    this.classList.remove('btn-success');
+                                    this.classList.add('btn-light-success');
+                                }
+
+                                // Update the toggle icon in the lesson too
+                                const toggleIcon = document.querySelector(`.toggle-progression[data-resource="${resourceId}"][data-lesson="${lessonId}"]`);
+                                if (toggleIcon) {
+                                    if (newStatus === 1) {
+                                        toggleIcon.classList.add('ti-circle-check-filled');
+                                        toggleIcon.classList.remove('ti-circle');
+                                    } else {
+                                        toggleIcon.classList.add('ti-circle');
+                                        toggleIcon.classList.remove('ti-circle-check-filled');
+                                    }
+                                }
+
+                                const modalBtn = document.getElementById('resourceDetailModalCompleteBtn');
+                                if (modalBtn && modalBtn.dataset.resource === String(resourceId) && modalBtn.dataset.lesson === String(lessonId)) 
+                                {
+                                    if (newStatus === 1) {
+                                        modalBtn.textContent = 'Mark as Incomplete';
+                                        modalBtn.classList.remove('btn-light-success');
+                                        modalBtn.classList.add('btn-success');
+                                    } else {
+                                        modalBtn.textContent = 'Mark as Complete';
+                                        modalBtn.classList.remove('btn-success');
+                                        modalBtn.classList.add('btn-light-success');
+                                    }
+                                }
+
+                                // after fetch success inside your toggle handler
+                                const triggerBtn = document.querySelector(`[data-resource-id="${resourceId}"]`);
+                                if (triggerBtn) {
+                                    triggerBtn.setAttribute('data-resource-ischecked', newStatus);
+                                }
+
+                                // const lessonContainer = this.closest('.lesson-container');
+                                const lessonContainer = document.querySelector(`.lesson-container[data-lesson="${lessonId}"]`);
+                                const lessonBadge = lessonContainer?.querySelector('.lesson-progress');
+                                const lessonBadgeIcon = lessonContainer?.querySelector('.lesson-progress-icon');
+                                // const lessonBar = lessonContainer?.querySelector('.lesson-progress-bar .progress-bar');
+
+                                if (lessonBadge) {
+                                    let [checked, total] = lessonBadge.textContent.trim()
+                                        .replace('Completed', '') // strip trailing text
+                                        .split('/')
+                                        .map(x => parseInt(x));
+
+                                    if (newStatus === 1) {
+                                        checked++;
+                                    } else {
+                                        checked--;
+                                    }
+
+                                    // Clamp between 0 and total
+                                    checked = Math.max(0, Math.min(checked, total));
+
+                                    // Update badge
+                                    lessonBadge.textContent = `${checked} / ${total} Completed`;
+
+                                    if (lessonBadgeIcon) {
+                                        if (checked === total && total > 0) {
+                                            lessonBadgeIcon.classList.remove('ti-folder-filled');
+                                            lessonBadgeIcon.classList.add('ti-circle-check-filled');
+                                        } else {
+                                            lessonBadgeIcon.classList.remove('ti-circle-check-filled');
+                                            lessonBadgeIcon.classList.add('ti-folder-filled');
+                                        }
+                                    }
+
+                                    // Update progress bar
+                                    let percentage = total > 0 ? Math.round((checked / total) * 100) : 0;
+                                    // lessonBar.style.width = percentage + '%';
+                                    // lessonBar.textContent = percentage + '%';
+                                    // lessonBar.parentElement.setAttribute('aria-valuenow', percentage);
+
+                                    // --- Update lesson tab icon dynamically (now inside the same scope)
+                                    const lessonIcon = document.querySelector(
+                                        `.lesson-status-icon[data-lesson="${lessonId}"]`
+                                    );
+                                    if (lessonIcon) {
+                                        if (checked === total && total > 0) {
+                                            lessonIcon.classList.remove('ti-folder-filled');
+                                            lessonIcon.classList.add('ti-circle-check-filled');
+                                        } else {
+                                            lessonIcon.classList.remove('ti-circle-check-filled');
+                                            lessonIcon.classList.add('ti-folder-filled');
+                                        }
+                                    }
+
+                                    // update course chart
+                                    if (window.courseProgressChart) {
+                                        window.courseProgressChart.updateSeries([data.course.percentage]);
+                                    }
+                                } 
+
+                                // ✅ Update lesson summary
+                                let lessonStatus = document.getElementById("lesson-status");
+                                lessonStatus.textContent = (data.overview.completedLessons === data.overview.totalLessons) ? "Completed" : "Uncompleted";
+                                lessonStatus.className = `text-${data.overview.completedLessons === data.overview.totalLessons ? 'success' : 'secondary'} mb-0`;
+
+                                document.getElementById("lesson-count").textContent =
+                                    `${data.overview.completedLessons} / ${data.overview.totalLessons}`;
+
+                                // ✅ Update resource summary
+                                let resourceStatus = document.getElementById("resource-status");
+                                resourceStatus.textContent = (data.overview.completedResources === data.overview.totalResources) ? "Completed" : "Uncompleted";
+                                resourceStatus.className = `text-${data.overview.completedResources === data.overview.totalResources ? 'success' : 'secondary'} mb-0`;
+
+                                document.getElementById("resource-count").textContent =
+                                    `${data.overview.completedResources} / ${data.overview.totalResources}`;
+                            }
+                        });
+                    })
                 }
 
                 

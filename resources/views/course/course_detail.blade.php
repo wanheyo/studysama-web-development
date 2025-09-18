@@ -41,6 +41,18 @@
             <div class="col-lg-9 order-xxl-2">    
                 <div class="card">
                     <div class="card-body">
+                        @if($totalCompletedResources == $totalResources && $totalResources > 0)
+                            <div class="alert alert-label alert-label-success justify-content-between" role="alert">
+                                <p class="mb-0">
+                                    <i class="ti ti-certificate label-icon label-icon-success"></i>
+                                    Your course progression is 100% <span class="badge bg-success" data-bs-placement="top" data-bs-toggle="tooltip"title="Your course is completed">Completed</span> , you can claim your certificate!
+                                </p>
+                                {{-- <button type="button" class="btn btn-sm btn-success rounded">Claim Certificate</button> --}}
+                                <a href="{{ route('course.certificate', ['course_id' => encrypt($course->id)]) }}" class="btn btn-sm btn-success rounded">
+                                    Claim Certificate
+                                </a>
+                            </div>
+                        @endif
                         <div class="product-details-contentbox">
                             <div class="course-image mb-3">
                                 <img src="{{ asset($course->image ? 'storage/uploads/course_picture/' . $course->image : '../assets/images/ecommerce/1280x720.png') }}" 
@@ -330,6 +342,85 @@
             
             {{-- <div class="col-md-6 col-xxl-3 order-md-1 order-xxl-3"> --}}
             <div class="col-lg-3 order-md-1 order-xxl-3">
+                @if($isJoined && !$isTutor)
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-3">Course Progression</h5>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div id="course-progress-chart"
+                                    data-total-resources="{{ $totalResources }}"
+                                    data-checked-resources="{{ $totalChecked }}"
+                                    data-progress="{{ $courseProgress }}"
+                                    data-bs-placement="top" data-bs-toggle="tooltip" title="Course Progress Percentage">
+                                </div>
+                            </div>
+                            <div class="file-manager-sidebar mb-4"> 
+                                <div class="d-flex align-items-center position-relative">
+                                    <span class="text-light-primary h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                        <i class="ph-bold ph-folder f-s-20"></i>
+                                    </span>
+                                    <div class="flex-grow-1 ms-5">
+                                        <h6 class="mb-0">Lesson</h6>
+                                        <p id="lesson-status"
+                                        class="text-{{ $totalCompletedLessons == $totalLessons ? 'success' : 'secondary' }} mb-0">
+                                            {{ $totalCompletedLessons == $totalLessons ? 'Completed' : 'Uncompleted' }}
+                                        </p>
+                                    </div>
+                                    <p id="lesson-count" class="text-secondary f-w-500 mb-0">
+                                        {{ $totalCompletedLessons ?? 0 }} / {{ $totalLessons ?? 0}}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="file-manager-sidebar mb-4">
+                                <div class="d-flex align-items-center position-relative">
+                                    <span class="text-light-success h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                        <i class="ph-bold ph-file f-s-22"></i>
+                                    </span>
+                                    <div class="flex-grow-1 ms-5">
+                                        <h6 class="mb-0">Resource</h6>
+                                        <p id="resource-status"
+                                        class="text-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} mb-0">
+                                            {{ $totalCompletedResources == $totalResources ? 'Completed' : 'Uncompleted' }}
+                                        </p>
+                                    </div>
+                                    <p id="resource-count" class="text-secondary f-w-500 mb-0">
+                                        {{ $totalCompletedResources ?? 0 }} / {{ $totalResources ?? 0 }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="file-manager-sidebar mb-4">
+                                <div class="d-flex align-items-center position-relative">
+                                    <span class="text-light-danger h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                        <i class="ph-bold ph-certificate f-s-22"></i>
+                                    </span>
+                                    <div class="flex-grow-1 ms-5">
+                                        <h6 class="mb-0">Certificate</h6>
+                                        <p id="resource-status"
+                                        class="text-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} mb-0">
+                                            {{ $totalCompletedResources == $totalResources ? 'Claimable' : 'Unclaimable' }}
+                                        </p>
+                                    </div>
+                                    <p id="resource-count" class="text-secondary f-w-500 mb-0">
+                                        {{-- {{ $totalCompletedResources == $totalResources ? 'Claim Here' : '' }} --}}
+                                        <div class="my-2">
+                                            {{-- <button type="button" class="btn btn-primary b-r-22" id="followButton"> <i class="ti ti-user"></i>
+                                                View Profile</button> --}}
+                                            {{-- <a href="{{ route('user.profile', ['user_id' => encrypt($tutor->id), 'shared' => 0]) }}" class="btn btn-primary rounded">Claim</a> --}}
+                                            <button type="button" class="btn btn-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} rounded {{ $totalCompletedResources == $totalResources ? '' : 'disabled' }}" 
+                                            data-bs-toggle="modal" data-bs-target="#claim_certificate_modal" data-id="{{ $course->id }}" 
+                                            data-bs-placement="top" data-bs-toggle="tooltip" title="{{ $totalCompletedResources == $totalResources ? 'Claim Certificate' : 'You need 100% completion to claim certificate.' }}">Claim</button>
+                                        </div>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 <div class="card">
                     <div class="card-header">
                         <h5>Your Tutor</h5>
@@ -568,6 +659,53 @@
                 });
             });
         });
+
+        // let progress = document.querySelector("#course-progress-chart").dataset.progress;
+        let progress = parseFloat(document.querySelector("#course-progress-chart").dataset.progress) || 0;
+
+        var options = {
+            series: [progress],
+            chart: {
+                type: 'radialBar',
+                offsetY: -20,
+                sparkline: { enabled: true }
+            },
+            colors: ['rgba(var(--primary),1)'],
+            plotOptions: {
+                radialBar: {
+                    startAngle: -90,
+                    endAngle: 90,
+                    track: {
+                        background: "#e7e7e7",
+                        strokeWidth: '97%',
+                        margin: 5,
+                        dropShadow: {
+                            enabled: true,
+                            top: 2,
+                            left: 0,
+                            color: '#999',
+                            opacity: 1,
+                            blur: 2,
+                        }
+                    },
+                    dataLabels: {
+                        name: { show: false },
+                        value: {
+                            offsetY: -4,
+                            fontSize: '22px'
+                        }
+                    }
+                }
+            },
+            grid: { padding: { top: -20 } },
+            labels: ['Overall Progress'],
+        };
+
+        window.courseProgressChart = new ApexCharts(
+            document.querySelector("#course-progress-chart"),
+            options
+        );
+        window.courseProgressChart.render();
     });
 
     function validateReviewForm() {
@@ -591,6 +729,9 @@
 
 <!-- sweetalert js-->
 <script src="{{asset('assets/vendor/sweetalert/sweetalert.js')}}"></script>
+
+<!-- apexcharts-->
+<script src="{{asset('assets/vendor/apexcharts/apexcharts.min.js')}}"></script>
 
 <!--js-->
 <script src="{{asset('assets/js/product_details.js')}}"></script>

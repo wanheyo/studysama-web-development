@@ -82,6 +82,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('update_review', [CourseController::class, 'update_review'])->name('course.update_review');
         Route::post('delete_review', [CourseController::class, 'delete_review'])->name('course.delete_review');
         Route::post('join_leave_course', [CourseController::class, 'join_leave_course'])->name('course.join_leave_course');
+        Route::get('course_certificate/{course_id}', [CourseController::class, 'course_certificate'])->name('course.certificate');
 
         // Course->Lesson
         Route::get('course_detail/{course_id}/lesson_list', [LessonController::class, 'lesson_list'])->name('course.lesson.lesson_list');
