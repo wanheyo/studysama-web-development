@@ -123,6 +123,56 @@ class CourseController extends Controller
         return view('course.find_course', compact('courses', 'topics'));
     }
 
+    private function calculateCourseProgress($courseId)
+    {
+        $lessons = Lesson::with([
+            'resources' => function ($query) {
+                $query->where('status', 1)
+                    ->with(['resourceFile' => function ($query) {
+                        $query->where('status', 1);
+                    }])
+                    ->with(['comments' => function ($query) {
+                        $query->where('status', 1)
+                            ->with(['userCourse.user']);
+                    }])
+                    ->with(['userProgressions' => function ($query) {
+                        $query->whereHas('userCourse', function ($subQuery) {
+                            $subQuery->where('user_id', auth()->id())
+                                    ->where('status', 1);
+                        });
+                    }]);
+            }
+        ])
+        ->where('course_id', $courseId)
+        ->where('status', 1)
+        ->orderByRaw('CASE WHEN order_index IS NULL THEN 1 ELSE 0 END, order_index ASC')
+        ->orderBy('id', 'ASC')
+        ->get();
+
+        $totalResources = 0;
+        $totalChecked   = 0;
+        $totalCompletedLessons = 0;
+
+        foreach ($lessons as $lesson) {
+            $lessonResourceCount = $lesson->resources->count();
+            $lessonCheckedCount  = $lesson->resources->sum(
+                fn($resource) => $resource->userProgressions->where('status', 1)->count()
+            );
+
+            $totalResources += $lessonResourceCount;
+            $totalChecked   += $lessonCheckedCount;
+
+            if ($lessonResourceCount > 0 && $lessonCheckedCount === $lessonResourceCount) {
+                $totalCompletedLessons++;
+            }
+        }
+
+        return $totalResources > 0
+            ? round(($totalChecked / $totalResources) * 100, 1)
+            : 0;
+    }
+
+
     public function my_course(Request $request)
     {
         $user = auth()->user(); // Get the authenticated user
@@ -230,6 +280,8 @@ class CourseController extends Controller
                 ->where('tc.course_id', $course->id)
                 ->select('t.id', 't.name', 't.desc')
                 ->get();
+            
+            $course->progress = $this->calculateCourseProgress($course->id);
         }
 
         $type = $request->get('type', 'created');

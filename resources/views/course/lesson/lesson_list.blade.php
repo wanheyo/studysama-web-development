@@ -880,8 +880,16 @@
                                                                 <option value="2">Assignment</option>
                                                             </select>
                                                         </div>
-                                                        
-                                                        <div class="mb-3">
+
+                                                        {{-- <div class="light-border-warning" role="alert">Upload link/file disable for edit for data integrity purpose, please create new resource.</div> --}}
+                                                        <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                                            role="alert">
+                                                            <p class="mb-0">
+                                                                <i class="ti ti-alert-triangle f-s-18 me-2"></i>You can't change the file/url to ensure data integrity. Please upload a new one to make changes.
+                                                            </p>
+                                                            <i class="ti ti-x" data-bs-dismiss="alert"></i>
+                                                        </div>
+                                                        {{-- <div class="mb-3">
                                                             <label class="form-label">Resource Type <span class="text-danger">*</span></label>
                                                             <div class="form-check">
                                                                 <input class="form-check-input" type="radio" name="resource_type" id="resourceType_file" value="file" checked>
@@ -915,7 +923,7 @@
                                                         <div class="mb-3" id="resource_link_section" style="display: none;">
                                                             <label class="form-label">Resource Link/URL <span class="text-danger">*</span></label>
                                                             <input class="form-control" id="editResourceLink" name="link" placeholder="https://example.com/resource" type="url">
-                                                        </div>
+                                                        </div> --}}
                                                     </div>
                                                 </div>
                                             </div>
@@ -2044,27 +2052,27 @@
                 document.getElementById('saveResourceChangesBtn').classList.remove('d-none');
                 
                 // Determine and set resource type
-                if (resourceData.type === 'link') {
-                    // Select link radio
-                    document.getElementById('resourceType_link').checked = true;
+                // if (resourceData.type === 'link') {
+                //     // Select link radio
+                //     document.getElementById('resourceType_link').checked = true;
                     
-                    // Show/hide appropriate sections
-                    document.getElementById('resource_file_upload_section').style.display = 'none';
-                    document.getElementById('resource_link_section').style.display = 'block';
+                //     // Show/hide appropriate sections
+                //     document.getElementById('resource_file_upload_section').style.display = 'none';
+                //     document.getElementById('resource_link_section').style.display = 'block';
                     
-                    // Set link value
-                    document.getElementById('editResourceLink').value = resourceData.link || resourceData.path || '';
-                } else {
-                    // Default to file type
-                    document.getElementById('resourceType_file').checked = true;
+                //     // Set link value
+                //     document.getElementById('editResourceLink').value = resourceData.link || resourceData.path || '';
+                // } else {
+                //     // Default to file type
+                //     document.getElementById('resourceType_file').checked = true;
                     
-                    // Show/hide appropriate sections
-                    document.getElementById('resource_file_upload_section').style.display = 'block';
-                    document.getElementById('resource_link_section').style.display = 'none';
+                //     // Show/hide appropriate sections
+                //     document.getElementById('resource_file_upload_section').style.display = 'block';
+                //     document.getElementById('resource_link_section').style.display = 'none';
                     
-                    // Show file name as information
-                    document.getElementById('existing_file_info').value = resourceData.fileName || 'No file uploaded';
-                }
+                //     // Show file name as information
+                //     document.getElementById('existing_file_info').value = resourceData.fileName || 'No file uploaded';
+                // }
                 
                 // Set form action URL
                 const updateResourceForm = document.getElementById('updateResourceForm');
@@ -2072,17 +2080,17 @@
             });
             
             // Handle resource type radio change
-            document.querySelectorAll('input[name="resource_type"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    if (this.value === 'file') {
-                        document.getElementById('resource_file_upload_section').style.display = 'block';
-                        document.getElementById('resource_link_section').style.display = 'none';
-                    } else if (this.value === 'link') {
-                        document.getElementById('resource_file_upload_section').style.display = 'none';
-                        document.getElementById('resource_link_section').style.display = 'block';
-                    }
-                });
-            });
+            // document.querySelectorAll('input[name="resource_type"]').forEach(radio => {
+            //     radio.addEventListener('change', function() {
+            //         if (this.value === 'file') {
+            //             document.getElementById('resource_file_upload_section').style.display = 'block';
+            //             document.getElementById('resource_link_section').style.display = 'none';
+            //         } else if (this.value === 'link') {
+            //             document.getElementById('resource_file_upload_section').style.display = 'none';
+            //             document.getElementById('resource_link_section').style.display = 'block';
+            //         }
+            //     });
+            // });
             
             // Handle delete button click
             const deleteResourceBtn = document.getElementById('deleteResourceBtn');

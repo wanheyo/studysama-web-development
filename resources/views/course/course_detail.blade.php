@@ -357,7 +357,7 @@
                                     data-bs-placement="top" data-bs-toggle="tooltip" title="Course Progress Percentage">
                                 </div>
                             </div>
-                            <div class="file-manager-sidebar mb-4"> 
+                            <div class="file-manager-sidebar mb-4">        
                                 <div class="d-flex align-items-center position-relative">
                                     <span class="text-light-primary h-40 w-40 d-flex-center b-r-10 position-absolute">
                                         <i class="ph-bold ph-folder f-s-20"></i>

@@ -1,7 +1,7 @@
 <div class="row">
     @foreach ($courses->where('role_id', 3) as $course)
         <div class="col-xxl-4 col-md-6 col-sm-6 mb-4">
-            <div class="card overflow-hidden h-100">
+            <div class="card overflow-hidden h-100 border">
                 <div class="card-body p-0 d-flex flex-column">
                     <!-- Course Thumbnail -->
                     <div class="product-grid">
@@ -70,10 +70,20 @@
                                 </small>
                             </div>
                         </div>
+
+                        {{-- <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div class="progress w-100" role="progressbar" aria-valuenow="100" aria-valuemin="0"
+                                    aria-valuemax="100">
+                                <div class="progress-bar bg-success" style="width: 100%"> 100% </div>
+                            </div>
+                            <div class="text-end mb-2 mx-2">
+                                <span class="badge text-light-success">Completed</span>
+                            </div>
+                        </div> --}}
                     </div>
 
                     <!-- Footer: Tutor Info -->
-                    <div class="p-2 border-top bg-primary-light">
+                    {{-- <div class="p-2 border-top bg-primary-light">
                         <div class="d-flex align-items-center gap-2">
                             <a href="{{ route('user.profile', ['user_id' => encrypt($course->tutor_id), 'shared' => 0]) }}" style="cursor: pointer; text-decoration: none; color: inherit;" class="d-flex align-items-center gap-2">
                                 <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/woman.jpg') }}"
@@ -90,8 +100,46 @@
                                 </div>
                             </a>
                         </div>
-                    </div>
+                    </div> --}}
 
+                    <div class="p-2 border-top bg-primary-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <!-- Left: Tutor Info -->
+                            <a href="{{ route('user.profile', ['user_id' => encrypt($course->tutor_id), 'shared' => 0]) }}" 
+                            style="cursor: pointer; text-decoration: none; color: inherit;" 
+                            class="d-flex align-items-center gap-2">
+                                <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/woman.jpg') }}"
+                                    class="rounded-circle border"
+                                    width="32"
+                                    height="32"
+                                    style="object-fit: cover;"
+                                    alt="Tutor Avatar">
+                                <div class="text-truncate">
+                                    <small class="text-muted d-block">Tutor</small>
+                                    <span class="fw-semibold text-truncate d-block" style="max-width: 150px;">
+                                        {{ $course->tutor_username ?? 'Null' }}
+                                    </span>
+                                </div>
+                            </a>
+
+                            <span class="badge bg-{{ $course->progress < 100 ? 'warning' : 'success' }}" data-bs-placement="top" data-bs-toggle="tooltip"
+                                title="">{{ $course->progress < 100 ? 'In Progress' : 'Completed' }}</span>
+
+                            <!-- Right: Badge -->
+                            {{-- @if($course->status == 2)
+                                
+                            @endif --}}
+
+                            
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div class="progress w-100 h-20" role="progressbar" aria-valuenow="{{ $course->progress }}" aria-valuemin="0"
+                                    aria-valuemax="100">
+                                <div class="progress-bar bg-{{ $course->progress < 100 ? 'warning' : 'success' }} progress-bar-striped" style="width: {{ $course->progress }}%">{{ $course->progress }}%</div>
+                            </div>
+                        </div>
+                    {{-- <div class="ribbon file-right bg-{{ $course->progress < 100 ? 'warning' : 'success' }}">{{ $course->progress }}%</div> --}}
                 </div>
             </div>
         </div>

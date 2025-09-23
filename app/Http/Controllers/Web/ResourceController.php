@@ -341,73 +341,73 @@ class ResourceController extends Controller
             $resource_type = $request->input('resource_type', 'file');
 
             // Handle resource type: file
-            if ($resource_type === 'file') {
-                // If a new file is uploaded
-                if ($request->hasFile('file')) {
-                    \Log::info('File uploaded successfully: ' . $request->file('file')->getClientOriginalName());
+            // if ($resource_type === 'file') {
+            //     // If a new file is uploaded
+            //     if ($request->hasFile('file')) {
+            //         \Log::info('File uploaded successfully: ' . $request->file('file')->getClientOriginalName());
 
-                    // Store the file
-                    $resourceFilePath = $request->file('file')->store('uploads/resource_file', 'public');
-                    // $fileType = $request->file('file')->getClientMimeType();
-                    $fileType = $request->file('file')->getClientOriginalExtension(); // Just 'pdf', 'docx', etc.
-                    $storedFileName = basename($resourceFilePath); // Extract the filename only
+            //         // Store the file
+            //         $resourceFilePath = $request->file('file')->store('uploads/resource_file', 'public');
+            //         // $fileType = $request->file('file')->getClientMimeType();
+            //         $fileType = $request->file('file')->getClientOriginalExtension(); // Just 'pdf', 'docx', etc.
+            //         $storedFileName = basename($resourceFilePath); // Extract the filename only
 
-                    // Update existing file record or create new one
-                    if (!empty($resource->file_id)) {
-                        $resource_file = ResourceFile::find($resource->file_id);
+            //         // Update existing file record or create new one
+            //         if (!empty($resource->file_id)) {
+            //             $resource_file = ResourceFile::find($resource->file_id);
                         
-                        if ($resource_file) {
-                            // Delete the old file if it exists
-                            if (Storage::disk('public')->exists($resource_file->name)) {
-                                Storage::disk('public')->delete($resource_file->name);
-                            }
+            //             if ($resource_file) {
+            //                 // Delete the old file if it exists
+            //                 if (Storage::disk('public')->exists($resource_file->name)) {
+            //                     Storage::disk('public')->delete($resource_file->name);
+            //                 }
                             
-                            $resource_file->name = $storedFileName;
-                            $resource_file->type = $fileType;
-                            $resource_file->status = 1;
-                            $resource_file->updated_at = now();
-                            $resource_file->save();
-                        } else {
-                            // Create new file record if original was not found
-                            $resource_file = ResourceFile::create([
-                                'name' => $resourceFilePath,
-                                'type' => $fileType,
-                                'status' => 1,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ]);
-                        }
-                    } else {
-                        // Create new file record
-                        $resource_file = ResourceFile::create([
-                            'name' => $resourceFilePath,
-                            'type' => $fileType,
-                            'status' => 1,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
-                }
+            //                 $resource_file->name = $storedFileName;
+            //                 $resource_file->type = $fileType;
+            //                 $resource_file->status = 1;
+            //                 $resource_file->updated_at = now();
+            //                 $resource_file->save();
+            //             } else {
+            //                 // Create new file record if original was not found
+            //                 $resource_file = ResourceFile::create([
+            //                     'name' => $resourceFilePath,
+            //                     'type' => $fileType,
+            //                     'status' => 1,
+            //                     'created_at' => now(),
+            //                     'updated_at' => now(),
+            //                 ]);
+            //             }
+            //         } else {
+            //             // Create new file record
+            //             $resource_file = ResourceFile::create([
+            //                 'name' => $resourceFilePath,
+            //                 'type' => $fileType,
+            //                 'status' => 1,
+            //                 'created_at' => now(),
+            //                 'updated_at' => now(),
+            //             ]);
+            //         }
+            //     }
                 
-                // Remove link if switching from link to file
-                $resource->link = null;
+            //     // Remove link if switching from link to file
+            //     $resource->link = null;
                 
-            } 
-            // Handle resource type: link
-            else if ($resource_type === 'link') {
-                // If switching from file to link, update the file status to inactive
-                if (!empty($resource->file_id)) {
-                    $resource_file = ResourceFile::find($resource->file_id);
-                    if ($resource_file) {
-                        $resource_file->status = 0;
-                        $resource_file->updated_at = now();
-                        $resource_file->save();
-                    }
-                }
+            // } 
+            // // Handle resource type: link
+            // else if ($resource_type === 'link') {
+            //     // If switching from file to link, update the file status to inactive
+            //     if (!empty($resource->file_id)) {
+            //         $resource_file = ResourceFile::find($resource->file_id);
+            //         if ($resource_file) {
+            //             $resource_file->status = 0;
+            //             $resource_file->updated_at = now();
+            //             $resource_file->save();
+            //         }
+            //     }
                 
-                $resource->file_id = null;
-                $resource->link = $validatedData['link'];
-            }
+            //     $resource->file_id = null;
+            //     $resource->link = $validatedData['link'];
+            // }
 
             // Update the resource
             $resource->name = $validatedData['name'];
@@ -417,9 +417,9 @@ class ResourceController extends Controller
             $resource->updated_at = now();
             
             // Update file_id only if we're dealing with a file type resource and have a file
-            if ($resource_type === 'file' && $resource_file) {
-                $resource->file_id = $resource_file->id;
-            }
+            // if ($resource_type === 'file' && $resource_file) {
+            //     $resource->file_id = $resource_file->id;
+            // }
             
             // Save the changes
             $resource->save();
