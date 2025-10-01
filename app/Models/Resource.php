@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Lesson;
 use App\Models\Comment;
+use App\Models\ForumPost;
 use App\Models\ResourceFile;
 use App\Models\UserProgression;
 use Laravel\Sanctum\HasApiTokens;
@@ -46,5 +47,10 @@ class Resource extends Model
     public function userProgressions()
     {
         return $this->hasMany(UserProgression::class, 'resource_id');
+    }
+
+    public function forumPosts()
+    {
+        return $this->hasMany(ForumPost::class);
     }
 }

@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Models\ResourceFile;
+use App\Models\Comment;
+use App\Models\ForumPost;
+use App\Models\ForumReply;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
@@ -29,5 +32,15 @@ class ResourceFile extends Model
     public function comments()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    public function forumPosts()
+    {
+        return $this->hasMany(ForumPost::class);
+    }
+
+    public function forumReplies()
+    {
+        return $this->hasMany(ForumReply::class);
     }
 }

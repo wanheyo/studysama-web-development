@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\User;
 use App\Models\UserCourse;
+use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\UserProgression;
 use App\Models\Comment;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Crypt;
 
 class ResourceController extends Controller
 {
@@ -621,6 +623,56 @@ class ResourceController extends Controller
             ]
         ]);
 
+    }
+
+    public function forum(Request $request, $resource_id) {
+        $resource_id = Crypt::decrypt($resource_id);
+
+        $resource = Resource::where('id', $resource_id)
+            ->where('status', 1)
+            ->with([
+                'lesson' => function ($query) {
+                    $query->where('status', 1)
+                        ->with('course');
+                },
+                'resourceFile',
+                'forumPosts' => function ($query) {
+                    $query->where('status', 1)
+                        ->with([
+                            'resourceFile',
+                            'userCourse.user',
+                            'forumReplies' => function ($replyQuery) {
+                                $replyQuery->where('status', 1)
+                                    ->whereNull('forum_reply_id')
+                                    ->with(['userCourse.user', 'childrens']);
+                            }
+
+                        ]);
+                }
+            ])
+            ->firstOrFail();
+
+        foreach ($resource->forumPosts as $post) {
+            $post->total_replies_count = $this->countAllReplies($post->forumReplies);
+        }
+
+        // dd($resource->toArray());
+
+        return view('course.lesson.resource.forum', compact('resource'));
+
+    }
+
+    // helper function for forum
+    private function countAllReplies($replies)
+    {
+        $count = 0;
+        foreach ($replies as $reply) {
+            $count++;
+            if ($reply->childrens->isNotEmpty()) {
+                $count += $this->countAllReplies($reply->childrens);
+            }
+        }
+        return $count;
     }
 
 }

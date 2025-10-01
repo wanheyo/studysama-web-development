@@ -6,7 +6,9 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\Course;
 use App\Models\Comment;
+use App\Models\ForumPost;
 use App\Models\Attendance;
+use App\Models\ForumReply;
 use App\Models\Certificate;
 use App\Models\UserProgression;
 use Illuminate\Database\Eloquent\Model;
@@ -64,5 +66,15 @@ class UserCourse extends Model
     public function certificates()
     {
         return $this->hasMany(Certificate::class);
+    }
+
+    public function forumPosts()
+    {
+        return $this->hasMany(ForumPost::class);
+    }
+
+    public function forumReplies()
+    {
+        return $this->hasMany(ForumReply::class);
     }
 }

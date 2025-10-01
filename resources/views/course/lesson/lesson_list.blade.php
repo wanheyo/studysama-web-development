@@ -473,6 +473,7 @@
                                                                         data-bs-toggle="modal"
                                                                         data-lesson-id="{{ $lesson->id }}"
                                                                         data-resource-id="{{ $resource->id }}"
+                                                                        data-resource-id-encrypted="{{ Crypt::encrypt($resource->id) }}"
                                                                         data-resource-name="{{ $resource->name }}"
                                                                         data-resource-description="{{ $resource->desc ?? '' }}"
                                                                         data-resource-category="{{ $resource->category }}"
@@ -551,6 +552,10 @@
                                                                 Complete
                                                             </button>
                                                         @endif
+
+                                                        <button class="btn btn-light-info" id="resourceDetailModalForumBtn">
+                                                            Forum
+                                                        </button>
 
                                                         {{-- @php
                                                             // progressions is always a collection (empty if none)
@@ -1511,6 +1516,7 @@
                 const resourceData = {
                     lessonId: button.getAttribute('data-lesson-id'),
                     id: button.getAttribute('data-resource-id'),
+                    idEncrypted: button.getAttribute('data-resource-id-encrypted'),
                     name: button.getAttribute('data-resource-name'),
                     description: button.getAttribute('data-resource-description'),
                     category: button.getAttribute('data-resource-category'),
@@ -1542,6 +1548,11 @@
                 downloadBtn.href = resourceData.path;
                 downloadBtn.download = resourceData.name + '.' + resourceData.type;
                 downloadBtn.innerHTML = `<i class="ti ti-download me-1"></i> Download`;
+
+                // Set forum button
+                const forumBtn = document.getElementById('resourceDetailModalForumBtn');
+                forumBtn.setAttribute('data-resource-id-encrypted', resourceData.idEncrypted);
+
 
                 // Set edit button
                 const editBtn = document.querySelector('#resourceDetailModal button[data-bs-target="#resourceEditModal"]');
@@ -1732,7 +1743,6 @@
                     })
                 }
 
-                
                 // Handle preview based on type
                 const previewContainer = document.getElementById('resourcePreview');
                 previewContainer.innerHTML = '';
@@ -1940,6 +1950,14 @@
                 // Add the new event listener
                 commentForm.addEventListener('submit', commentFormSubmitHandler);
             });
+
+            document.getElementById('resourceDetailModalForumBtn').addEventListener('click', function() {
+                const encryptedId = this.getAttribute('data-resource-id-encrypted');
+                if (encryptedId) {
+                    window.location.href = "{{ route('resource.forum', ':id') }}".replace(':id', encryptedId);
+                }
+            });
+
             
             // Handle modal close - optional cleanup
             resourceModal.addEventListener('hidden.bs.modal', function() {
