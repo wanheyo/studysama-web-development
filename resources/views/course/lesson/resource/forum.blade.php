@@ -316,7 +316,7 @@
                                 </h5>
                             </div>
                             <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center" 
-                                    data-bs-toggle="modal" data-bs-target="#createPostModal">
+                                    data-bs-toggle="modal" data-bs-target="#postAddModal">
                                 <i class="ph ph-plus-circle me-2"></i>
                                 Create New Post
                             </button>
@@ -379,27 +379,28 @@
                             <div class="card-body p-4">
                                 <p class="text-dark mb-3" style="line-height: 1.7;">{{ $post->content }}</p>
 
-                                @if(!empty($post['attachments']))
+                                @if($post->resourceFile)
                                     <div class="mt-4 pt-3 border-top">
                                         <div class="d-flex align-items-center mb-2">
                                             <i class="ph ph-paperclip me-2 text-muted"></i>
-                                            <small class="text-muted fw-semibold">Attachments ({{ count($post['attachments']) }})</small>
+                                            <small class="text-muted fw-semibold">Attachment</small>
                                         </div>
                                         <div class="d-flex flex-wrap gap-2">
-                                            @foreach($post['attachments'] as $file)
-                                                @php
-                                                    $icon = str_ends_with($file['name'], '.pdf') ? 'ph-file-pdf text-danger' : 
-                                                        (str_ends_with($file['name'], '.doc') || str_ends_with($file['name'], '.docx') ? 'ph-file-doc text-primary' : 
-                                                        'ph-file text-secondary');
-                                                @endphp
-                                                <span class="attachment-badge d-inline-flex align-items-center">
-                                                    <i class="ph {{ $icon }} me-2"></i>
-                                                    <span>{{ $file['name'] }}</span>
-                                                </span>
-                                            @endforeach
+                                            @php
+                                                $file = $post->resourceFile;
+                                                $icon = str_ends_with($file['name'], '.pdf') ? 'ph-file-pdf text-danger' : 
+                                                    (str_ends_with($file['name'], '.doc') || str_ends_with($file['name'], '.docx') ? 'ph-file-doc text-primary' : 
+                                                    'ph-file text-secondary');
+                                            @endphp
+                                            
+                                            <a href="{{ asset('storage/uploads/resource_file/' . $file['name']) }}" target="_blank" class="attachment-badge d-inline-flex align-items-center text-decoration-none">
+                                                <i class="ph {{ $icon }} me-2"></i>
+                                                <span>{{ $file['name'] }}</span>
+                                            </a>
                                         </div>
                                     </div>
                                 @endif
+
 
                                 <hr>
 
@@ -514,6 +515,63 @@
             </div>
         </div>
     </div>
+
+    <!--postAddModal modal start-->
+    <div aria-hidden="true" aria-labelledby="postAddModalLabel" class="modal fade"
+        id="postAddModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h1 class="modal-title fs-5 text-white" id="postAddModalLabel">New Post</h1>
+                    <button aria-label="Close" class="btn-close m-0"
+                            data-bs-dismiss="modal"
+                            type="button"></button>
+                </div>
+                <form id="forumPostForm" method="POST" action="{{ route('resource.add_post') }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="resent-form">
+                            <div class="row">
+                                <div class="col-12">
+                                    <input type="hidden" name="course_id" id="course_id" value="{{ $resource->lesson->course->id }}">
+                                    <input type="hidden" name="resource_id" id="resource_id" value="{{ $resource->id }}">
+
+                                    <!-- Updated Form inside Modal -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Title <span class="text-danger">*</span></label>
+                                        <input class="form-control" id="title" name="title" placeholder="Enter a descriptive title for your post" type="text" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Content <span class="text-danger">*</span></label></label>
+                                        <textarea class="form-control" id="content" name="content" placeholder="What's on your mind? Share your thoughts, questions, or ideas..." required></textarea>
+                                    </div>
+                                    <div class="mb-3" id="file_upload_section">
+                                        {{-- fw-semibold --}}
+                                        <label class="form-label"> 
+                                            <i class="ph ph-paperclip me-2 text-primary"></i>Attachments <span class="text-muted">(Optional)</span>
+                                        </label>
+                                        {{-- <input class="form-control" type="file" multiple> --}}
+                                        <input type="file" name="file" id="file" class="form-control">
+                                        <input type="hidden" name="file_name" id="file_name">
+                                        <input type="hidden" name="file_type" id="file_type">
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, PPTX, JPG, PNG (Max 10MB per file)
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+                        <button class="btn btn-primary" id="postadd" type="submit">Create Post</button>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+    <!--forumPostAdd modal end -->
 
     <!-- Preview Modal -->
     <div class="modal fade" id="previewModal{{ $resource->id }}" tabindex="-1" aria-hidden="true">

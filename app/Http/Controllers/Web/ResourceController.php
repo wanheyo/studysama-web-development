@@ -10,6 +10,7 @@ use App\Models\UserProgression;
 use App\Models\Comment;
 use App\Models\Resource;
 use App\Models\ResourceFile;
+use App\Models\ForumPost;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -675,4 +676,148 @@ class ResourceController extends Controller
         return $count;
     }
 
+    public function add_post(Request $request)
+    {
+        try {
+            // Define supported file types for better error messages
+            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z';
+            
+            // Manual file checks BEFORE validation to provide custom error messages
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileExtension = strtolower($file->getClientOriginalExtension());
+                $fileSizeInMB = round($file->getSize() / 1024 / 1024, 2); // Convert bytes to MB
+                $maxSizeInMB = 5;
+                
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 'zip', 'rar', '7z'];
+                
+                // Check file type
+                if (!in_array($fileExtension, $allowedExtensions)) {
+                    return redirect()->back()
+                        ->with('error', "The file type '.{$fileExtension}' is not supported.")
+                        ->withInput();
+                }
+                
+                // Check file size
+                if ($fileSizeInMB > $maxSizeInMB) {
+                    return redirect()->back()
+                        ->with('error', "The uploaded file is too large ({$fileSizeInMB}MB). Maximum file size allowed is {$maxSizeInMB}MB.")
+                        ->withInput();
+                }
+            }
+            
+            // Validate input with custom messages (after manual file checks)
+            $validatedData = $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string|max:500',
+                'course_id' => 'required|integer|exists:courses,id',
+                'resource_id' => 'required|integer|exists:resources,id',
+                
+                'file_name' => 'nullable|string|max:255',
+                'file_type' => 'nullable|string|max:255',
+                'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,tiff,doc,docx,pdf,txt,rtf,odt,zip,rar,7z|max:5120',
+            ], [
+                // Custom validation messages
+                'file.mimes' => 'The uploaded file type is not supported.',
+                'file.max' => 'The file size must not exceed 5MB.',
+                'course_id.exists' => 'The selected course does not exist.',
+                'resource_id.exists' => 'The selected resource does not exist.',
+                'title.required' => 'Post title is required.',
+                'content.required' => 'Post content is required.',
+            ]);
+
+            // Get authenticated user
+            $user = Auth::user();
+            
+            // Check if the user exists
+            if (!$user) {
+                return redirect()->back()->with('error', 'User not authenticated');
+            }
+
+            $user_course = $user->userCourses()
+                ->where('course_id', $validatedData['course_id'])
+                ->where('status', 1)
+                ->first();
+
+            DB::beginTransaction();
+            
+            try {
+                $resource_file = null;
+                $resourceFilePath = null;
+
+                // Handle file upload if present
+                if ($request->hasFile('file')) {
+                    $file = $request->file('file');
+                    $originalName = $file->getClientOriginalName();
+                    $fileType = $file->getClientOriginalExtension(); // Just 'pdf', 'docx', etc.
+                    
+                    // Store the file
+                    $resourceFilePath = $file->store('uploads/resource_file', 'public');
+                    $storedFileName = basename($resourceFilePath); // Extract the filename only
+
+                    // Create resource file record
+                    $resource_file = ResourceFile::create([
+                        'name' => $storedFileName,
+                        'type' => $fileType,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                // Create resource record
+                // $resource = Resource::create([
+                //     'name' => $validatedData['name'],
+                //     'desc' => $validatedData['desc'] ?? null,
+                //     'category' => $validatedData['category'],
+                //     'link' => $validatedData['link'] ?? null,
+                //     'lesson_id' => $validatedData['lesson_id'],
+                //     'file_id' => $resource_file->id ?? null,
+                //     'status' => 1, // Assuming active status
+                //     'total_visit' => 0
+                // ]);
+
+                // Create forumPost record
+                $forumPost = ForumPost::create([
+                    'user_course_id' => $user_course->id,
+                    'resource_id' => $validatedData['resource_id'],
+                    'title' => $validatedData['title'],
+                    'content' => $validatedData['content'],
+                    'resource_file_id' => $resource_file->id ?? null,
+                    'status' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                DB::commit();
+                
+                // Flash success message to the session
+                session()->flash('success', 'Post added successfully');
+                
+                // Redirect back to the lesson page
+                return redirect()->back();
+                
+            } catch (\Exception $e) {
+                DB::rollBack();
+                
+                // Log the error
+                \Log::error('Post creation failed', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                
+                return redirect()->back()->with('error', 'Failed to add post. ' . $e->getMessage())->withInput();
+            }
+        } catch (ValidationException $e) {
+            // Handle validation errors
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            // Log the error
+            \Log::error('Post creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.')->withInput();
+        }
+    }
 }
