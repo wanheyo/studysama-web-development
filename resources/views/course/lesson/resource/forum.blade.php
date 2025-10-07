@@ -324,8 +324,8 @@
                         <div class="card-body p-0 my-3">
                             @if($resource->forumPosts && $resource->forumPosts->isNotEmpty())
                                 <div class="list-group list-group-flush">
-                                    @foreach($resource->forumPosts as $index => $post)
-                                        <a class="list-group-item list-group-item-action border-0 py-3 px-3 tab-link {{ $index == 0 ? 'active' : '' }}"
+                                    @foreach($resource->forumPosts->sortByDesc('created_at') as $index => $post)
+                                        <a class="list-group-item list-group-item-action border-0 py-3 px-3 tab-link {{ $loop->first ? 'active' : '' }}"
                                             data-tab="{{ $post->id }}" data-id="{{ $post->id }}">
                                             <div class="d-flex justify-content-between">
                                                 <!-- Left: Title + Author + Date -->
@@ -364,16 +364,28 @@
             <!-- Tab 1: Posts & Replies (Main Content) -->
             <div class="col-lg-8 col-xxl-9">
                 @if($resource->forumPosts && $resource->forumPosts->isNotEmpty())
-                    @foreach($resource->forumPosts as $index => $post)
-                        <div class="card shadow-sm border-0 mb-4 post-card tabs-content {{ $index == 0 ? 'active' : '' }}" id="tab-{{ $post->id }}">
+                    @foreach($resource->forumPosts->sortByDesc('created_at') as $index => $post)
+                        <div class="card shadow-sm border-0 mb-4 post-card tabs-content {{ $loop->first ? 'active' : '' }}" id="tab-{{ $post->id }}">
                             <!-- Post Header -->
-                            <div class="card-header bg-gradient bg-primary text-white border-0 py-3">
+                            <div class="rounded-top bg-gradient bg-primary text-white border-0 py-3 px-4 align-items-center">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <h5 class="m-2 fw-bold text-white mb-4">
-                                        <i class="ph ph-article me-2"></i>{{ $post->title }}
-                                    </h5>
+                                    <div class="d-flex align-items-center">
+                                        <i class="ph ph-article me-2 fs-5"></i>
+                                        <h5 class="fw-bold mb-0 text-white">{{ $post->title }}</h5>
+                                    </div>
+
+                                    <!-- Action Button -->
+                                    <button type="button" class="btn btn-light btn-sm rounded-circle shadow-sm border-0 p-2 d-flex align-items-center justify-content-center"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="ph ph-bold ph-dots-three-outline-vertical text-primary f-s-20"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li><a class="dropdown-item" href="#">Edit</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
+                                    </ul>
                                 </div>
                             </div>
+
 
                             <!-- Post Content -->
                             <div class="card-body p-4">
@@ -401,54 +413,89 @@
                                     </div>
                                 @endif
 
-
                                 <hr>
 
                                 <p class="text-muted d-block mt-1">
-                                    by <strong>{{ '@' . $post->userCourse?->user?->username ?? '@Unknown' }}</strong> • 
-                                    {{ $post->created_at->diffForHumans() }} • 
-                                    {{ \Carbon\Carbon::parse($post->created_at)->format('j M, Y g:i A') }}
+                                    <div class="row align-items-center">
+                                        <div class="col-6 d-flex align-items-center">
+                                            <img src="{{ $post->userCourse?->user?->image ? asset('storage/uploads/profile_picture/' . $post->userCourse?->user?->image) : asset('assets/images/avtar/4.png') }}"
+                                                class="rounded-circle avatar-md me-2" alt="avatar">
+                                            <strong>{{ '@' . $post->userCourse?->user?->username ?? '@Unknown' }}</strong>
+                                        </div>
+                                        <div class="col-6 text-end d-flex justify-content-end align-items-center">
+                                            <span>
+                                                {{ $post->created_at->diffForHumans() }} • 
+                                                {{ \Carbon\Carbon::parse($post->created_at)->format('j M, Y g:i A') }}
+                                            </span>
+                                        </div>    
+                                    </div>                   
                                 </p>
                             </div>
 
                             <!-- Replies Section -->
                             <div class="card-footer border-0 bg-light p-4">
-                                <div class="d-flex align-items-center mb-4">
-                                    <i class="ph ph-chats me-2 text-primary"></i>
-                                    <h6 class="mb-0 fw-bold">{{ count($post->forumReplies) }} Replies</h6>
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="ph ph-chats me-2 text-primary"></i>
+                                        <h6 class="mb-0 fw-bold">{{ $post->total_replies_count }} Replies</h6>
+                                    </div>
+
+                                    <!-- Sort Button (AJAX toggle) -->
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary sort-toggle"
+                                            data-post-id="{{ $post->id }}"
+                                            data-sort="latest"
+                                            {{ $post->total_replies_count > 0 ? '' : 'disabled' }}>
+                                        <i class="ph ph-arrows-down-up me-1"></i>
+                                        Sort: Latest
+                                    </button>
                                 </div>
 
-                                @forelse($post->forumReplies as $reply)
-                                    @include('course.lesson.resource.partials.forum_reply', ['reply' => $reply])
-                                @empty
-                                    <div class="text-center py-4">
-                                        <i class="ph ph-chat-circle-dots text-muted" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                                        <p class="text-muted mt-2 mb-0">No replies yet. Be the first to reply!</p>
-                                    </div>
-                                @endforelse
-
+                                <!-- Replies Container (will be replaced via AJAX) -->
+                                <div id="replies-container-{{ $post->id }}">
+                                    @forelse($post->forumReplies->whereNull('forum_reply_id')->sortByDesc('created_at') as $reply)
+                                        @include('course.lesson.resource.partials.forum_reply', [
+                                            'reply' => $reply,
+                                            'resource' => $resource,
+                                            'post' => $post,
+                                            'sortOrder' => 'latest'
+                                        ])
+                                    @empty
+                                        <div class="text-center py-4">
+                                            <i class="ph ph-chat-circle-dots text-muted" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                                            <p class="text-muted mt-2 mb-0">No replies yet. Be the first to reply!</p>
+                                        </div>
+                                    @endforelse
+                                </div>
 
                                 <!-- Reply Form -->
                                 <div class="reply-form mt-4">
                                     <h6 class="mb-3 fw-bold">
                                         <i class="ph ph-pencil-simple me-2 text-primary"></i>Post Your Reply
                                     </h6>
-                                    <form>
+                                    <form id="forumReplyForm" method="POST" action="{{ route('resource.add_reply') }}" enctype="multipart/form-data">
+                                        @csrf
+                                        <input type="hidden" name="course_id" id="course_id" value="{{ $resource->lesson->course->id }}">
+                                        <input type="hidden" name="forum_post_id" id="forum_post_id" value="{{ $post->id }}">
                                         <div class="mb-3">
-                                            <textarea class="form-control" rows="3" placeholder="Share your thoughts..." style="resize: none;"></textarea>
+                                            <textarea class="form-control" id="content" name="content" rows="3" placeholder="Share your thoughts..." required></textarea>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label d-flex align-items-center">
-                                                <i class="ph ph-paperclip me-2"></i>Attach Files <span class="text-muted ms-1">(Optional)</span>
+                                            <div class="mb-3" id="file_upload_section">
+                                            {{-- fw-semibold --}}
+                                            <label class="form-label text-secondary"> 
+                                                <i class="ph ph-paperclip me-2 text-primary"></i>Attachments <span class="text-muted">(Optional)</span>
                                             </label>
-                                            <input class="form-control" type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png">
-                                            <small class="text-muted d-block mt-1">
-                                                <i class="ph ph-info me-1"></i>PDF, DOCX, PPTX, JPG, PNG (Max 10MB)
+                                            {{-- <input class="form-control" type="file" multiple> --}}
+                                            <input type="file" name="file" id="file" class="form-control">
+                                            <input type="hidden" name="file_name" id="file_name">
+                                            <input type="hidden" name="file_type" id="file_type">
+                                            <small class="text-muted d-block mt-2">
+                                                <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, PPTX, JPG, PNG (Max 10MB per file)
                                             </small>
                                         </div>
                                         <div class="d-flex gap-2">
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="ph ph-paper-plane-tilt me-2"></i>Post Reply
+                                            <button type="submit" class="btn btn-primary" id="replyadd">
+                                                <i class="ph ph-paper-plane-tilt me-2"></i>Submit Reply
                                             </button>
                                             <button type="button" class="btn btn-light">Cancel</button>
                                         </div>
@@ -536,7 +583,7 @@
                                     <input type="hidden" name="course_id" id="course_id" value="{{ $resource->lesson->course->id }}">
                                     <input type="hidden" name="resource_id" id="resource_id" value="{{ $resource->id }}">
 
-                                    <!-- Updated Form inside Modal -->
+                                    <!-- Form inside Modal -->
                                     <div class="mb-3">
                                         <label class="form-label">Title <span class="text-danger">*</span></label>
                                         <input class="form-control" id="title" name="title" placeholder="Enter a descriptive title for your post" type="text" required>
@@ -622,6 +669,35 @@
 @section('script')
     <script src="{{ asset('assets/vendor/apexcharts/apexcharts.min.js') }}"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sortButtons = document.querySelectorAll('.sort-toggle');
+
+            sortButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const postId = this.dataset.postId;
+                    const currentSort = this.dataset.sort;
+                    const newSort = currentSort === 'latest' ? 'oldest' : 'latest';
+                    const repliesContainer = document.querySelector(`#replies-container-${postId}`);
+
+                    this.disabled = true;
+                    this.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Sorting...`;
+
+                    fetch(`{{ route('resource.sort_replies') }}?post_id=${postId}&sort=${newSort}`)
+                        .then(response => response.text())
+                        .then(html => {
+                            repliesContainer.innerHTML = html;
+                            this.dataset.sort = newSort;
+                            this.innerHTML = `<i class="ph ph-arrows-down-up me-1"></i> Sort: ${newSort.charAt(0).toUpperCase() + newSort.slice(1)}`;
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Something went wrong while sorting replies.');
+                        })
+                        .finally(() => this.disabled = false);
+                });
+            });
+        });
+
         // Smooth scroll to post when clicked in sidebar
         document.querySelectorAll('.list-group-item').forEach(item => {
             item.addEventListener('click', function(e) {

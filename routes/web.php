@@ -96,7 +96,9 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('resource/update_resource/{resource_id}', [ResourceController::class, 'update_resource'])->name('resource.update_resource');
         Route::post('resource/toggle_progression', [ResourceController::class, 'toggle_progression'])->name('resource.toggle_progression');
         Route::get('resource/{resource_id}/forum', [ResourceController::class, 'forum'])->name('resource.forum');
-        Route::post('resource/add_post', [ResourceController::class, 'add_post'])->name('resource.add_post');
+        Route::get('/resource/forum/sort-replies', [ResourceController::class, 'sort_replies'])->name('resource.sort_replies');
+        Route::post('resource/forum/add_post', [ResourceController::class, 'add_post'])->name('resource.add_post');
+        Route::post('resource/forum/add_reply', [ResourceController::class, 'add_reply'])->name('resource.add_reply');
 
         // Course->Lesson->Resource->Comments
         Route::group(['prefix' => 'comment'], function () {

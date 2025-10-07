@@ -1,6 +1,7 @@
 <div class="reply-box mb-3 p-3 border">
     <div class="d-flex">
-        <img src="{{ $reply->userCourse?->user?->image ? asset('storage/uploads/profile_picture/' . $reply->userCourse?->user?->image) : asset('assets/images/avtar/4.png') }}" class="rounded-circle avatar-md me-3" alt="avatar">
+        <img src="{{ $reply->userCourse?->user?->image ? asset('storage/uploads/profile_picture/' . $reply->userCourse?->user?->image) : asset('assets/images/avtar/4.png') }}"
+            class="rounded-circle avatar-md me-3" alt="avatar">
 
         <div class="flex-grow-1">
             <div class="d-flex justify-content-between align-items-start mb-2">
@@ -10,30 +11,47 @@
                     </h6>
                     <small class="post-meta">
                         <i class="ph ph-clock me-1"></i>
+                        {{ $reply->created_at->diffForHumans() }} • 
                         {{ $reply->created_at->format('j M, Y g:i A') }}
                     </small>
+                </div>
+
+                <!-- Dots Action Button -->
+                <div class="dropdown">
+                    <button type="button"
+                        class="btn btn-light btn-sm rounded-circle shadow-sm border-0 p-2 d-flex align-items-center justify-content-center"
+                        id="replyActions{{ $reply->id }}"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        <i class="ph ph-bold ph-dots-three-outline-vertical text-secondary fs-6"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="replyActions{{ $reply->id }}">
+                        <li><a class="dropdown-item" href="#">Edit</a></li>
+                        <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
+                    </ul>
                 </div>
             </div>
 
             <p class="mb-2" style="line-height: 1.6;">{!! nl2br(e($reply->content)) !!}</p>
 
-            {{-- Attachments --}}
-            @if($reply->attachments)
-                <div class="mt-3">
-                    <small class="text-muted d-flex align-items-center mb-2">
-                        <i class="ph ph-paperclip me-1"></i>Attachments
-                    </small>
+            @if($reply->resourceFile)
+                <div class="my-3 pt-3 border-top">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="ph ph-paperclip me-2 text-muted"></i>
+                        <small class="text-muted fw-semibold">Attachment</small>
+                    </div>
                     <div class="d-flex flex-wrap gap-2">
-                        @foreach($reply->attachments as $file)
-                            @php
-                                $icon = str_ends_with($file['name'], '.pdf') ? 'ph-file-pdf text-danger' :
-                                        (str_ends_with($file['name'], '.doc') || str_ends_with($file['name'], '.docx') ? 'ph-file-doc text-primary' : 'ph-file text-secondary');
-                            @endphp
-                            <span class="attachment-badge d-inline-flex align-items-center">
-                                <i class="ph {{ $icon }} me-1"></i>
-                                <small>{{ $file['name'] }}</small>
-                            </span>
-                        @endforeach
+                        @php
+                            $file = $reply->resourceFile;
+                            $icon = str_ends_with($file['name'], '.pdf') ? 'ph-file-pdf text-danger' : 
+                                (str_ends_with($file['name'], '.doc') || str_ends_with($file['name'], '.docx') ? 'ph-file-doc text-primary' : 
+                                'ph-file text-secondary');
+                        @endphp
+                        
+                        <a href="{{ asset('storage/uploads/resource_file/' . $file['name']) }}" target="_blank" class="attachment-badge d-inline-flex align-items-center text-decoration-none">
+                            <i class="ph {{ $icon }} me-2"></i>
+                            <span>{{ $file['name'] }}</span>
+                        </a>
                     </div>
                 </div>
             @endif
@@ -50,10 +68,11 @@
             {{-- Collapsible Reply Form --}}
             <div class="collapse mt-3" id="replyForm{{ $reply->id }}">
                 <div class="card card-body text-secondary border">
-                    <form action="" method="POST" enctype="multipart/form-data">
+                    <form id="forumReplyFormCollapse" method="POST" action="{{ route('resource.add_reply') }}" enctype="multipart/form-data">
                         @csrf
-                        <input type="hidden" name="parent_id" value="{{ $reply->id }}">
-                        <input type="hidden" name="forum_id" value="{{ $reply->forum_id ?? $reply->id }}">
+                        <input type="hidden" name="course_id" id="course_id" value="{{ $resource->lesson->course->id }}">
+                        <input type="hidden" name="forum_post_id" id="forum_post_id" value="{{ $post->id }}">
+                        <input type="hidden" name="forum_reply_id" value="{{ $reply->id }}"> {{-- Parent Reply ID --}}
                         
                         <div class="mb-3">
                             <label for="replyContent{{ $reply->id }}" class="form-label">
@@ -71,11 +90,9 @@
                             <label for="replyAttachment{{ $reply->id }}" class="form-label">
                                 <i class="ph ph-paperclip me-1"></i>Attach Files (Optional)
                             </label>
-                            <input type="file" 
-                                class="form-control" 
-                                id="replyAttachment{{ $reply->id }}" 
-                                name="attachments[]" 
-                                multiple>
+                            <input type="file" name="file" id="replyAttachment{{ $reply->id }}" class="form-control">
+                            <input type="hidden" name="file_name" id="file_name">
+                            <input type="hidden" name="file_type" id="file_type">
                             <small class="text-muted">You can attach multiple files</small>
                         </div>
 
@@ -98,9 +115,20 @@
 
     {{-- Recursive call: render children --}}
     @if($reply->childrens && $reply->childrens->count())
+        @php
+            $sortedChildren = isset($sortOrder) && $sortOrder === 'oldest'
+                ? $reply->childrens->sortBy('created_at')
+                : $reply->childrens->sortByDesc('created_at');
+        @endphp
+
         <div class="ms-4 ms-md-5 mt-3 ps-3 ps-md-4 border-start border-secondary-light border-2">
-            @foreach($reply->childrens as $childReply)
-                @include('course.lesson.resource.partials.forum_reply', ['reply' => $childReply])
+            @foreach($sortedChildren as $childReply)
+                @include('course.lesson.resource.partials.forum_reply', [
+                    'reply' => $childReply,
+                    'resource' => $resource,
+                    'post' => $post,
+                    'sortOrder' => $sortOrder ?? 'latest'
+                ])
             @endforeach
         </div>
     @endif
