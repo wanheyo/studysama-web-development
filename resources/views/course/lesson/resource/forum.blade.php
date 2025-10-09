@@ -380,8 +380,34 @@
                                         <i class="ph ph-bold ph-dots-three-outline-vertical text-primary f-s-20"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                        <li><a class="dropdown-item" href="#">Edit</a></li>
-                                        <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
+                                        @if($post->userCourse && $post->userCourse->user_id === auth()->id())
+                                            <li>
+                                                <button class="dropdown-item" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#postEditModal"
+                                                    data-post-id="{{ encrypt($post->id) }}"
+                                                    data-post-title="{{ $post->title }}"
+                                                    data-post-content="{{ $post->content }}"
+                                                    data-post-resource-file-id="{{ $post->resource_file_id }}">
+                                                    Edit
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item text-danger btn-delete-post" 
+                                                    data-post-id="{{ encrypt($post->id) }}"
+                                                    data-post-title="{{ $post->title }}">
+                                                    Delete
+                                                </button>
+                                            </li>
+                                        @else
+                                            <li>
+                                                <button class="dropdown-item text-danger btn-report-post" 
+                                                    data-post-id="{{ encrypt($post->id) }}"
+                                                    data-post-title="{{ $post->title }}">
+                                                    Report
+                                                </button>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </div>
                             </div>
@@ -389,7 +415,16 @@
 
                             <!-- Post Content -->
                             <div class="card-body p-4">
-                                <p class="text-dark mb-3" style="line-height: 1.7;">{{ $post->content }}</p>
+                                @if($post->updated_at && $post->updated_at != $post->created_at)
+                                    <div class="text-end mb-3">
+                                        <i class="ph ph-info-circle text-info me-2"></i><strong>Edited: </strong> {{ $post->updated_at->diffForHumans() }} • 
+                                        {{ $post->updated_at->format('j M, Y g:i A') }}
+                                    </div>
+                                @endif
+                                <p class="text-dark mb-3" style="line-height: 1.7; white-space: pre-line;">
+                                    {{ $post->content }}
+                                </p>
+
 
                                 @if($post->resourceFile)
                                     <div class="mt-4 pt-3 border-top">
@@ -497,7 +532,9 @@
                                             <button type="submit" class="btn btn-primary" id="replyadd">
                                                 <i class="ph ph-paper-plane-tilt me-2"></i>Submit Reply
                                             </button>
-                                            <button type="button" class="btn btn-light">Cancel</button>
+                                            <button type="button" class="btn btn-danger" id="cancelReplyBtn">
+                                                Cancel
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
@@ -512,53 +549,6 @@
                         </div>
                     </div>
                 @endif
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Post Modal -->
-    <div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white border-0">
-                    <h5 class="modal-title fw-bold" id="createPostModalLabel">
-                        <i class="ph ph-plus-circle me-2"></i>Create New Discussion
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form>
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">
-                                <i class="ph ph-text-aa me-2 text-primary"></i>Title
-                            </label>
-                            <input type="text" class="form-control form-control-lg" placeholder="Enter a descriptive title for your post" required>
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">
-                                <i class="ph ph-article me-2 text-primary"></i>Content
-                            </label>
-                            <textarea class="form-control" rows="5" placeholder="What's on your mind? Share your thoughts, questions, or ideas..." required style="resize: none;"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                <i class="ph ph-paperclip me-2 text-primary"></i>Attachments <span class="text-muted">(Optional)</span>
-                            </label>
-                            <input class="form-control" type="file" multiple>
-                            <small class="text-muted d-block mt-2">
-                                <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, PPTX, JPG, PNG (Max 10MB per file)
-                            </small>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0 bg-light">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                        <i class="ph ph-x me-2"></i>Cancel
-                    </button>
-                    <button type="button" class="btn btn-primary">
-                        <i class="ph ph-check-circle me-2"></i>Create Post
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -618,7 +608,92 @@
             </div>
         </div>
     </div>
-    <!--forumPostAdd modal end -->
+    <!--postAddModal modal end -->
+
+    <!--postEditModal modal start-->
+    <div aria-hidden="true" aria-labelledby="postEditModalLabel" class="modal fade"
+        id="postEditModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h1 class="modal-title fs-5 text-white" id="postEditModalLabel">Edit Post</h1>
+                    <button aria-label="Close" class="btn-close m-0"
+                            data-bs-dismiss="modal"
+                            type="button"></button>
+                </div>
+                <form id="updateForumPostForm" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="resent-form">
+                            <div class="row">
+                                <div class="col-12">
+                                    <input type="hidden" name="course_id" id="course_id" value="{{ $resource->lesson->course->id }}">
+                                    <input type="hidden" name="resource_id" id="resource_id" value="{{ $resource->id }}">
+
+                                    <!-- Form inside Modal -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Title <span class="text-danger">*</span></label>
+                                        <input class="form-control" id="editTitle" name="title" placeholder="Enter a descriptive title for your post" type="text" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Content <span class="text-danger">*</span></label></label>
+                                        <textarea class="form-control" id="editContent" name="content" placeholder="What's on your mind? Share your thoughts, questions, or ideas..." required></textarea>
+                                    </div>
+                                    {{-- <div class="mb-3" id="file_upload_section">
+                                        <label class="form-label"> 
+                                            <i class="ph ph-paperclip me-2 text-primary"></i>Attachments <span class="text-muted">(Optional)</span>
+                                        </label>
+                                        <input type="file" name="file" id="file" class="form-control">
+                                        <input type="hidden" name="file_name" id="file_name">
+                                        <input type="hidden" name="file_type" id="file_type">
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, PPTX, JPG, PNG (Max 10MB per file)
+                                        </small>
+                                    </div> --}}
+                                    <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                        role="alert">
+                                        <p class="mb-0">
+                                            <i class="ti ti-alert-triangle f-s-18 me-2"></i>You can't change the file to ensure data integrity. Please create a reply to upload the new file.
+                                        </p>
+                                        <i class="ti ti-x" data-bs-dismiss="alert"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" id="editPostCancelBtn" type="button">Cancel</button>
+                        <button class="btn btn-primary" id="editPostChangesBtn" type="submit">Save Change</button>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+    <!--postEditModal modal end -->
+
+    <!-- replyEditModal Modal -->
+    <div class="modal fade" id="replyEditModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form method="POST">
+            @csrf
+            <input type="hidden" name="reply_id" id="editReplyId">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title">Edit Reply</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                <textarea class="form-control" name="content" id="editReplyContent" rows="4" required></textarea>
+                </div>
+                <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Preview Modal -->
     <div class="modal fade" id="previewModal{{ $resource->id }}" tabindex="-1" aria-hidden="true">
@@ -664,14 +739,63 @@
         </div>
     </div>
 
+    <!-- Delete Post Form -->
+    <form id="deletePostForm" method="POST" action="" style="display:none;">
+        @csrf
+    </form>
+
+    <!-- Delete Reply Form -->
+    <form id="deleteReplyForm" method="POST" action="" style="display:none;">
+        @csrf
+        @method('POST')
+    </form>
+
+    <style>
+        .swal2-toast {
+            width: auto !important;
+            max-width: 100% !important;
+            padding: 0.625em !important;
+        }
+    </style>
 @endsection
 
 @section('script')
     <script src="{{ asset('assets/vendor/apexcharts/apexcharts.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const sortButtons = document.querySelectorAll('.sort-toggle');
+            // Toast notifications
+            @if(session('success'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: "{{ session('success') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
+        
+            @if(session('error'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: "{{ session('error') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
 
+            /* ---------- SORT REPLIES ---------- */
+            const sortButtons = document.querySelectorAll('.sort-toggle');
             sortButtons.forEach(button => {
                 button.addEventListener('click', function () {
                     const postId = this.dataset.postId;
@@ -696,34 +820,172 @@
                         .finally(() => this.disabled = false);
                 });
             });
-        });
 
-        // Smooth scroll to post when clicked in sidebar
-        document.querySelectorAll('.list-group-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
+            /* ---------- TOP-LEVEL CANCEL (main reply form) ---------- */
+            const cancelBtn = document.getElementById("cancelReplyBtn");
+            const replyForm = document.getElementById("forumReplyForm");
+
+            if (cancelBtn && replyForm) {
+                cancelBtn.addEventListener("click", function () {
+                    replyForm.querySelector("#content").value = "";
+                    const fileInput = replyForm.querySelector("#file");
+                    fileInput.value = "";
+                    replyForm.querySelector("#file_name").value = "";
+                    replyForm.querySelector("#file_type").value = "";
+                    fileInput.blur();
+                });
+            }
+
+            /* ---------- COLLAPSIBLE REPLY FORMS (AJAX-safe) ---------- */
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.cancel-reply-btn');
+                if (!btn) return;
+
+                const collapse = btn.closest('.collapse');
+                const form = collapse ? collapse.querySelector('form') : null;
+                if (!form) return;
+
+                // Clear textarea + file + hidden fields
+                const textarea = form.querySelector('textarea');
+                if (textarea) textarea.value = '';
+
+                const fileInput = form.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
+
+                form.querySelectorAll('input[type="hidden"][name^="file"]').forEach(h => h.value = '');
+            });
+
+            // Also clear when the collapse hides (if closed programmatically)
+            document.addEventListener('hidden.bs.collapse', function (event) {
+                const collapse = event.target;
+                const form = collapse.querySelector('form');
+                if (!form) return;
+
+                const textarea = form.querySelector('textarea');
+                if (textarea) textarea.value = '';
+
+                const fileInput = form.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
+
+                form.querySelectorAll('input[type="hidden"][name^="file"]').forEach(h => h.value = '');
+            });
+
+            /* ---------- SIDEBAR SCROLL + HIGHLIGHT ---------- */
+            document.querySelectorAll('.list-group-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        target.style.animation = 'highlight 1s ease';
+                        setTimeout(() => target.style.animation = '', 1000);
+                    }
+                });
+            });
+
+            /* ---------- TAB SWITCH ---------- */
+            $(document).on('click', '.tab-link', function () {
+                var tabID = $(this).attr('data-tab');
+                $(this).addClass('active').siblings().removeClass('active');
+                $('#tab-' + tabID).addClass('active').siblings('.tabs-content').removeClass('active');
+            });
+
+            /* ---------- EDIT POST MODAL POPULATION ---------- */
+            const postEditModal = document.getElementById('postEditModal');
+
+            postEditModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+
+                const postId = button.getAttribute('data-post-id');
+                const postTitle = button.getAttribute('data-post-title');
+                const postContent = button.getAttribute('data-post-content');
+                const postResourceFileId = button.getAttribute('data-post-resource-file-id');
+
+                document.getElementById('editTitle').value = postTitle || '';
+                document.getElementById('editContent').value = postContent || '';
                 
-                // Remove active class from all items
-                document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
-                
-                // Add active class to clicked item
-                this.classList.add('active');
-                
-                // Smooth scroll to target
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    
-                    // Add highlight animation
-                    target.style.animation = 'highlight 1s ease';
-                    setTimeout(() => {
-                        target.style.animation = '';
-                    }, 1000);
+                const updatePostForm = document.getElementById('updateForumPostForm');
+                const updatePostFormUrl = "{{ url('course/resource/forum/update_post') }}";
+                updatePostForm.action = `${updatePostFormUrl}/${postId}`;
+            })
+
+            // Handle delete post buttons
+            document.querySelectorAll('.btn-delete-post').forEach(button => {
+                button.addEventListener('click', function () {
+                    const encryptedId = this.dataset.postId;
+                    const postTitle = this.dataset.postTitle;
+
+                    Swal.fire({
+                        title: 'Delete Post?',
+                        html: `Are you sure you want to delete <strong>"${postTitle}"</strong>? This include all its replies.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, delete it',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const form = document.getElementById('deletePostForm');
+                            form.action = `{{ url('course/resource/forum/delete_post') }}/${encryptedId}`;
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
+            // DELETE REPLY HANDLER
+            document.body.addEventListener('click', function (e) {
+                if (e.target.closest('.btn-delete-reply')) {
+                    const btn = e.target.closest('.btn-delete-reply');
+                    const replyId = btn.getAttribute('data-reply-id');
+
+                    Swal.fire({
+                        title: 'Delete this reply?',
+                        text: "This action will mark the reply as deleted.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, delete it',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const form = document.getElementById('deleteReplyForm');
+                            form.action = `/course/resource/forum/delete_reply/${replyId}`;
+                            form.submit();
+                        }
+                    });
+                }
+            });
+
+            // EDIT REPLY HANDLER
+            document.body.addEventListener('click', function (e) {
+                if (e.target.closest('.btn-edit-reply')) {
+                    const btn = e.target.closest('.btn-edit-reply');
+                    const replyId = btn.getAttribute('data-reply-id');
+                    const content = btn.getAttribute('data-reply-content');
+
+                    // Fill modal or inline edit (you can customize)
+                    document.getElementById('editReplyId').value = replyId;
+                    document.getElementById('editReplyContent').value = content;
+
+                    const modal = new bootstrap.Modal(document.getElementById('replyEditModal'));
+                    modal.show();
+
+
+                    const updateReplyForm = document.getElementById('updateReplyForm');
+                    const updateReplyFormUrl = "{{ url('course/resource/forum/update_reply') }}";
+                    updatePostForm.action = `${updateReplyFormUrl}/${replyId}`;
+                    // form.action = `/course/resource/forum/update_reply/${replyId}`;
+                    // form.submit();
                 }
             });
         });
 
-        // Add highlight animation
+        /* ---------- ADD HIGHLIGHT ANIMATION STYLE ---------- */
         const style = document.createElement('style');
         style.textContent = `
             @keyframes highlight {
@@ -732,16 +994,8 @@
             }
         `;
         document.head.appendChild(style);
-
-        //  **------tab link js**
-        $(document).on('click', '.tab-link', function () {
-            var tabID = $(this).attr('data-tab');
-
-            $(this).addClass('active').siblings().removeClass('active');
-
-            $('#tab-' + tabID).addClass('active').siblings('.tabs-content').removeClass('active');
-        });
     </script>
+
 
     <!--customizer-->
     <div id="customizer"></div>
@@ -751,4 +1005,7 @@
 
     <!--js-->
     {{-- <script src="{{asset('assets/js/filemanager.js')}}"></script> --}}
+
+    <!-- sweetalert js-->
+    <script src="{{asset('assets/vendor/sweetalert/sweetalert.js')}}"></script>
 @endsection

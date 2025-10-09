@@ -95,11 +95,17 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('resource/add_resource', [ResourceController::class, 'add_resource'])->name('resource.add_resource');
         Route::post('resource/update_resource/{resource_id}', [ResourceController::class, 'update_resource'])->name('resource.update_resource');
         Route::post('resource/toggle_progression', [ResourceController::class, 'toggle_progression'])->name('resource.toggle_progression');
+
+        // Course->Lesson->Resource->Forum
         Route::get('resource/{resource_id}/forum', [ResourceController::class, 'forum'])->name('resource.forum');
         Route::get('/resource/forum/sort-replies', [ResourceController::class, 'sort_replies'])->name('resource.sort_replies');
         Route::post('resource/forum/add_post', [ResourceController::class, 'add_post'])->name('resource.add_post');
+        Route::post('resource/forum/update_post/{post_id}', [ResourceController::class, 'update_post'])->name('resource.update_post');
+        Route::post('resource/forum/delete_post/{post_id}', [ResourceController::class, 'delete_post'])->name('resource.delete_post');
         Route::post('resource/forum/add_reply', [ResourceController::class, 'add_reply'])->name('resource.add_reply');
-
+        Route::post('resource/forum/update_reply/{reply_id}', [ResourceController::class, 'update_reply'])->name('resource.update_reply');
+        Route::post('resource/forum/delete_reply/{reply_id}', [ResourceController::class, 'delete_reply'])->name('resource.delete_reply');
+        
         // Course->Lesson->Resource->Comments
         Route::group(['prefix' => 'comment'], function () {
             Route::get('resource/{resource_id}', [ResourceController::class, 'get_comments']);

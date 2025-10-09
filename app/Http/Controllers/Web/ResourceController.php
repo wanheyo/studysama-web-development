@@ -644,8 +644,7 @@ class ResourceController extends Controller
                             'resourceFile',
                             'userCourse.user',
                             'forumReplies' => function ($replyQuery) {
-                                $replyQuery->where('status', 1)
-                                    ->whereNull('forum_reply_id')
+                                $replyQuery->whereNull('forum_reply_id')
                                     ->with(['userCourse.user', 'childrens']);
                             }
 
@@ -742,8 +741,8 @@ class ResourceController extends Controller
             
             // Validate input with custom messages (after manual file checks)
             $validatedData = $request->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required|string|max:500',
+                'title' => 'required|string|max:300',
+                'content' => 'required|string',
                 'course_id' => 'required|integer|exists:courses,id',
                 'resource_id' => 'required|integer|exists:resources,id',
                 
@@ -843,6 +842,44 @@ class ResourceController extends Controller
         }
     }
 
+    public function update_post(Request $request, $post_id)
+    {
+        $post_id = Crypt::decrypt($post_id);
+
+        $post = ForumPost::where('id', $post_id)
+            ->where('status', 1)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+        ]);
+
+        $post->title = $validated['title'];
+        $post->content = $validated['content'];
+        $post->updated_at = now();
+        $post->save();
+
+        return redirect()->back()->with('success', 'Post updated successfully!');
+    }
+
+    public function delete_post($post_id)
+    {
+        $id = Crypt::decrypt($post_id);
+        $post = ForumPost::findOrFail($id);
+
+        if (!$post) {
+            return back()->with('error', 'Post not found.');
+        }
+        
+        $post->status = 0;
+        $post->updated_at = now();
+        $post->save();
+
+        return back()->with('success', 'Post deleted successfully.');
+    }
+
+
     public function add_reply(Request $request)
     {
         try {
@@ -875,7 +912,7 @@ class ResourceController extends Controller
             
             // Validate input with custom messages (after manual file checks)
             $validatedData = $request->validate([
-                'content' => 'required|string|max:500',
+                'content' => 'required|string',
                 'course_id' => 'required|integer|exists:courses,id',
                 'forum_post_id' => 'required|integer|exists:forum_posts,id',
                 'forum_reply_id' => 'nullable|integer|exists:forum_replies,id',
@@ -975,4 +1012,42 @@ class ResourceController extends Controller
             return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.')->withInput();
         }
     }
+
+    public function update_reply(Request $request, $reply_id)
+    {
+        $replyId = Crypt::decrypt($reply_id);
+        $reply = ForumReply::findOrFail($replyId);
+
+        if ($reply->userCourse?->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $reply->content = $request->input('content');
+        $reply->save();
+
+        return redirect()->back()->with('success', 'Reply updated successfully!');
+        // return response()->json([
+        //     'success' => true,
+        //     'new_content' => nl2br(e($reply->content)),
+        //     'message' => 'Reply updated successfully.'
+        // ]);
+    }
+
+    public function delete_reply($reply_id)
+    {
+        $replyId = Crypt::decrypt($reply_id);
+        $reply = ForumReply::findOrFail($replyId);
+
+        if ($reply->userCourse?->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $reply->status = 0;
+        $reply->save();
+
+        return back()->with('success', 'Reply deleted successfully.');
+    }
+
+
+
 }
