@@ -228,6 +228,22 @@
                                                     style="border: none;"></iframe>
                                         </div>
 
+                                    {{-- VIDEO --}}
+                                    @elseif(in_array($type, ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'webm']))
+                                        <div class="thumbnail-image-wrapper bg-dark d-flex align-items-center justify-content-center rounded">
+                                            <video src="{{ $filePath }}" class="w-100 rounded" style="max-height: 200px; object-fit: cover;" muted></video>
+                                            <div class="position-absolute top-50 start-50 translate-middle text-white">
+                                                <i class="ph-bold ph-play-circle" style="font-size: 3rem; opacity: 0.8;"></i>
+                                            </div>
+                                        </div>
+
+                                    {{-- AUDIO --}}
+                                    @elseif(in_array($type, ['mp3', 'wav', 'm4a', 'aac', 'flac']))
+                                        <div class="thumbnail-image-wrapper bg-dark d-flex flex-column align-items-center justify-content-center rounded p-3">
+                                            <i class="ph-bold ph-speaker-high text-white mb-2" style="font-size: 2rem;"></i>
+                                            <audio src="{{ $filePath }}" controls class="w-100"></audio>
+                                        </div>
+
                                     {{-- Other files --}}
                                     @else
                                         <div class="thumbnail-image-wrapper bg-primary-light d-flex flex-column align-items-center justify-content-center">
@@ -351,7 +367,7 @@
                                 </div>
                             @else
                                 <div class="text-center py-5 text-muted">
-                                    <i class="ph ph-chat-circle-dots" style="font-size: 3rem; opacity: 0.3;"></i>
+                                    <i class="ph ph-chat-circle-dots f-s-50"></i>
                                     <p class="mt-2 mb-0">No discussions yet</p>
                                 </div>
                             @endif
@@ -440,9 +456,16 @@
                                                     'ph-file text-secondary');
                                             @endphp
                                             
-                                            <a href="{{ asset('storage/uploads/resource_file/' . $file['name']) }}" target="_blank" class="attachment-badge d-inline-flex align-items-center text-decoration-none">
+                                            {{-- <a href="{{ asset('storage/uploads/resource_file/' . $file['name']) }}" target="_blank" class="attachment-badge d-inline-flex align-items-center text-decoration-none">
                                                 <i class="ph {{ $icon }} me-2"></i>
                                                 <span>{{ $file['name'] }}</span>
+                                            </a> --}}
+                                            <a href="{{ asset('storage/uploads/resource_file/' . $file['name']) }}" 
+                                                target="_blank" 
+                                                class="attachment-badge d-inline-flex align-items-center text-decoration-none px-3 py-2 border"
+                                                style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                    <i class="ph {{ $icon }} me-2 flex-shrink-0"></i>
+                                                    <span class="text-truncate d-inline-block" style="max-width: 180px;">{{ $file['name'] }}</span>
                                             </a>
                                         </div>
                                     </div>
@@ -542,10 +565,26 @@
                         </div>
                     @endforeach
                 @else
-                    <div class="d-flex justify-content-center align-items-center" style="min-height: 300px;">
-                        <div class="text-center text-muted">
-                            <i class="ti ti-folder-off fs-2"></i>
-                            <p class="mt-2">No discussions have been created for this resource yet.</p>
+                    <div class="card shadow-sm border-0 mb-4 post-card tabs-content active">
+                        <!-- Post Header -->
+                        <div class="rounded-top bg-gradient bg-primary text-white border-0 py-3 px-4 align-items-center">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="ph ph-article me-2 fs-5"></i>
+                                    <h5 class="fw-bold mb-0 text-white">No Discussions</h5>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Post Content -->
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-center align-items-center" style="min-height: 300px;">
+                                <div class="text-center text-muted">
+                                    <i class="ti ti-folder-off f-s-50"></i>
+                                    <p class="mt-2">No discussions have been created for this resource yet. <strong><a data-bs-toggle="modal" data-bs-target="#postAddModal" class="text-primary text-decoration-underline">Create one</a></strong> to get started.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 @endif
@@ -674,26 +713,41 @@
 
     <!-- replyEditModal Modal -->
     <div class="modal fade" id="replyEditModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <form method="POST">
-            @csrf
-            <input type="hidden" name="reply_id" id="editReplyId">
-            <div class="modal-content">
-                <div class="modal-header">
-                <h5 class="modal-title">Edit Reply</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <form id="updateReplyForm" method="POST">
+                @csrf
+                <input type="hidden" name="reply_id" id="editReplyId">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title fs-5 text-white">Edit Reply</h5>
+                        <button aria-label="Close" class="btn-close m-0"
+                            data-bs-dismiss="modal"
+                            type="button"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <textarea class="form-control" name="content" id="editReplyContent" rows="4" required></textarea>
+                                </div>
+                                <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                    role="alert">
+                                    <p class="mb-0">
+                                        <i class="ti ti-alert-triangle f-s-18 me-2"></i>You can't change the file to ensure data integrity. Please create a reply to upload the new file.
+                                    </p>
+                                    <i class="ti ti-x" data-bs-dismiss="alert"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" id="editReplyCancelBtn" type="button">Cancel</button>
+                        <button class="btn btn-primary" id="editReplySaveBtn" type="submit">Save Change</button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                <textarea class="form-control" name="content" id="editReplyContent" rows="4" required></textarea>
-                </div>
-                <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </div>
             </form>
         </div>
     </div>
-
 
     <!-- Preview Modal -->
     <div class="modal fade" id="previewModal{{ $resource->id }}" tabindex="-1" aria-hidden="true">
@@ -711,6 +765,10 @@
                             <iframe src="{{ $filePath }}#view=fitH" class="w-100 h-100" style="border:none;"></iframe>
                         @elseif(in_array($type, ['doc','docx','xls','xlsx','ppt','pptx']))
                             <iframe src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($filePath) }}" class="w-100 h-100" style="border:none;"></iframe>
+                        @elseif(in_array($type, ['mp4','mov','avi','mkv','wmv','webm']))
+                            <video src="{{ $filePath }}" class="w-100 h-100" controls></video>
+                        @elseif(in_array($type, ['mp3','wav','m4a','aac','flac']))
+                            <audio src="{{ $filePath }}" controls style="width:80%;"></audio>
                         @else
                             <p class="text-white">Preview not available for {{ strtoupper($type) }} files.</p>
                         @endif
@@ -962,27 +1020,41 @@
             });
 
             // EDIT REPLY HANDLER
-            document.body.addEventListener('click', function (e) {
-                if (e.target.closest('.btn-edit-reply')) {
-                    const btn = e.target.closest('.btn-edit-reply');
-                    const replyId = btn.getAttribute('data-reply-id');
-                    const content = btn.getAttribute('data-reply-content');
+            const replyEditModal = document.getElementById('replyEditModal');
 
-                    // Fill modal or inline edit (you can customize)
-                    document.getElementById('editReplyId').value = replyId;
-                    document.getElementById('editReplyContent').value = content;
+            replyEditModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
 
-                    const modal = new bootstrap.Modal(document.getElementById('replyEditModal'));
-                    modal.show();
+                const replyId = button.getAttribute('data-reply-id');
+                const replyContent = button.getAttribute('data-reply-content');
+
+                // document.getElementById('editReplyId').value = replyId;
+                document.getElementById('editReplyContent').value = replyContent || '';
+
+                const updateReplyForm = document.getElementById('updateReplyForm');
+                const updateReplyFormUrl = "{{ url('course/resource/forum/update_reply') }}";
+                updateReplyForm.action = `${updateReplyFormUrl}/${replyId}`;
+            })
+
+            // document.body.addEventListener('click', function (e) {
+            //     if (e.target.closest('.btn-edit-reply')) {
+            //         const btn = e.target.closest('.btn-edit-reply');
+            //         const replyId = btn.getAttribute('data-reply-id');
+            //         const content = btn.getAttribute('data-reply-content');
+
+            //         // Fill modal or inline edit (you can customize)
+            //         document.getElementById('editReplyId').value = replyId;
+            //         document.getElementById('editReplyContent').value = content;
+
+            //         const modal = new bootstrap.Modal(document.getElementById('replyEditModal'));
+            //         modal.show();
 
 
-                    const updateReplyForm = document.getElementById('updateReplyForm');
-                    const updateReplyFormUrl = "{{ url('course/resource/forum/update_reply') }}";
-                    updatePostForm.action = `${updateReplyFormUrl}/${replyId}`;
-                    // form.action = `/course/resource/forum/update_reply/${replyId}`;
-                    // form.submit();
-                }
-            });
+            //         const updateReplyForm = document.getElementById('updateReplyForm');
+            //         const updateReplyFormUrl = "{{ url('course/resource/forum/update_reply') }}";
+            //         updatePostForm.action = `${updateReplyFormUrl}/${replyId}`;
+            //     }
+            // });
         });
 
         /* ---------- ADD HIGHLIGHT ANIMATION STYLE ---------- */

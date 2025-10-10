@@ -184,16 +184,27 @@ class ResourceController extends Controller
     {
         try {
             // Define supported file types for better error messages
-            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z';
+            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, mp4, mov, avi, mkv, wmv, webm, mp3, wav, m4a, aac, flac';
             
             // Manual file checks BEFORE validation to provide custom error messages
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $fileExtension = strtolower($file->getClientOriginalExtension());
                 $fileSizeInMB = round($file->getSize() / 1024 / 1024, 2); // Convert bytes to MB
-                $maxSizeInMB = 5;
+                $maxSizeInMB = 100;
                 
-                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 'zip', 'rar', '7z'];
+                $allowedExtensions = [
+                    // Documents & archives
+                    'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff',
+                    'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt',
+                    'zip', 'rar', '7z',
+
+                    // Video formats
+                    'mp4', 'mov', 'avi', 'mkv', 'wmv', 'webm',
+
+                    // Audio formats
+                    'mp3', 'wav', 'm4a', 'aac', 'flac',
+                ];
                 
                 // Check file type
                 if (!in_array($fileExtension, $allowedExtensions)) {
@@ -220,11 +231,11 @@ class ResourceController extends Controller
                 
                 'file_name' => 'nullable|string|max:255',
                 'file_type' => 'nullable|string|max:255',
-                'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,tiff,doc,docx,pdf,txt,rtf,odt,zip,rar,7z|max:5120',
+                'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,tiff,doc,docx,pdf,txt,rtf,odt,zip,rar,7z,mp4,mov,avi,mkv,wmv,webm,mp3,wav,m4a,aac,flac|max:102400', // 100MB
             ], [
                 // Custom validation messages
                 'file.mimes' => 'The uploaded file type is not supported.',
-                'file.max' => 'The file size must not exceed 5MB.',
+                'file.max' => 'The file size must not exceed 100MB.',
                 'lesson_id.exists' => 'The selected lesson does not exist.',
                 'category.required' => 'Please select a category.',
                 'name.required' => 'Resource name is required.',

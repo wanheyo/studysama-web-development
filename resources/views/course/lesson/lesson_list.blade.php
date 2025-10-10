@@ -75,7 +75,7 @@
                                         <li class="tab-link d-flex align-items-center justify-content-between {{ $index == 0 ? 'active' : '' }}"
                                             data-tab="{{ $lesson->id }}" data-id="{{ $lesson->id }}">
                                             <div class="d-flex align-items-center">
-                                                @if ($isCompleted)
+                                                @if (!$isTutor && $isCompleted)
                                                     <i class="ti ti-circle-check-filled fs-5 pe-2 lesson-status-icon"
                                                     data-lesson="{{ $lesson->id }}"></i>
                                                 @else
@@ -823,7 +823,7 @@
                                                             <input type="hidden" name="file_name" id="file_name">
                                                             <input type="hidden" name="file_type" id="file_type">
                                                             <div class="text-center text-muted mt-2">
-                                                                <small>Supported formats: jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z (Max: 5MB)</small>
+                                                                <small>Supported formats: jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, mp4, mov, avi, mkv, wmv, webm, mp3, wav, m4a, aac, flac (Max: 100MB)</small>
                                                             </div>
                                                             
                                                         </div>
@@ -833,6 +833,28 @@
                                                         <label class="form-label">Resource Link/URL <span class="text-danger">*</span></label>
                                                         <input class="form-control" id="link" name="link" placeholder="https://example.com/resource" type="url">
                                                     </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="upload-progress mt-3" id="uploadProgress" style="display: none;">
+                                            <div class="progress-box bg-light-success w-100 p-3 rounded">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="left d-flex align-items-center">
+                                                        <b class="me-1 ms-1" id="uploadPercent">0%</b> Uploading...
+                                                    </div>
+                                                    <div class="right">
+                                                        <span class="badge text-bg-success" id="uploadTimeRemaining">Estimating...</span>
+                                                    </div>
+                                                </div>
+                                                <div class="progress w-100" style="height: 6px;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                                    <div class="progress-bar bg-success" id="uploadProgressBar" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="alert alert-info mt-2 mb-0 d-flex align-items-center" role="alert">
+                                                <i class="ph ph-info me-2"></i>
+                                                <div>
+                                                    Upload in progress — <strong>do not close</strong> this window or modal until the upload is complete.
                                                 </div>
                                             </div>
                                         </div>
@@ -1364,6 +1386,80 @@
                     });
                 }, 100);
             @endif
+
+            // Upload progress handling
+            const resourceForm = document.getElementById('resourceForm');
+            const uploadProgress = document.getElementById('uploadProgress');
+            const progressBar = document.getElementById('uploadProgressBar');
+            const percentLabel = document.getElementById('uploadPercent');
+            const timeRemaining = document.getElementById('uploadTimeRemaining');
+            const modal = document.getElementById('resourceAddModal');
+
+            let uploadStartTime = null;
+
+            // Prevent closing modal during upload
+            modal.addEventListener('hide.bs.modal', function (e) {
+                if (uploadProgress.style.display === 'block') {
+                    e.preventDefault();
+                    alert('Upload in progress. Please wait until it completes.');
+                }
+            });
+
+            resourceForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(resourceForm);
+                const actionUrl = resourceForm.action;
+
+                // Show progress UI
+                uploadProgress.style.display = 'block';
+                progressBar.style.width = '0%';
+                percentLabel.textContent = '0%';
+                timeRemaining.textContent = 'Estimating...';
+                uploadStartTime = Date.now();
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', actionUrl, true);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                xhr.upload.addEventListener('progress', function (event) {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        progressBar.style.width = percent + '%';
+                        percentLabel.textContent = percent + '%';
+
+                        const elapsed = (Date.now() - uploadStartTime) / 1000; // seconds
+                        const speed = event.loaded / elapsed; // bytes per second
+                        const remainingBytes = event.total - event.loaded;
+                        const remainingSeconds = remainingBytes / speed;
+                        if (remainingSeconds > 0 && remainingSeconds < 3600) {
+                            const mins = Math.ceil(remainingSeconds / 60);
+                            timeRemaining.textContent = `${mins} min${mins > 1 ? 's' : ''}`;
+                        } else {
+                            timeRemaining.textContent = 'Almost done...';
+                        }
+                    }
+                });
+
+                xhr.onload = function () {
+                    uploadProgress.style.display = 'none';
+                    progressBar.style.width = '0%';
+
+                    if (xhr.status === 200) {
+                        // Success
+                        window.location.reload();
+                    } else {
+                        alert('Upload failed. Please try again.');
+                    }
+                };
+
+                xhr.onerror = function () {
+                    uploadProgress.style.display = 'none';
+                    alert('An error occurred during upload.');
+                };
+
+                xhr.send(formData);
+            });
 
 
             // Edit lesson modal
