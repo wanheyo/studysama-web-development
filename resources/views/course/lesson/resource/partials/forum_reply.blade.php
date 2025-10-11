@@ -6,9 +6,17 @@
         <div class="flex-grow-1">
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
-                    <h6 class="mb-0 fw-semibold">
-                        {{ '@' . $reply->userCourse?->user?->username ?? '@Unknown' }}
-                    </h6>
+                    <div class="d-flex align-items-center">
+                        <h6 class="mb-0 fw-semibold">
+                            {{ '@' . $reply->userCourse?->user?->username ?? '@Unknown' }}
+                        </h6>
+                        @if($reply->userCourse?->role_id == 1 || $reply->userCourse?->role_id == 2)
+                            <span class="badge text-bg-primary ms-2 d-flex align-items-center justify-content-center">
+                                Tutor
+                            </span>
+                        @endif
+                    </div>
+
                     <small class="post-meta">
                         <i class="ph ph-clock me-1"></i>
                         {{ $reply->created_at->diffForHumans() }} • 
@@ -132,6 +140,29 @@
                             <small class="text-muted d-block mt-2">
                                 <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, PPTX, JPG, PNG (Max 10MB per file)
                             </small>   
+                        </div>
+
+                        <div class="upload-progress mb-3" id="uploadProgress" style="display: none;">
+                            <div class="progress-box bg-light-success w-100 p-3 rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="left d-flex align-items-center">
+                                        <b class="me-1 ms-1" id="uploadPercent">0%</b> Uploading...
+                                    </div>
+                                    <div class="right">
+                                        <span class="badge text-bg-success" id="uploadTimeRemaining">Estimating...</span>
+                                    </div>
+                                </div>
+                                <div class="progress w-100" style="height: 6px;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-success" id="uploadProgressBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info mt-2 mb-0 d-flex align-items-center" role="alert">
+                                <i class="ph ph-info me-2"></i>
+                                <div>
+                                    Upload in progress — <strong>do not close</strong> this window or modal until the upload is complete.
+                                </div>
+                            </div>
                         </div>
 
                         <div class="d-flex gap-2">  

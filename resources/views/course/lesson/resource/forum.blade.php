@@ -479,6 +479,9 @@
                                             <img src="{{ $post->userCourse?->user?->image ? asset('storage/uploads/profile_picture/' . $post->userCourse?->user?->image) : asset('assets/images/avtar/4.png') }}"
                                                 class="rounded-circle avatar-md me-2" alt="avatar">
                                             <strong>{{ '@' . $post->userCourse?->user?->username ?? '@Unknown' }}</strong>
+                                            @if($post->userCourse?->role_id == 1 || $post->userCourse?->role_id == 2)
+                                                <span class="badge text-bg-primary ms-2">Tutor</span>
+                                            @endif
                                         </div>
                                         <div class="col-6 text-end d-flex justify-content-end align-items-center">
                                             <span>
@@ -538,7 +541,7 @@
                                         <div class="mb-3">
                                             <textarea class="form-control" id="content" name="content" rows="3" placeholder="Share your thoughts..." required></textarea>
                                         </div>
-                                            <div class="mb-3" id="file_upload_section">
+                                        <div class="mb-3" id="file_upload_section">
                                             {{-- fw-semibold --}}
                                             <label class="form-label text-secondary"> 
                                                 <i class="ph ph-paperclip me-2 text-primary"></i>Attachments <span class="text-muted">(Optional)</span>
@@ -550,6 +553,28 @@
                                             <small class="text-muted d-block mt-2">
                                                 <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, PPTX, JPG, PNG (Max 10MB per file)
                                             </small>
+                                        </div>
+                                        <div class="upload-progress mt-3" id="uploadProgress" style="display: none;">
+                                            <div class="progress-box bg-light-success w-100 p-3 rounded">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="left d-flex align-items-center">
+                                                        <b class="me-1 ms-1" id="uploadPercent">0%</b> Uploading...
+                                                    </div>
+                                                    <div class="right">
+                                                        <span class="badge text-bg-success" id="uploadTimeRemaining">Estimating...</span>
+                                                    </div>
+                                                </div>
+                                                <div class="progress w-100" style="height: 6px;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                                    <div class="progress-bar bg-success" id="uploadProgressBar" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="alert alert-info mt-2 mb-0 d-flex align-items-center" role="alert">
+                                                <i class="ph ph-info me-2"></i>
+                                                <div>
+                                                    Upload in progress — <strong>do not close</strong> this window or modal until the upload is complete.
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="d-flex gap-2">
                                             <button type="submit" class="btn btn-primary" id="replyadd">
@@ -851,6 +876,101 @@
                     });
                 }, 100);
             @endif
+
+            // Upload progress handling for Reply Form (non-modal)
+            // Select both main and collapsible reply forms
+            const allReplyForms = document.querySelectorAll('form[id^="forumReplyForm"]');
+
+            allReplyForms.forEach(form => {
+                const uploadProgress = form.querySelector('.upload-progress');
+                const progressBar = form.querySelector('#uploadProgressBar');
+                const percentLabel = form.querySelector('#uploadPercent');
+                const timeRemaining = form.querySelector('#uploadTimeRemaining');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const cancelBtn = form.querySelector('.cancel-reply-btn');
+                let uploadStartTime = null;
+
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+                    const actionUrl = form.action;
+
+                    if (!uploadProgress || !progressBar || !percentLabel || !timeRemaining) {
+                        console.warn('Upload progress elements not found for', form.id);
+                        return;
+                    }
+
+                    // Show progress UI
+                    uploadProgress.style.display = 'block';
+                    progressBar.style.width = '0%';
+                    percentLabel.textContent = '0%';
+                    timeRemaining.textContent = 'Estimating...';
+                    uploadStartTime = Date.now();
+
+                    // Disable buttons
+                    submitBtn.disabled = true;
+                    if (cancelBtn) cancelBtn.disabled = true;
+
+                    // Warn user not to leave during upload
+                    window.onbeforeunload = function () {
+                        return 'Upload in progress. Are you sure you want to leave?';
+                    };
+
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', actionUrl, true);
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                    // Progress tracking
+                    xhr.upload.addEventListener('progress', function (event) {
+                        if (event.lengthComputable) {
+                            const percent = Math.round((event.loaded / event.total) * 100);
+                            progressBar.style.width = percent + '%';
+                            percentLabel.textContent = percent + '%';
+
+                            const elapsed = (Date.now() - uploadStartTime) / 1000;
+                            const speed = event.loaded / elapsed;
+                            const remainingBytes = event.total - event.loaded;
+                            const remainingSeconds = remainingBytes / speed;
+
+                            if (remainingSeconds > 0 && remainingSeconds < 3600) {
+                                const mins = Math.ceil(remainingSeconds / 60);
+                                timeRemaining.textContent = `${mins} min${mins > 1 ? 's' : ''}`;
+                            } else {
+                                timeRemaining.textContent = 'Almost done...';
+                            }
+                        }
+                    });
+
+                    xhr.onload = function () {
+                        uploadProgress.style.display = 'none';
+                        progressBar.style.width = '0%';
+                        window.onbeforeunload = null;
+
+                        submitBtn.disabled = false;
+                        if (cancelBtn) cancelBtn.disabled = false;
+
+                        if (xhr.status === 200) {
+                            window.location.reload(); // reload on success
+                        } else {
+                            alert('Upload failed. Please try again.');
+                        }
+                    };
+
+                    xhr.onerror = function () {
+                        uploadProgress.style.display = 'none';
+                        window.onbeforeunload = null;
+
+                        submitBtn.disabled = false;
+                        if (cancelBtn) cancelBtn.disabled = false;
+
+                        alert('An error occurred during upload.');
+                    };
+
+                    xhr.send(formData);
+                });
+            });
+
 
             /* ---------- SORT REPLIES ---------- */
             const sortButtons = document.querySelectorAll('.sort-toggle');

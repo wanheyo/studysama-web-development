@@ -394,6 +394,27 @@
                                                                                     <i class="ph-bold ph-file-pdf" style="color: white;"></i> {{ $resource->resourceFile->type }}
                                                                                 </div>
                                                                             </div>
+                                                                        {{-- VIDEO FILES --}}
+                                                                        @elseif(in_array(strtolower($resource->resourceFile->type), ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'webm']))
+                                                                            <div class="thumbnail-image-wrapper position-relative overflow-hidden">
+                                                                                <video src="{{ asset('storage/uploads/resource_file/' . $resource->resourceFile->name) }}" class="w-100" style="height: 180px; object-fit: cover;" muted></video>
+                                                                                <div class="position-absolute top-50 start-50 translate-middle text-white">
+                                                                                    <i class="ph-bold ph-play-circle" style="font-size: 3rem; opacity: 0.85;"></i>
+                                                                                </div>
+                                                                                <div class="thumbnail-badge">
+                                                                                    <i class="ph-bold ph-film-strip" style="color: white;"></i> {{ strtoupper($resource->resourceFile->type) }}
+                                                                                </div>
+                                                                            </div>
+
+                                                                        {{-- AUDIO FILES --}}
+                                                                        @elseif(in_array(strtolower($resource->resourceFile->type), ['mp3', 'wav', 'm4a', 'aac', 'flac']))
+                                                                            <div class="thumbnail-image-wrapper d-flex flex-column align-items-center justify-content-center p-3">
+                                                                                <i class="ph-bold ph-speaker-high text-white mb-2" style="font-size: 2rem;"></i>
+                                                                                <span class="text-white small">Audio File</span>
+                                                                                <div class="thumbnail-badge">
+                                                                                    <i class="ph-bold ph-music-note" style="color: white;"></i> {{ strtoupper($resource->resourceFile->type) }}
+                                                                                </div>
+                                                                            </div>
                                                                         @else
                                                                             <!-- Other file types -->
                                                                             <div class="thumbnail-image-wrapper bg-primary-light">
@@ -585,14 +606,14 @@
                                                             <div class="p-2">
                                                                 <i class="ti ti-eye fs-5 text-primary"></i>
                                                                 <h6 class="mt-2 mb-0" id="viewsCount">0</h6>
-                                                                <p class="text-muted mb-0 fs-11">Views</p>
+                                                                <p class="text-muted mb-0 fs-11">Not Completed</p>
                                                             </div>
                                                         </div>
                                                         <div class="col-4">
                                                             <div class="p-2">
                                                                 <i class="ti ti-download fs-5 text-success"></i>
                                                                 <h6 class="mt-2 mb-0" id="downloadsCount">0</h6>
-                                                                <p class="text-muted mb-0 fs-11">Downloads</p>
+                                                                <p class="text-muted mb-0 fs-11">Completed</p>
                                                             </div>
                                                         </div>
                                                         <div class="col-4">
@@ -1896,6 +1917,31 @@
                                     class="w-100 h-100"></iframe>
                         </div>
                     `;
+                } else if (['mp4', 'mov', 'avi', 'mkv', 'webm', 'wmv'].includes(resourceData.type.toLowerCase())) {
+                    // ---- VIDEO PREVIEW ----
+                    previewContainer.innerHTML = `
+                        <div class="ratio ratio-16x9">
+                            <video controls preload="metadata" class="w-100 rounded shadow-sm">
+                                <source src="${resourceData.path}" type="video/${resourceData.type.toLowerCase()}">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `;
+                    downloadBtn.innerHTML = '<i class="ti ti-player-play me-1"></i> Watch Video';
+
+                } else if (['mp3', 'wav', 'm4a', 'aac', 'flac'].includes(resourceData.type.toLowerCase())) {
+                    // ---- AUDIO PREVIEW ----
+                    previewContainer.innerHTML = `
+                        <div class="text-center py-4">
+                            <audio controls preload="metadata" class="w-100 rounded shadow-sm" style="max-width: 400px;">
+                                <source src="${resourceData.path}" type="audio/${resourceData.type.toLowerCase()}">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <p class="mt-2 mb-0 fw-semibold">${resourceData.name}</p>
+                            <small class="text-muted">${resourceData.type.toUpperCase()} Audio</small>
+                        </div>
+                    `;
+                    downloadBtn.innerHTML = '<i class="ti ti-music me-1"></i> Play Audio';
                 } else {
                     // Default file preview
                     previewContainer.innerHTML = `
