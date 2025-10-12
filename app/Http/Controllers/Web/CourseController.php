@@ -662,6 +662,52 @@ class CourseController extends Controller
         return view('course.course_detail', compact('course', 'topics', 'user_courses', 'tutor', 'tutor_follow', 'tutor_courses', 'course_comments', 'user_review', 'joined_users', 'courseProgress', 'totalLessons', 'totalResources', 'totalChecked', 'totalComments', 'totalCompletedLessons', 'totalCompletedResources'));
     }
 
+    public function course_tutor_statistics(Request $request, $course_id)
+    {
+        $course_id = Crypt::decrypt($course_id);
+
+        $course = Course::where('id', $course_id)
+            ->where('status', 1)
+            ->firstOrFail();
+
+        $students = UserCourse::with(['user', 'userProgressions'])
+            ->where('course_id', $course_id)
+            ->where('status', 1)
+            ->where('role_id', 3)
+            ->get();
+
+        // Total resources in course
+        $totalResources = $course->lessons()
+            ->withCount('resources')
+            ->get()
+            ->sum('resources_count');
+
+        // Stats
+        $totalStudents = $students->count();
+        $completedStudents = 0;
+
+        foreach ($students as $student) {
+            $completedCount = $student->userProgressions->where('status', 1)->count();
+            if ($completedCount >= $totalResources && $totalResources > 0) {
+                $completedStudents++;
+            }
+            $student->progress_percentage = $totalResources > 0
+                ? round(($completedCount / $totalResources) * 100, 1)
+                : 0;
+        }
+
+        $inProgressStudents = $totalStudents - $completedStudents;
+
+        return view('course.course_tutor_statistics', compact(
+            'course',
+            'students',
+            'totalStudents',
+            'completedStudents',
+            'inProgressStudents'
+        ));
+    }
+
+
     public function join_leave_course(Request $request)
     {
         $validatedData = $request->validate([

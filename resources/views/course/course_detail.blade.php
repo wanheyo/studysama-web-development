@@ -73,7 +73,8 @@
                                         <strong><i class="iconoir-group"></i> Total Joined:</strong> {{ $course->total_joined }}
                                     </p> --}}
                                     <p class="mb-1" data-bs-toggle="modal" data-bs-target="#joinedUsersModal" style="cursor: pointer;">
-                                        <strong><i class="iconoir-group"></i> Total Joined:</strong> {{ $course->total_joined }}
+                                        <strong><i class="iconoir-group"></i> Total Joined:</strong> 
+                                        {{ $course->total_joined }}
                                     </p>
 
                                     <p class="mb-0">
@@ -113,10 +114,21 @@
                                         </form>                                    
                                     @endif --}}
                                     @if($isTutor)
-                                        <a class="btn btn-secondary px-4 py-2 rounded" href="{{ route('course.edit_course', ['course_id' => encrypt($course->id)]) }}" role="button">
+                                        <a class="btn btn-secondary px-6 py-2 rounded" href="{{ route('course.edit_course', ['course_id' => encrypt($course->id)]) }}" role="button">
                                             Edit Course
                                         </a>
                                         <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($course->id)]) }}" class="btn btn-primary rounded">View Course</a>
+                                        <div class="btn-group dropdown-icon-none" role="group">
+                                            <button type="button" class="btn btn-outline-primary icon-btn b-r-22 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">:</button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#joinedUsersModal" style="cursor: pointer;">Joined Users</button>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('course.course_tutor_statistics', ['course_id' => encrypt($course->id)]) }}">Statistics</button>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     @else
                                         <form id="join-leave-form" action="{{ route('course.join_leave_course') }}" method="POST" style="display:inline;">
                                             @csrf
@@ -141,10 +153,11 @@
                                                         <div class="btn-group dropdown-icon-none" role="group">
                                                             <button type="button" class="btn btn-outline-primary icon-btn b-r-22 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">:</button>
                                                             <ul class="dropdown-menu">
+                                                                <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#joinedUsersModal" style="cursor: pointer;">Joined User</a></li>
                                                                 <li>
-                                                                    <button type="submit" class="dropdown-item leave-course-btn">Leave Course</button>
+                                                                    <button type="submit" class="dropdown-item leave-course-btn text-danger">Leave Course</button>
                                                                 </li>
-                                                                <li><button type="submit" class="dropdown-item">Report Course</button></li>
+                                                                <li><a class="dropdown-item text-warning">Report Course</a></li>
                                                             </ul>
                                                         </div>
                                                     @else
@@ -188,7 +201,9 @@
                             <div class="mt-4">
                                 <h5>Description :</h5>
                                 <div class="mt-3">
-                                    <p>{{ $course->desc ?? 'No description available' }}</p>
+                                    <p class="text-wrap" style="white-space: pre-wrap; word-break: break-word;">
+                                        {{ $course->desc ?? 'No description available' }}
+                                    </p>
                                 </div>
                             </div>
 

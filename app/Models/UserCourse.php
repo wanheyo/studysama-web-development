@@ -58,7 +58,7 @@ class UserCourse extends Model
         return $this->hasMany(Comment::class);
     }
 
-    public function progressions()
+    public function userProgressions()
     {
         return $this->hasMany(UserProgression::class);
     }

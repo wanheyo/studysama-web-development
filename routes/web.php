@@ -79,6 +79,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('edit_course/{course_id}', [CourseController::class, 'edit_course'])->name('course.edit_course.post');
         Route::post('delete_course/{course_id}', [CourseController::class, 'delete_course'])->name('course.delete_course');
         Route::get('course_detail/{course_id}', [CourseController::class, 'course_detail'])->name('course.course_detail');
+        Route::get('course_tutor_statistics/{course_id}', [CourseController::class, 'course_tutor_statistics'])->name('course.course_tutor_statistics');
         Route::post('update_review', [CourseController::class, 'update_review'])->name('course.update_review');
         Route::post('delete_review', [CourseController::class, 'delete_review'])->name('course.delete_review');
         Route::post('join_leave_course', [CourseController::class, 'join_leave_course'])->name('course.join_leave_course');

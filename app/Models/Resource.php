@@ -49,6 +49,16 @@ class Resource extends Model
         return $this->hasMany(UserProgression::class, 'resource_id');
     }
 
+    // Custom relationship to get only student progressions
+    public function studentProgressions()
+    {
+        return $this->hasMany(UserProgression::class)
+            ->whereHas('userCourse', function ($query) {
+                $query->where('status', 1)
+                    ->where('role_id', 3); // student
+            });
+    }
+
     public function forumPosts()
     {
         return $this->hasMany(ForumPost::class);

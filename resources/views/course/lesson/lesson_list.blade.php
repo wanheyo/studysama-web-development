@@ -279,7 +279,7 @@
                                     <div class="card-body p-4 lesson-container" id="newFolder" data-lesson="{{ $lesson->id }}">
                                         <div class="row">
                                             <div class="col-12 mb-3">
-                                                <div class="card card-light-primary">
+                                                <div class="card border">
                                                     <div class="card-header">
                                                         <div class="row">
                                                             <div class="col-10">
@@ -319,11 +319,11 @@
 
                                                     <div class="card-body resource-details-content">
                                                         <div class="mb-3">
-                                                            <h6>Description</h6>
+                                                            <h6><i class="ti ti-file-text me-2"></i>Description</h6>
                                                             <p class="text-secondary f-s-16">{{ $lesson->desc ?? 'This is lesson ' . $lesson->name }}</p>
                                                         </div>
                                                         <div class="mb-3">
-                                                            <h6>Learning Outcome</h6>
+                                                            <h6><i class="ti ti-bulb me-2"></i>Learning Outcome</h6>
                                                             <p class="text-secondary f-s-16">{{ $lesson->learn_outcome ?? 'No learning outcome included' }}</p>
                                                         </div>
                                                         {{-- <div class="mb-3">
@@ -482,11 +482,14 @@
                                                                 <!-- Resource name -->
                                                                 <p class="resource-name">{{ $resource->name }}</p>
                                                             </div>
+
                                                             <div class="card-footer code-footer d-flex justify-content-between align-items-center">
                                                                 <div class="resource-stats">
-                                                                    <span><i class="ti ti-eye"></i> {{ $resource->total_visit ?? 0 }}</span>
-                                                                    <span><i class="ti ti-download"></i> {{ $resource->resourceFile->total_download ?? 0 }}</span>
-                                                                    <span><i class="ti ti-message"></i> {{ $resource->comments->count() }}</span>
+                                                                    {{-- <span><i class="ti ti-eye"></i> {{ $resource->total_visit ?? 0 }}</span>
+                                                                    <span><i class="ti ti-download"></i> {{ $resource->resourceFile->total_download ?? 0 }}</span> --}}
+                                                                    <span><i class="ti ti-circle-check"></i> {{ $resource->studentProgressions->where('status', 1)->count() ?? 0 }}/{{ $lesson->course->userCourses->where('status', 1)->count() ?? 0 }}</span>
+                                                                    {{-- <span><i class="ti ti-message"></i> {{ $resource->comments->count() }}</span> --}}
+                                                                    <span><i class="ti ti-message"></i> {{ $resource->forumPosts->count() ?? 0 }}</span>
                                                                 </div>
 
                                                                 <button type="button" class="btn btn-light-{{ $resource->category == 1 ? 'info' : 'success' }} icon-btn b-r-22 hover-icon-white" 
@@ -505,7 +508,10 @@
                                                                         data-resource-downloads="{{ $resource->resourceFile->total_download ?? 0 }}"
                                                                         data-resource-comments="{{ $resource->comments->count() }}"
                                                                         data-resource-created="{{ $resource->created_at->format('M d, Y') }}"
-                                                                        data-resource-ischecked="{{ $isChecked ? '1' : '0' }}">
+                                                                        data-resource-ischecked="{{ $isChecked ? '1' : '0' }}"
+                                                                        data-resource-forums="{{ $resource->forumPosts->count() ?? 0 }}"
+                                                                        data-resource-total-completed="{{ $resource->studentProgressions->where('status', 1)->count() ?? 0 }}"
+                                                                        data-resource-total-students="{{ $lesson->course->userCourses->where('status', 1)->count() ?? 0 }}">
                                                                     <i class="ti ti-chevron-up text-{{ $resource->category == 1 ? 'info' : 'success' }}"></i>
                                                                 </button>
                                                             </div>
@@ -540,87 +546,86 @@
                             <div class="modal-content">
                                 <div class="modal-header bg-primary">
                                     <h5 class="modal-title text-white" id="resourceDetailModalLabel">Resource Details</h5>
-                                    <button aria-label="Close" class="btn-close m-0" data-bs-dismiss="modal" type="button"></button>
+                                    <button aria-label="Close" class="btn-close btn-close-white m-0" data-bs-dismiss="modal" type="button"></button>
                                 </div>
-                                <div class="modal-body p-4">
-                                    <div class="row">
+                                <div class="modal-body p-0">
+                                    <div class="row g-0">
                                         <!-- Left Column - Preview and Actions -->
-                                        <div class="col-md-5">
-                                            <div class="card mb-4">
-                                                <div class="card-body text-center">
-                                                    <div id="resourcePreview" class="mb-3" style="min-height: 250px;">
-                                                        <!-- Preview will be inserted here by JavaScript -->
-                                                    </div>
-                                                    <div class="d-flex justify-content-center gap-2">
-                                                        <a id="downloadBtn" href="#" class="btn btn-primary" download>
-                                                            <i class="ti ti-download me-1"></i> Download
-                                                        </a>
-                                                        {{-- @php
-                                                            // progressions is always a collection (empty if none)
-                                                            $progression = $resource->userProgressions->first();
-                                                            $isChecked = $progression && $progression->status == 1;
-                                                        @endphp --}}
-
+                                        <div class="col-lg-5 border-end">
+                                            <div class="p-4">
+                                                <!-- Resource Preview -->
+                                                <div class="bg-light rounded-3 d-flex align-items-center justify-content-center mb-4" 
+                                                    id="resourcePreview">
+                                                    <!-- Preview will be inserted here by JavaScript -->
+                                                </div>
+                                                
+                                                <!-- Action Buttons -->
+                                                <div class="d-grid gap-2 mb-4">
+                                                    <a id="downloadBtn" href="#" class="btn btn-primary btn-lg" download>
+                                                        <i class="ti ti-download me-2"></i> Download Resource
+                                                    </a>
+                                                    
+                                                    <div class="row g-2">
                                                         @if ($isTutor)
-                                                            <button class="btn btn-light-primary" 
-                                                                    data-bs-toggle="modal" 
-                                                                    data-bs-target="#resourceEditModal"
-                                                                    data-resource-id="">
-                                                                <i class="ti ti-edit"></i> Edit
-                                                            </button>
+                                                            <div class="col-6">
+                                                                <button class="btn btn-outline-primary w-100" 
+                                                                        data-bs-toggle="modal" 
+                                                                        data-bs-target="#resourceEditModal"
+                                                                        data-resource-id="">
+                                                                    <i class="ti ti-edit me-1"></i> Edit
+                                                                </button>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <button class="btn btn-outline-info w-100" id="resourceDetailModalForumBtn">
+                                                                    <i class="ti ti-message-circle me-1"></i> Forum
+                                                                </button>
+                                                            </div>
                                                         @else
-                                                            <button class="btn btn-light-success" id="resourceDetailModalCompleteBtn">
-                                                                Complete
-                                                            </button>
+                                                            <div class="col-6">
+                                                                <button class="btn btn-outline-success w-100" id="resourceDetailModalCompleteBtn">
+                                                                    <i class="ti ti-circle-check me-1"></i> Complete
+                                                                </button>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <button class="btn btn-outline-info w-100" id="resourceDetailModalForumBtn">
+                                                                    <i class="ti ti-message-circle me-1"></i> Forum
+                                                                </button>
+                                                            </div>
                                                         @endif
-
-                                                        <button class="btn btn-light-info" id="resourceDetailModalForumBtn">
-                                                            Forum
-                                                        </button>
-
-                                                        {{-- @php
-                                                            // progressions is always a collection (empty if none)
-                                                            $progression = $resource->userProgressions->first();
-                                                            $isChecked = $progression && $progression->status == 1;
-                                                        @endphp --}}
-
-                                                        {{-- @if (!$isTutor)
-                                                            <i class="ti {{ $isChecked ? 'ti-circle-check-filled' : 'ti-circle' }} 
-                                                                    fs-3 toggle-progression 
-                                                                    text-{{ $resource->category == 1 ? 'info' : 'success' }}"
-                                                                data-resource="{{ $resource->id }}"
-                                                                data-course="{{ $course->id }}"
-                                                                data-category="{{ $resource->category }}"
-                                                                style="cursor: pointer;">
-                                                            </i>
-                                                        @endif --}}
                                                     </div>
                                                 </div>
-                                            </div>
-                                            
-                                            <!-- Stats Card -->
-                                            <div class="card">
-                                                <div class="card-body">
-                                                    <div class="row text-center">
-                                                        <div class="col-4">
-                                                            <div class="p-2">
-                                                                <i class="ti ti-eye fs-5 text-primary"></i>
-                                                                <h6 class="mt-2 mb-0" id="viewsCount">0</h6>
-                                                                <p class="text-muted mb-0 fs-11">Not Completed</p>
+                                                
+                                                <!-- Stats Card -->
+                                                <div class="card shadow-sm border">
+                                                    <div class="card-header bg-light">
+                                                        <h6 class="fw-semibold">
+                                                            <i class="ti ti-chart-bar me-2"></i>Resource Statistics
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="row text-center">
+                                                            <div class="col-6 border-end">
+                                                                <div class="py-2">
+                                                                    <div class="d-flex align-items-center justify-content-center mb-2">
+                                                                        <i class="ti ti-circle-check fs-4 text-success me-2"></i>
+                                                                        <div>
+                                                                            <span class="fs-4 fw-bold text-dark" id="completedCount">0</span>
+                                                                            <span class="text-muted mx-1">/</span>
+                                                                            <span class="fs-5 text-muted" id="studentsCount">0</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <p class="text-muted mb-0 small">Students Completed</p>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="col-4">
-                                                            <div class="p-2">
-                                                                <i class="ti ti-download fs-5 text-success"></i>
-                                                                <h6 class="mt-2 mb-0" id="downloadsCount">0</h6>
-                                                                <p class="text-muted mb-0 fs-11">Completed</p>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-4">
-                                                            <div class="p-2">
-                                                                <i class="ti ti-message fs-5 text-info"></i>
-                                                                <h6 class="mt-2 mb-0" id="commentsCount">0</h6>
-                                                                <p class="text-muted mb-0 fs-11">Comments</p>
+                                                            <div class="col-6">
+                                                                <div class="py-2">
+                                                                    <div class="d-flex align-items-center justify-content-center mb-2">
+                                                                        <i class="ti ti-message-circle fs-4 text-info me-2"></i>
+                                                                        <span class="fs-4 fw-bold text-dark" id="forumsCount">0</span>
+                                                                        {{-- <span class="fs-4 fw-bold text-dark" id="commentsCount">0</span> --}}
+                                                                    </div>
+                                                                    <p class="text-muted mb-0 small">Forum Discussions</p>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -628,47 +633,63 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Right Column - Details and Comments -->
-                                        <div class="col-md-7">
-                                            <div class="card mb-4">
-                                                <div class="card-body">
-                                                    <h4 id="resourceName" class="mb-2">Resource Name</h4>
-                                                    <p class="text-muted mb-3" id="resourceCreated">Uploaded on Jan 1, 2023</p>
-                                                    <div class="mb-3">
-                                                        <h6 class="mb-2">Description</h6>
-                                                        <p id="resourceDescription" class="text-muted">No description available</p>
+                                        <!-- Right Column - Details -->
+                                        <div class="col-lg-7">
+                                            <div class="p-4">
+                                                <!-- Resource Information -->
+                                                <div class="mb-4">
+                                                    <h3 id="resourceName" class="mb-3 fw-bold">Resource Name</h3>
+                                                    
+                                                    <div class="d-flex align-items-center text-muted mb-4">
+                                                        <i class="ti ti-clock me-2"></i>
+                                                        <small id="resourceCreated">Uploaded on Jan 1, 2023</small>
+                                                    </div>
+                                                    
+                                                    <div class="card border">
+                                                        <div class="card-body">
+                                                            <h6 class="fw-semibold mb-3">
+                                                                <i class="ti ti-file-text me-2"></i>Description
+                                                            </h6>
+                                                            <p id="resourceDescription" class="text-muted mb-0 lh-lg">
+                                                                No description available
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            
-                                            <!-- Comments Section -->
-                                            <div class="card">
-                                                <div class="card-header">
-                                                    <h5 class="mb-0">Comments</h5>
-                                                </div>
-                                                <div class="card-body">
-                                                    <!-- Comment Form -->
-                                                    <form id="commentForm">
-                                                        @csrf
-                                                        <input type="hidden" name="resource_id" id="commentResourceId">
-                                                        <div class="d-flex mb-4">
-                                                            <img src="{{ auth()->user()->image ? asset('storage/uploads/profile_picture/' . auth()->user()->image) : asset('assets/images/avtar/woman.jpg') }}" 
-                                                                class="rounded-circle me-3" width="40" height="40" alt="User">
-                                                            <div class="flex-grow-1">
-                                                                <div class="input-group">
-                                                                    <input type="text" name="content" class="form-control" placeholder="Add a comment..." required>
-                                                                    <button class="btn btn-primary" type="submit">Post</button>
+                                                
+                                                <!-- Additional Info Section (Optional - can be populated via JS) -->
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <div class="card border">
+                                                            <div class="card-body p-3">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div>
+                                                                        <p class="text-muted mb-0 small">Resource Category</p>
+                                                                        <h6 class="mb-0 fw-semibold" id="resourceCategory"></h6>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </form>
-                                                    
-                                                    <!-- Comments List -->
-                                                    <div id="commentsList" class="overflow-auto" style="max-height: 300px;">
-                                                        <div class="text-center py-3" id="noComments">
-                                                            <i class="ti ti-message-off fs-5 text-muted"></i>
-                                                            <p class="text-muted mt-2">No comments yet</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card border">
+                                                            <div class="card-body p-3">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div>
+                                                                        <p class="text-muted mb-0 small">Resource Type</p>
+                                                                        <h6 class="mb-0 fw-semibold" id="resourceType"></h6>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Help Text -->
+                                                <div class="alert alert-info mt-4 d-flex align-items-start" role="alert">
+                                                    <i class="ti ti-info-circle me-2 mt-1"></i>
+                                                    <div class="small">
+                                                        <strong>Need help?</strong> Click the Forum button to discuss this resource with other students and instructors.
                                                     </div>
                                                 </div>
                                             </div>
@@ -1640,25 +1661,33 @@
                     type: button.getAttribute('data-resource-type'),
                     fileName: button.getAttribute('data-resource-file-name'),
                     path: button.getAttribute('data-resource-path'),
-                    views: button.getAttribute('data-resource-views'),
-                    downloads: button.getAttribute('data-resource-downloads'),
+                    // views: button.getAttribute('data-resource-views'),
+                    // downloads: button.getAttribute('data-resource-downloads'),
                     comments: button.getAttribute('data-resource-comments'),
+                    forums: button.getAttribute('data-resource-forums'),
                     created: button.getAttribute('data-resource-created'),
-                    isChecked: button.getAttribute('data-resource-ischecked') === '1'
+                    isChecked: button.getAttribute('data-resource-ischecked') === '1',
+                    totalCompleted: parseInt(button.getAttribute('data-resource-total-completed') || '0'),
+                    totalStudents: parseInt(button.getAttribute('data-resource-total-students') || '0'),
                 };
                 
                 // Update modal header
                 resourceModal.querySelector('.modal-title').textContent = resourceData.name;
                 
                 // Update stats
-                document.getElementById('viewsCount').textContent = resourceData.views;
-                document.getElementById('downloadsCount').textContent = resourceData.downloads;
-                document.getElementById('commentsCount').textContent = resourceData.comments;
+                // document.getElementById('viewsCount').textContent = resourceData.views;
+                // document.getElementById('downloadsCount').textContent = resourceData.downloads;
+                document.getElementById('completedCount').textContent = resourceData.totalCompleted;
+                document.getElementById('studentsCount').textContent = resourceData.totalStudents;
+                // document.getElementById('commentsCount').textContent = resourceData.comments;
+                document.getElementById('forumsCount').textContent = resourceData.forums;
                 
                 // Update resource info
                 document.getElementById('resourceName').textContent = resourceData.name;
                 document.getElementById('resourceDescription').textContent = resourceData.description || 'No description available';
                 document.getElementById('resourceCreated').textContent = `Uploaded on ${resourceData.created}`;
+                document.getElementById('resourceType').textContent = resourceData.type || 'N/A';
+                document.getElementById('resourceCategory').textContent = resourceData.category == '1' ? 'Note' : (resourceData.category == '2' ? 'Assignment' : 'N/A');
                 
                 // Set download link
                 const downloadBtn = document.getElementById('downloadBtn');
@@ -1670,6 +1699,18 @@
                 const forumBtn = document.getElementById('resourceDetailModalForumBtn');
                 forumBtn.setAttribute('data-resource-id-encrypted', resourceData.idEncrypted);
 
+                // Determine color scheme based on category
+                const colorScheme = resourceData.category == '1' ? 'info' : (resourceData.category == '2' ? 'success' : 'secondary');
+
+                // document.getElementById('resourceCategory').classList.add(`text-${colorScheme}`);
+
+                // Update modal header color
+                // const modalHeader = resourceModal.querySelector('.modal-header');
+                // modalHeader.className = `modal-header bg-${colorScheme}`;
+                // const resourceStatsHeader = resourceModal.querySelector('.card-header');
+                // resourceStatsHeader.className = `card-header bg-${colorScheme}`;
+                const resourceCategoryBadge = document.getElementById('resourceCategory');
+                resourceCategoryBadge.className = `mb-0 fw-semibold text-${colorScheme}`; // Add text-white class to the badge(`text-${colorScheme}`);
 
                 // Set edit button
                 const editBtn = document.querySelector('#resourceDetailModal button[data-bs-target="#resourceEditModal"]');
@@ -1954,30 +1995,30 @@
                 }
 
                 // Set resource ID for comment form
-                document.getElementById('commentResourceId').value = resourceData.id;
+                // document.getElementById('commentResourceId').value = resourceData.id;
                 
-                // Clear existing comments immediately
-                const commentsList = document.getElementById('commentsList');
-                commentsList.innerHTML = '';
+                // // Clear existing comments immediately
+                // const commentsList = document.getElementById('commentsList');
+                // commentsList.innerHTML = '';
                 
-                // Show a loading spinner
-                commentsList.innerHTML = `
-                    <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2 text-muted">Loading comments...</p>
-                    </div>
-                `;
+                // // Show a loading spinner
+                // commentsList.innerHTML = `
+                //     <div class="text-center py-4">
+                //         <div class="spinner-border text-primary" role="status">
+                //             <span class="visually-hidden">Loading...</span>
+                //         </div>
+                //         <p class="mt-2 text-muted">Loading comments...</p>
+                //     </div>
+                // `;
 
-                // Load comments for this specific resource
-                loadComments(resourceData.id);
+                // // Load comments for this specific resource
+                // loadComments(resourceData.id);
                 
-                // Remove any existing event listener on comment form before adding a new one
-                const commentForm = document.getElementById('commentForm');
-                if (commentFormSubmitHandler) {
-                    commentForm.removeEventListener('submit', commentFormSubmitHandler);
-                }
+                // // Remove any existing event listener on comment form before adding a new one
+                // const commentForm = document.getElementById('commentForm');
+                // if (commentFormSubmitHandler) {
+                //     commentForm.removeEventListener('submit', commentFormSubmitHandler);
+                // }
                 
                 // Create new event handler for this specific resource
                 commentFormSubmitHandler = function(e) {
