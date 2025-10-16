@@ -1071,7 +1071,7 @@
                                                 type="button">Close
                                         </button>
                                         <button class="btn btn-light-primary" id="confirmDelete"
-                                                type="button">Yes,Delet it
+                                                type="button">Yes,Delete it
                                         </button>
                                     </div>
                                 </div>

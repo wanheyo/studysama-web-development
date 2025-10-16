@@ -83,6 +83,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('update_review', [CourseController::class, 'update_review'])->name('course.update_review');
         Route::post('delete_review', [CourseController::class, 'delete_review'])->name('course.delete_review');
         Route::post('join_leave_course', [CourseController::class, 'join_leave_course'])->name('course.join_leave_course');
+        Route::post('tutor_remove_student', [CourseController::class, 'tutor_remove_student'])->name('course.tutor_remove_student');
         Route::get('course_certificate/{course_id}', [CourseController::class, 'course_certificate'])->name('course.certificate');
 
         // Course->Lesson
@@ -96,6 +97,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::post('resource/add_resource', [ResourceController::class, 'add_resource'])->name('resource.add_resource');
         Route::post('resource/update_resource/{resource_id}', [ResourceController::class, 'update_resource'])->name('resource.update_resource');
         Route::post('resource/toggle_progression', [ResourceController::class, 'toggle_progression'])->name('resource.toggle_progression');
+        Route::get('resource/resource_tutor_statistics/{resource_id}', [ResourceController::class, 'resource_tutor_statistics'])->name('resource.resource_tutor_statistics');
 
         // Course->Lesson->Resource->Forum
         Route::get('resource/{resource_id}/forum', [ResourceController::class, 'forum'])->name('resource.forum');

@@ -8,6 +8,14 @@
     <!-- Data Table css-->
     <link rel="stylesheet" type="text/css" href="{{asset('assets/vendor/datatable/jquery.dataTables.min.css')}}">
     <link rel="stylesheet" type="text/css" href="{{asset('assets/vendor/datatable/datatable2/buttons.dataTables.min.css')}}">
+
+    <style>
+        .swal2-toast {
+            width: auto !important;
+            max-width: 100% !important;
+            padding: 0.625em !important;
+        }
+    </style>
 @endsection
 @section('main-content')
     <div class="container-fluid">
@@ -75,7 +83,6 @@
                 <div class="card-body text-center">
                     <h5 class="mb-3">Course Progress Overview</h5>
                     
-                    <!-- ✅ Size-controlled container -->
                     <div style="max-width: 250px; margin: 0 auto;">
                         <canvas id="progressChart"></canvas>
                     </div>
@@ -85,28 +92,42 @@
             <!-- Students Table -->
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="mb-3">Student Progress Details</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Student Progress Details</h5>
+                    </div>
+
                     <div class="table-responsive">
-                        <table class="table align-middle table-striped">
+                        <table id="studentTable" class="table table-striped align-middle display">
                             <thead class="table-light">
                                 <tr>
                                     <th>#</th>
-                                    <th>Student</th>
+                                    <th>Username</th>
+                                    <th>Name</th>
                                     <th>Email</th>
                                     <th>Progress (%)</th>
                                     <th>Status</th>
                                     <th>Joined Date</th>
+                                    <th>Certificate</th>
+                                    <th>Certificate Date</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($students as $index => $student)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ $student->user->image ? asset('storage/uploads/profile_picture/' . $student->user->image) : asset('assets/images/avtar/4.png') }}"
+                                                    alt="avatar" class="rounded-circle me-2" width="35" height="35">
+                                                {{ "@" . $student->user->username ?? '-' }}
+                                            </div>
+                                        </td>
                                         <td>{{ $student->user->name ?? '-' }}</td>
                                         <td>{{ $student->user->email ?? '-' }}</td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="progress w-75 me-2" style="height: 10px;">
+                                                <div class="progress w-75 me-2" style="height: 8px;">
                                                     <div class="progress-bar {{ $student->progress_percentage == 100 ? 'bg-success' : 'bg-info' }}"
                                                         role="progressbar"
                                                         style="width: {{ $student->progress_percentage }}%;">
@@ -123,6 +144,27 @@
                                             @endif
                                         </td>
                                         <td>{{ $student->created_at->format('d M Y') }}</td>
+                                        <td>
+                                            @if($student->certificates->where('status', 1)->first())
+                                                <span class="badge bg-success">Claimed</span>
+                                            @elseif ($student->progress_percentage == 100)
+                                                <span class="badge bg-light-success">Not Yet Claimed</span>
+                                            @else
+                                                <span class="badge bg-warning">Not Eligible</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            {{ $student->certificates->where('status', 1)->first() ? $student->certificates->where('status', 1)->first()->created_at->format('d M Y') : '-' }}
+                                        </td>
+                                        <td>
+                                            <form method="POST" action="{{ route('course.tutor_remove_student') }}" class="remove-student-form d-inline">
+                                                @csrf
+                                                <input type="hidden" name="user_course_id" value="{{ $student->id }}">
+                                                <button type="button" class="btn btn-sm btn-outline-danger remove-student-btn" data-username="{{ $student->user->username ?? 'Unknown User' }}">
+                                                    <i class="ti ti-trash"></i> Remove
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -130,6 +172,7 @@
                     </div>
                 </div>
             </div>
+            
         </div>
     </div>
 @endsection
@@ -137,6 +180,39 @@
 @section('script')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toast notifications
+            @if(session('success'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: "{{ session('success') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
+        
+            @if(session('error'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: "{{ session('error') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
+        });
+
         const ctx = document.getElementById('progressChart').getContext('2d');
         new Chart(ctx, {
             type: 'doughnut',
@@ -156,6 +232,43 @@
                 }
             }
         });
+
+        // DataTable initialization
+        $(document).ready(function () {
+            $('#studentTable').DataTable({
+                pageLength: 10,
+                lengthChange: true,
+                ordering: true,
+                searching: true,
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search students...",
+                    lengthMenu: "Show _MENU_ entries"
+                }
+            });
+        });
+
+        document.querySelectorAll('.remove-student-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const form = this.closest('form');
+                const username = this.getAttribute('data-username') || 'this student';
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: `This student, @${username}, will be removed from the course and their progress will be lost. This action cannot be undone.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, remove!',
+                    reverseButtons: true,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
     </script>
 
 
@@ -167,6 +280,9 @@
 
     <!-- data table js-->
     <script src="{{asset('assets/vendor/datatable/jquery.dataTables.min.js')}}"></script>
+
+    <!-- sweetalert js-->
+    <script src="{{asset('assets/vendor/sweetalert/sweetalert.js')}}"></script>
 
     <!-- api js -->
     <script src="{{asset('assets/js/ticket.js')}}"></script>

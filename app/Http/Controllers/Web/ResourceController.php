@@ -635,7 +635,22 @@ class ResourceController extends Controller
                 'totalResources' => (int)$courseTotal,
             ]
         ]);
+    }
 
+    public function resource_tutor_statistics(Request $request, $resource_id) {
+        $resource_id = Crypt::decrypt($resource_id);
+
+        $resource = Resource::where('id', $resource_id)
+            ->where('status', 1)
+            ->firstOrFail();
+
+        $students = UserCourse::with(['user', 
+            'userProgressions' => function ($query) use ($resource_id) {
+                $query->where('resource_id', $resource_id);
+            }])
+            ->where('status', 1)
+            ->where('role_id', 3)
+            ->get();
     }
 
     public function forum(Request $request, $resource_id) {

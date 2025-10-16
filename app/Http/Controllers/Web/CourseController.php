@@ -670,17 +670,28 @@ class CourseController extends Controller
             ->where('status', 1)
             ->firstOrFail();
 
-        $students = UserCourse::with(['user', 'userProgressions'])
+        $students = UserCourse::with(['user', 'userProgressions', 'certificates'])
             ->where('course_id', $course_id)
             ->where('status', 1)
             ->where('role_id', 3)
             ->get();
 
         // Total resources in course
-        $totalResources = $course->lessons()
-            ->withCount('resources')
+        $totalResources = $course
+            ->where('status', 1)
+            ->where('id', $course_id)
+            ->first()
+            ->lessons()
+            ->where('status', 1)
+            ->withCount([
+                'resources as resources_count' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
             ->get()
             ->sum('resources_count');
+
+        // dd($students);
 
         // Stats
         $totalStudents = $students->count();
@@ -807,6 +818,25 @@ class CourseController extends Controller
         }
     }
 
+    public function tutor_remove_student(Request $request)
+    {
+        $validatedData = $request->validate([
+            'user_course_id' => 'required|integer|exists:user_courses,id',
+        ]);
+
+        $userCourse = UserCourse::where('id', $validatedData['user_course_id'])
+            ->firstOrFail();
+
+        if(!$userCourse) {
+            return redirect()->back()->with('error', 'User not found.');
+        }
+
+        $userCourse->status = 0;
+        $userCourse->updated_at = now();
+        $userCourse->save();
+
+        return redirect()->back()->with('success', 'The student has been removed.');
+    }
 
     public function update_review(Request $request)
     {
