@@ -1,6 +1,10 @@
 @extends('layout.master')
 @section('title', 'Lessons')
 @section('css')
+    <!-- slick css -->
+    <link rel="stylesheet" href="{{asset('assets/vendor/slick/slick.css')}}">
+    <link rel="stylesheet" href="{{asset('assets/vendor/slick/slick-theme.css')}}">
+
     <!-- apexcharts css-->
     <link rel="stylesheet" type="text/css" href="{{asset('assets/vendor/apexcharts/apexcharts.css')}}">
 @endsection
@@ -126,124 +130,109 @@
                         </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-3">Course Overview</h5>
-                    </div>
 
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <div id="course-progress-chart"
-                                data-total-resources="{{ $totalResources }}"
-                                data-checked-resources="{{ $totalChecked }}"
-                                data-progress="{{ $courseProgress }}"
-                                data-bs-placement="top" data-bs-toggle="tooltip" title="Course Progress Percentage">
-                            </div>
+                @if(!$isTutor)
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-3">Course Overview</h5>
                         </div>
-                        <div class="file-manager-sidebar mb-4"> 
-                            <div class="d-flex align-items-center position-relative">
-                                <span class="text-light-primary h-40 w-40 d-flex-center b-r-10 position-absolute">
-                                    <i class="ph-bold ph-folder f-s-20"></i>
-                                </span>
-                                <div class="flex-grow-1 ms-5">
-                                    <h6 class="mb-0">Lesson</h6>
-                                    <p id="lesson-status"
-                                    class="text-{{ $totalCompletedLessons == $totalLessons ? 'success' : 'secondary' }} mb-0">
-                                        {{ $totalCompletedLessons == $totalLessons ? 'Completed' : 'Uncompleted' }}
+
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div id="course-progress-chart"
+                                    data-total-resources="{{ $totalResources }}"
+                                    data-checked-resources="{{ $totalChecked }}"
+                                    data-progress="{{ $courseProgress }}"
+                                    data-bs-placement="top" data-bs-toggle="tooltip" title="Course Progress Percentage">
+                                </div>
+                            </div>
+                            <div class="file-manager-sidebar mb-4"> 
+                                <div class="d-flex align-items-center position-relative">
+                                    <span class="text-light-primary h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                        <i class="ph-bold ph-folder f-s-20"></i>
+                                    </span>
+                                    <div class="flex-grow-1 ms-5">
+                                        <h6 class="mb-0">Lesson</h6>
+                                        <p id="lesson-status"
+                                        class="text-{{ $totalCompletedLessons == $totalLessons ? 'success' : 'secondary' }} mb-0">
+                                            {{ $totalCompletedLessons == $totalLessons ? 'Completed' : 'Uncompleted' }}
+                                        </p>
+                                    </div>
+                                    <p id="lesson-count" class="text-secondary f-w-500 mb-0">
+                                        {{ $totalCompletedLessons ?? 0 }} / {{ $totalLessons ?? 0}}
                                     </p>
                                 </div>
-                                <p id="lesson-count" class="text-secondary f-w-500 mb-0">
-                                    {{ $totalCompletedLessons ?? 0 }} / {{ $totalLessons ?? 0}}
-                                </p>
                             </div>
-                        </div>
 
-                        <div class="file-manager-sidebar mb-4">
-                            <div class="d-flex align-items-center position-relative">
-                                <span class="text-light-success h-40 w-40 d-flex-center b-r-10 position-absolute">
-                                    <i class="ph-bold ph-file f-s-22"></i>
-                                </span>
-                                <div class="flex-grow-1 ms-5">
-                                    <h6 class="mb-0">Resource</h6>
-                                    <p id="resource-status"
-                                    class="text-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} mb-0">
-                                        {{ $totalCompletedResources == $totalResources ? 'Completed' : 'Uncompleted' }}
+                            <div class="file-manager-sidebar mb-4">
+                                <div class="d-flex align-items-center position-relative">
+                                    <span class="text-light-success h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                        <i class="ph-bold ph-file f-s-22"></i>
+                                    </span>
+                                    <div class="flex-grow-1 ms-5">
+                                        <h6 class="mb-0">Resource</h6>
+                                        <p id="resource-status"
+                                        class="text-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} mb-0">
+                                            {{ $totalCompletedResources == $totalResources ? 'Completed' : 'Uncompleted' }}
+                                        </p>
+                                    </div>
+                                    <p id="resource-count" class="text-secondary f-w-500 mb-0">
+                                        {{ $totalCompletedResources ?? 0 }} / {{ $totalResources ?? 0 }}
                                     </p>
                                 </div>
-                                <p id="resource-count" class="text-secondary f-w-500 mb-0">
-                                    {{ $totalCompletedResources ?? 0 }} / {{ $totalResources ?? 0 }}
-                                </p>
                             </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Course Overview</h5>
                         </div>
 
-                        {{-- <div class="file-manager-sidebar mb-4">
-                            <div class="d-flex align-items-center position-relative">
-                                <span class="text-light-danger h-40 w-40 d-flex-center b-r-10 position-absolute">
-                                    <i class="ph-bold  ph-chat-circle-dots f-s-20"></i>
-                                </span>
-                                <div class="flex-grow-1 ms-5  ">
-                                    <h6 class="mb-0">Comment</h6>
-                                    <p class="text-secondary mb-0">Completed</p>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div style="max-width: 250px; margin: 0 auto;">
+                                    <canvas id="progressChart"></canvas>
                                 </div>
-                                <p class="text-secondary f-w-500 mb-0">{{ $totalComments ?? 0 }} Made</p>
                             </div>
-                        </div> --}}
-                    </div>
-                </div>
+                            <div class="file-manager-sidebar mt-4 mb-4"> 
+                                <div class="d-flex align-items-center position-relative">
+                                    <span class="text-light-success h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                        <i class="ph-bold ph-check f-s-20"></i>
+                                    </span>
+                                    <div class="flex-grow-1 ms-5">
+                                        <h6 class="mb-0">Completed</h6>
+                                        {{-- <p class="text-{{ $totalCompletedLessons == $totalLessons ? 'success' : 'secondary' }} mb-0">
+                                            {{ $totalCompletedLessons == $totalLessons ? 'Completed' : 'Uncompleted' }}
+                                        </p> --}}
+                                    </div>
+                                    <p class="text-secondary f-w-500 mb-0">
+                                        {{ $completedStudents ?? 0 }} Students
+                                    </p>
+                                </div>
+                            </div>
 
-                {{-- <div class="card">
-                    <div class="card-header">
-                        <h5>File Upload</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-4">
-                            <h6 class=" mb-1 text-dark">Uploading 59 photos</h6>
-                            <div>
-                                <div class="d-flex justify-content-between">
-                                    <p class="text-secondary">Photoes 01</p>
-                                    <span class="text-primary">65%</span>
-                                </div>
-                                <div class="progress h-5">
-                                    <div aria-valuemax="100" aria-valuemin="0"
-                                         aria-valuenow="20"
-                                         class="progress-bar bg-primary h-5" role="progressbar"
-                                         style="width: 65%;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <h6 class=" mb-1 text-dark">Uploading 7 videos</h6>
-                            <div>
-                                <div class="d-flex justify-content-between">
-                                    <p class="text-secondary">Museum</p>
-                                    <span class="text-primary">25%</span>
-                                </div>
-                                <div class="progress h-5">
-                                    <div aria-valuemax="100" aria-valuemin="0"
-                                         aria-valuenow="20"
-                                         class="progress-bar bg-primary h-5" role="progressbar"
-                                         style="width: 25%;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <h6 class=" mb-1 text-dark">Uploading 12 Documents</h6>
-                            <div>
-                                <div class="d-flex justify-content-between">
-                                    <p class="text-secondary">My Work</p>
-                                    <span class="text-primary">90%</span>
-                                </div>
-                                <div class="progress h-5">
-                                    <div aria-valuemax="100" aria-valuemin="0"
-                                         aria-valuenow="20"
-                                         class="progress-bar bg-primary h-5" role="progressbar"
-                                         style="width: 90%;"></div>
+                            <div class="file-manager-sidebar mb-4">
+                                <div class="d-flex align-items-center position-relative">
+                                    <span class="text-light-warning h-40 w-40 d-flex-center b-r-10 position-absolute">
+                                        <i class="ph-bold ph-clock f-s-22"></i>
+                                    </span>
+                                    <div class="flex-grow-1 ms-5">
+                                        <h6 class="mb-0">In Progress</h6>
+                                        {{-- <p class="text-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} mb-0">
+                                            {{ $totalCompletedResources == $totalResources ? 'Completed' : 'Uncompleted' }}
+                                        </p> --}}
+                                    </div>
+                                    <p class="text-secondary f-w-500 mb-0">
+                                        {{ $inProgressStudents ?? 0 }} Students
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div> --}}
+                @endif
             </div>
+
             <div class="col-lg-8 col-xxl-9">
                 <div class="content-wrapper">
                     <!-- tab-1  -->
@@ -487,7 +476,7 @@
                                                                 <div class="resource-stats">
                                                                     {{-- <span><i class="ti ti-eye"></i> {{ $resource->total_visit ?? 0 }}</span>
                                                                     <span><i class="ti ti-download"></i> {{ $resource->resourceFile->total_download ?? 0 }}</span> --}}
-                                                                    <span><i class="ti ti-circle-check"></i> {{ $resource->studentProgressions->where('status', 1)->count() ?? 0 }}/{{ $lesson->course->userCourses->where('status', 1)->count() ?? 0 }}</span>
+                                                                    <span><i class="ti ti-circle-check"></i> {{ $resource->studentProgressions->where('status', 1)->count() ?? 0 }}/{{ $lesson->course->userCourses->where('status', 1)->where('role_id', 3)->count() ?? 0 }}</span>
                                                                     {{-- <span><i class="ti ti-message"></i> {{ $resource->comments->count() }}</span> --}}
                                                                     <span><i class="ti ti-message"></i> {{ $resource->forumPosts->count() ?? 0 }}</span>
                                                                 </div>
@@ -511,7 +500,7 @@
                                                                         data-resource-ischecked="{{ $isChecked ? '1' : '0' }}"
                                                                         data-resource-forums="{{ $resource->forumPosts->count() ?? 0 }}"
                                                                         data-resource-total-completed="{{ $resource->studentProgressions->where('status', 1)->count() ?? 0 }}"
-                                                                        data-resource-total-students="{{ $lesson->course->userCourses->where('status', 1)->count() ?? 0 }}">
+                                                                        data-resource-total-students="{{ $lesson->course->userCourses->where('status', 1)->where('role_id', 3)->count() ?? 0 }}">
                                                                     <i class="ti ti-chevron-up text-{{ $resource->category == 1 ? 'info' : 'success' }}"></i>
                                                                 </button>
                                                             </div>
@@ -1312,6 +1301,8 @@
 @endsection
 
 @section('script')
+    <!-- chartjs js -->
+    <script src="{{asset('assets/vendor/chartjs/chart.js')}}"></script>
 
     <script>
         $(document).ready(function() {
@@ -1428,6 +1419,27 @@
                     });
                 }, 100);
             @endif
+
+            const chartCanvas = document.getElementById('progressChart');
+            if (typeof Chart !== 'undefined' && chartCanvas) {
+                const ctx = chartCanvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'In Progress'],
+                        datasets: [{
+                            data: [{{ $completedStudents }}, {{ $inProgressStudents }}],
+                            backgroundColor: ['#28a745', '#ffc107'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
 
             // Upload progress handling
             const resourceForm = document.getElementById('resourceForm');
@@ -2620,6 +2632,9 @@
 
     <!-- draggable js  -->
     <script src="{{asset('assets/vendor/sortable/Sortable.min.js')}}"></script>
+
+    <!-- slick-file -->
+    <script src="{{asset('assets/vendor/slick/slick.min.js')}}"></script>
 
     <!--js-->
     {{-- <script src="{{asset('assets/js/filemanager.js')}}"></script> --}}

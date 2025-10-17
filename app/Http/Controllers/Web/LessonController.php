@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\User;
 use App\Models\Course;
+use App\Models\UserCourse;
 use App\Models\Lesson;
 use App\Models\Resource;
 use Illuminate\Http\Request;
@@ -83,40 +84,46 @@ class LessonController extends Controller
             ? round(($totalChecked / $totalResources) * 100, 1)
             : 0;
 
-        // $lessons_tutor = Lesson::with([
-        //     'course.userCourses' => function ($query) {
-        //         $query->where('role_id', 3) // Only students
-        //             ->where('status', 1)
-        //             ->with('user'); // Load user info
-        //     },
-        //     'resources' => function ($query) {
-        //         $query->where('status', 1)
-        //             ->with([
-        //                 'resourceFile' => function ($query) {
-        //                     $query->where('status', 1);
-        //                 },
-        //                 'comments' => function ($query) {
-        //                     $query->where('status', 1)
-        //                         ->with(['userCourse.user']);
-        //                 },
-        //                 'userProgressions' => function ($query) {
-        //                     $query->whereHas('userCourse', function ($subQuery) {
-        //                         $subQuery->where('status', 1)
-        //                                 ->where('role_id', 3); // Only student progressions
-        //                     })
-        //                     ->with(['userCourse.user']);
-        //                 },
-        //             ]);
-        //     },
-        // ])
-        // ->where('course_id', $course_id)
-        // ->where('status', 1)
-        // ->orderByRaw('CASE WHEN order_index IS NULL THEN 1 ELSE 0 END, order_index ASC')
-        // ->orderBy('id', 'ASC')
-        // ->get();
+        $students = UserCourse::with(['user', 'userProgressions', 'certificates'])
+            ->where('course_id', $course_id)
+            ->where('status', 1)
+            ->where('role_id', 3)
+            ->get();
 
+        // Total resources in course
+        $totalResources = $course
+            ->where('status', 1)
+            ->where('id', $course_id)
+            ->first()
+            ->lessons()
+            ->where('status', 1)
+            ->withCount([
+                'resources as resources_count' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
+            ->get()
+            ->sum('resources_count');
 
-        // dd($lessons->toArray());
+        // dd($students);
+
+        // Stats
+        $totalStudents = $students->count();
+        $completedStudents = 0;
+
+        foreach ($students as $student) {
+            $completedCount = $student->userProgressions->where('status', 1)->count();
+            if ($completedCount >= $totalResources && $totalResources > 0) {
+                $completedStudents++;
+            }
+            $student->progress_percentage = $totalResources > 0
+                ? round(($completedCount / $totalResources) * 100, 1)
+                : 0;
+        }
+
+        $inProgressStudents = $totalStudents - $completedStudents;
+
+        // dd($students->toArray());
 
         return view('course.lesson.lesson_list', compact(
             'course',
@@ -127,7 +134,11 @@ class LessonController extends Controller
             'totalCompletedResources',
             'totalComments',
             'totalCompletedLessons',
-            'courseProgress'
+            'courseProgress',
+            'students',
+            'totalStudents',
+            'completedStudents',
+            'inProgressStudents'
         ));
     }
 

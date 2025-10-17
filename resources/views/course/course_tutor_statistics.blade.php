@@ -178,7 +178,9 @@
 @endsection
 
 @section('script')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- chartjs js -->
+    <script src="{{asset('assets/vendor/chartjs/chart.js')}}"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Toast notifications
