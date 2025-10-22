@@ -102,7 +102,7 @@
                                                             alt="Tutor Avatar" class="img-fluid">
                                                     </div>
                                                     <div class="d-flex">
-                                                        <span class="fw-medium">{{ $course->tutor_username }}</span>
+                                                        <span class="fw-medium">{{ "@" . $course->tutor_username }}</span>
                                                     </div>
                                                 </div>
                                             </a>

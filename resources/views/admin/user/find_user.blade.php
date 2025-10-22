@@ -80,7 +80,7 @@
                                         </td>
                                         
                                         <!-- Username -->
-                                        <td>{{ $user->username }}</td>
+                                        <td>{{ "@" . $user->username }}</td>
                                         
                                         <!-- Email -->
                                         <td>

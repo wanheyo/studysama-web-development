@@ -1,5 +1,5 @@
 @extends('layout.master')
-@section('title', 'Course Statistics')
+@section('title', 'Resource Statistics')
 @section('css')
     <!-- slick css -->
     <link rel="stylesheet" href="{{asset('assets/vendor/slick/slick.css')}}">
@@ -21,10 +21,10 @@
     <div class="container-fluid">
         <!-- Breadcrumb start -->
         <div class="row m-1">
-            <div class="col-12 ">
-                <h4 class="main-title">Course Statistics</h4>
+            <div class="col-12">
+                <h4 class="main-title fw-bold">Resource Statistics - {{ $resource->name }}</h4>
                 <ul class="app-line-breadcrumbs mb-3">
-                    <li class="">
+                    <li>
                         <a href="#" class="f-s-14 f-w-500">
                             <span>
                                 <i class="ph-duotone ph-book f-s-16"></i> Course
@@ -35,10 +35,13 @@
                         <a href="{{ route('course.find_course') }}" class="f-s-14 f-w-500">Find Courses</a>
                     </li>
                     <li>
-                        <a href="{{ route('course.course_detail', ['course_id' => encrypt($course->id)]) }}" class="f-s-14 f-w-500">{{ $course->name }}</a>
+                        <a href="{{ route('course.course_detail', ['course_id' => encrypt($resource->lesson->course->id)]) }}" class="f-s-14 f-w-500">{{ $resource->lesson->course->name }}</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('course.lesson.lesson_list', ['course_id' => encrypt($resource->lesson->course->id)]) }}" class="f-s-14 f-w-500">Lessons</a>
                     </li>
                     <li class="active">
-                        <a href="#" class="f-s-14 f-w-500">Course Statistics</a>
+                        <a href="#" class="f-s-14 f-w-500">Resource Statistics</a>
                     </li>
                 </ul>
             </div>
@@ -104,12 +107,8 @@
                                     <th>Username</th>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>Progress (%)</th>
                                     <th>Status</th>
-                                    <th>Joined Date</th>
-                                    <th>Certificate</th>
-                                    <th>Certificate Date</th>
-                                    <th>Action</th>
+                                    <th>Completed Date</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -120,7 +119,7 @@
                                             <a href="{{ route('user.profile', ['user_id' => encrypt($student->user->id), 'shared' => 0]) }}" 
                                                 style="cursor: pointer; text-decoration: none; color: inherit;" 
                                                 class="d-flex align-items-center gap-2">
-
+                                                
                                                 <div class="d-flex align-items-center">
                                                     <img src="{{ $student->user->image ? asset('storage/uploads/profile_picture/' . $student->user->image) : asset('assets/images/avtar/4.png') }}"
                                                         alt="avatar" class="rounded-circle me-2" width="35" height="35">
@@ -131,44 +130,18 @@
                                         <td>{{ $student->user->name ?? '-' }}</td>
                                         <td>{{ $student->user->email ?? '-' }}</td>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress w-75 me-2" style="height: 8px;">
-                                                    <div class="progress-bar {{ $student->progress_percentage == 100 ? 'bg-success' : 'bg-info' }}"
-                                                        role="progressbar"
-                                                        style="width: {{ $student->progress_percentage }}%;">
-                                                    </div>
-                                                </div>
-                                                <small>{{ $student->progress_percentage }}%</small>
-                                            </div>
-                                        </td>
-                                        <td>
                                             @if($student->progress_percentage == 100)
                                                 <span class="badge bg-success">Completed</span>
                                             @else
                                                 <span class="badge bg-warning text-dark">In Progress</span>
                                             @endif
                                         </td>
-                                        <td>{{ $student->created_at->format('d M Y') }}</td>
                                         <td>
-                                            @if($student->certificates->where('status', 1)->first())
-                                                <span class="badge bg-success">Claimed</span>
-                                            @elseif ($student->progress_percentage == 100)
-                                                <span class="badge bg-light-success">Not Yet Claimed</span>
+                                            @if($student->progress_percentage == 100 && $student->userProgressions->where('resource_id', $resource->id)->where('status', 1)->first())
+                                                {{ $student->userProgressions->where('resource_id', $resource->id)->where('status', 1)->first()->updated_at->format('d M Y') }}
                                             @else
-                                                <span class="badge bg-warning">Not Eligible</span>
+                                                -
                                             @endif
-                                        </td>
-                                        <td>
-                                            {{ $student->certificates->where('status', 1)->first() ? $student->certificates->where('status', 1)->first()->created_at->format('d M Y') : '-' }}
-                                        </td>
-                                        <td>
-                                            <form method="POST" action="{{ route('course.tutor_remove_student') }}" class="remove-student-form d-inline">
-                                                @csrf
-                                                <input type="hidden" name="user_course_id" value="{{ $student->id }}">
-                                                <button type="button" class="btn btn-sm btn-outline-danger remove-student-btn" data-username="{{ $student->user->username ?? 'Unknown User' }}">
-                                                    <i class="ti ti-trash"></i> Remove
-                                                </button>
-                                            </form>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -255,27 +228,27 @@
             });
         });
 
-        document.querySelectorAll('.remove-student-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                const form = this.closest('form');
-                const username = this.getAttribute('data-username') || 'this student';
+        // document.querySelectorAll('.remove-student-btn').forEach(button => {
+        //     button.addEventListener('click', function () {
+        //         const form = this.closest('form');
+        //         const username = this.getAttribute('data-username') || 'this student';
 
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: `This student, @${username}, will be removed from the course and their progress will be lost. This action cannot be undone.`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Yes, remove!',
-                    reverseButtons: true,
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-        });
+        //         Swal.fire({
+        //             title: 'Are you sure?',
+        //             text: `This student, @${username}, will be removed from the course and their progress will be lost. This action cannot be undone.`,
+        //             icon: 'warning',
+        //             showCancelButton: true,
+        //             confirmButtonColor: '#d33',
+        //             cancelButtonColor: '#6c757d',
+        //             confirmButtonText: 'Yes, remove!',
+        //             reverseButtons: true,
+        //         }).then((result) => {
+        //             if (result.isConfirmed) {
+        //                 form.submit();
+        //             }
+        //         });
+        //     });
+        // });
     </script>
 
 

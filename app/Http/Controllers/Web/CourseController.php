@@ -697,17 +697,36 @@ class CourseController extends Controller
         $totalStudents = $students->count();
         $completedStudents = 0;
 
+        // foreach ($students as $student) {
+        //     $completedCount = $student->userProgressions->where('status', 1)->count();
+        //     if ($completedCount >= $totalResources && $totalResources > 0) {
+        //         $completedStudents++;
+        //     }
+        //     $student->progress_percentage = $totalResources > 0
+        //         ? round(($completedCount / $totalResources) * 100, 1)
+        //         : 0;
+        // }
         foreach ($students as $student) {
-            $completedCount = $student->userProgressions->where('status', 1)->count();
+            $completedCount = $student->userProgressions
+                ->where('status', 1)
+                ->filter(function ($progression) {
+                    return $progression->resource && $progression->resource->status != 0;
+                })
+                ->count();
+
             if ($completedCount >= $totalResources && $totalResources > 0) {
                 $completedStudents++;
             }
+
             $student->progress_percentage = $totalResources > 0
                 ? round(($completedCount / $totalResources) * 100, 1)
                 : 0;
         }
 
+
         $inProgressStudents = $totalStudents - $completedStudents;
+
+        // dd($students->toArray());
 
         return view('course.course_tutor_statistics', compact(
             'course',

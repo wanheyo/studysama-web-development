@@ -90,9 +90,12 @@ function changeLanguage(language) {
     labels: ['Average Results'],
   };
   
-  var chart = new ApexCharts(document.querySelector("#polar2"), options);
-  chart.render();
-  
+  const polarEl = document.querySelector("#polar2");
+  if (polarEl) {
+      const chart = new ApexCharts(polarEl, options);
+      chart.render();
+  }
+
   function getActionsFeture() {
     document.querySelectorAll(".delete-btn").forEach(button => {
       button.addEventListener("click", () => {
@@ -324,15 +327,15 @@ function changeLanguage(language) {
     `
   }
   
-    document.querySelector('#folderadd').onclick = function (event) {
-      const rowElement = document.querySelector("#newFolder .row");
-      rowElement.insertAdjacentHTML('afterbegin', folderContent());
-      $("#folderModal").modal("hide");
-      getActionsFeture();
-      renameFolder();
+    // document.querySelector('#folderadd').onclick = function (event) {
+    //   const rowElement = document.querySelector("#newFolder .row");
+    //   rowElement.insertAdjacentHTML('afterbegin', folderContent());
+    //   $("#folderModal").modal("hide");
+    //   getActionsFeture();
+    //   renameFolder();
       
       
-    }
+    // }
   
   // table data rename 
 //   function renameTableEntry() {

@@ -650,7 +650,30 @@ class ResourceController extends Controller
             }])
             ->where('status', 1)
             ->where('role_id', 3)
+            ->where('course_id', $resource->lesson->course_id)
             ->get();
+
+        // Stats
+        $totalStudents = $students->count();
+        $completedStudents = 0;
+        
+        foreach ($students as $student) {
+            $completedCount = $student->userProgressions->where('status', 1)->count();
+            if ($completedCount > 0) {
+                $completedStudents++;
+            }
+            $student->progress_percentage = $completedCount > 0 ? 100 : 0;
+        }
+
+        $inProgressStudents = $totalStudents - $completedStudents;
+
+        return view('course.lesson.resource.resource_tutor_statistics', compact(
+            'resource',
+            'students',
+            'totalStudents',
+            'completedStudents',
+            'inProgressStudents'
+        ));
     }
 
     public function forum(Request $request, $resource_id) {

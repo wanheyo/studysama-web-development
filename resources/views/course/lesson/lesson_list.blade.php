@@ -53,7 +53,7 @@
                     <div class="card-header">
                         {{-- <h5>Lesson List</h5> --}}
                         <div class="d-flex align-items-center justify-content-between">
-                        <h5>Lesson List</h5>
+                        <h5>Lessons</h5>
                             @if ($isTutor)
                                 <div id="reorder-actions">
                                     <button id="reorder-btn" class="btn btn-light-primary b-r-22" type="button">
@@ -207,7 +207,9 @@
                                         </p> --}}
                                     </div>
                                     <p class="text-secondary f-w-500 mb-0">
-                                        {{ $completedStudents ?? 0 }} Students
+                                        <a class="" href="{{ route('course.course_tutor_statistics', ['course_id' => encrypt($course->id)]) }}">
+                                            {{ $completedStudents ?? 0 }} Students
+                                        </a>
                                     </p>
                                 </div>
                             </div>
@@ -224,7 +226,9 @@
                                         </p> --}}
                                     </div>
                                     <p class="text-secondary f-w-500 mb-0">
-                                        {{ $inProgressStudents ?? 0 }} Students
+                                        <a class="" href="{{ route('course.course_tutor_statistics', ['course_id' => encrypt($course->id)]) }}">
+                                            {{ $inProgressStudents ?? 0 }} Students
+                                        </a>
                                     </p>
                                 </div>
                             </div>
@@ -297,12 +301,14 @@
                                                                 </div> --}}
                                                             </div>
 
-                                                            <div class="col-2 text-end">
-                                                                <span class="badge bg-primary text-white px-3 py-2 b-r-22 lesson-progress"
-                                                                    data-lesson="{{ $lesson->id }}">
-                                                                    {{ $checkedCount }} / {{ $totalResources }} Completed
-                                                                </span>
-                                                            </div>
+                                                            @if(!$isTutor)
+                                                                <div class="col-2 text-end">
+                                                                    <span class="badge bg-primary text-white px-3 py-2 b-r-22 lesson-progress"
+                                                                        data-lesson="{{ $lesson->id }}">
+                                                                        {{ $checkedCount }} / {{ $totalResources }} Completed
+                                                                    </span>
+                                                                </div>
+                                                            @endif
                                                         </div>
                                                     </div>
 
@@ -585,40 +591,46 @@
                                                 </div>
                                                 
                                                 <!-- Stats Card -->
-                                                <div class="card shadow-sm border">
-                                                    <div class="card-header bg-light">
-                                                        <h6 class="fw-semibold">
-                                                            <i class="ti ti-chart-bar me-2"></i>Resource Statistics
-                                                        </h6>
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <div class="row text-center">
-                                                            <div class="col-6 border-end">
-                                                                <div class="py-2">
-                                                                    <div class="d-flex align-items-center justify-content-center mb-2">
-                                                                        <i class="ti ti-circle-check fs-4 text-success me-2"></i>
-                                                                        <div>
-                                                                            <span class="fs-4 fw-bold text-dark" id="completedCount">0</span>
-                                                                            <span class="text-muted mx-1">/</span>
-                                                                            <span class="fs-5 text-muted" id="studentsCount">0</span>
+                                                @if($isTutor)
+                                                    <div class="card shadow-sm border">
+                                                        <div class="card-header bg-light">
+                                                            <h6 class="fw-semibold">
+                                                                <i class="ti ti-chart-bar me-2"></i>Resource Statistics
+                                                            </h6>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="row text-center">
+                                                                <div class="col-6 border-end">
+                                                                    <a href="#" id="resourceStatsCardLink" class="text-decoration-none">
+                                                                        <div class="py-2">
+                                                                            <div class="d-flex align-items-center justify-content-center mb-2">
+                                                                                <i class="ti ti-circle-check fs-4 text-success me-2"></i>
+                                                                                <div>
+                                                                                    <span class="fs-4 fw-bold text-dark" id="completedCount">0</span>
+                                                                                    <span class="text-muted mx-1">/</span>
+                                                                                    <span class="fs-5 text-muted" id="studentsCount">0</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <p class="text-muted mb-0 small">Students Completed</p>
                                                                         </div>
-                                                                    </div>
-                                                                    <p class="text-muted mb-0 small">Students Completed</p>
+                                                                    </a>
                                                                 </div>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <div class="py-2">
-                                                                    <div class="d-flex align-items-center justify-content-center mb-2">
-                                                                        <i class="ti ti-message-circle fs-4 text-info me-2"></i>
-                                                                        <span class="fs-4 fw-bold text-dark" id="forumsCount">0</span>
-                                                                        {{-- <span class="fs-4 fw-bold text-dark" id="commentsCount">0</span> --}}
-                                                                    </div>
-                                                                    <p class="text-muted mb-0 small">Forum Discussions</p>
+                                                                <div class="col-6">
+                                                                    <a href="#" id="resourceForumCardLink" class="text-decoration-none">
+                                                                        <div class="py-2">
+                                                                            <div class="d-flex align-items-center justify-content-center mb-2">
+                                                                                <i class="ti ti-message-circle fs-4 text-info me-2"></i>
+                                                                                <span class="fs-4 fw-bold text-dark" id="forumsCount">0</span>
+                                                                                {{-- <span class="fs-4 fw-bold text-dark" id="commentsCount">0</span> --}}
+                                                                            </div>
+                                                                            <p class="text-muted mb-0 small">Forum Discussions</p>
+                                                                        </div>
+                                                                    </a>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                @endif
                                             </div>
                                         </div>
                                         
@@ -1687,12 +1699,17 @@
                 resourceModal.querySelector('.modal-title').textContent = resourceData.name;
                 
                 // Update stats
-                // document.getElementById('viewsCount').textContent = resourceData.views;
-                // document.getElementById('downloadsCount').textContent = resourceData.downloads;
-                document.getElementById('completedCount').textContent = resourceData.totalCompleted;
-                document.getElementById('studentsCount').textContent = resourceData.totalStudents;
-                // document.getElementById('commentsCount').textContent = resourceData.comments;
-                document.getElementById('forumsCount').textContent = resourceData.forums;
+                // Update stats only if elements exist
+                const completedCountEl = document.getElementById('completedCount');
+                const studentsCountEl = document.getElementById('studentsCount');
+                const forumsCountEl = document.getElementById('forumsCount');
+
+                if (completedCountEl && studentsCountEl && forumsCountEl) {
+                    completedCountEl.textContent = resourceData.totalCompleted;
+                    studentsCountEl.textContent = resourceData.totalStudents;
+                    forumsCountEl.textContent = resourceData.forums;
+                }
+
                 
                 // Update resource info
                 document.getElementById('resourceName').textContent = resourceData.name;
@@ -1714,18 +1731,23 @@
                 // Determine color scheme based on category
                 const colorScheme = resourceData.category == '1' ? 'info' : (resourceData.category == '2' ? 'success' : 'secondary');
 
-                // document.getElementById('resourceCategory').classList.add(`text-${colorScheme}`);
-
-                // Update modal header color
-                // const modalHeader = resourceModal.querySelector('.modal-header');
-                // modalHeader.className = `modal-header bg-${colorScheme}`;
-                // const resourceStatsHeader = resourceModal.querySelector('.card-header');
-                // resourceStatsHeader.className = `card-header bg-${colorScheme}`;
                 const resourceCategoryBadge = document.getElementById('resourceCategory');
                 resourceCategoryBadge.className = `mb-0 fw-semibold text-${colorScheme}`; // Add text-white class to the badge(`text-${colorScheme}`);
 
                 // Set edit button
                 const editBtn = document.querySelector('#resourceDetailModal button[data-bs-target="#resourceEditModal"]');
+
+                // Set stats card link
+                const statsLink = document.getElementById('resourceStatsCardLink');
+                if (statsLink) {
+                    statsLink.href = `{{ route('resource.resource_tutor_statistics', '') }}/${resourceData.idEncrypted}`;
+                }
+
+                // Set forum card link
+                const forumLink = document.getElementById('resourceForumCardLink');
+                if (forumLink) {
+                    forumLink.href = "{{ route('resource.forum', ':id') }}".replace(':id', resourceData.idEncrypted);
+                }
 
                 if (editBtn) {
                     editBtn.setAttribute('data-resource-id', resourceData.id);
@@ -2033,117 +2055,117 @@
                 // }
                 
                 // Create new event handler for this specific resource
-                commentFormSubmitHandler = function(e) {
-                    e.preventDefault();
+                // commentFormSubmitHandler = function(e) {
+                //     e.preventDefault();
                     
-                    const formData = new FormData(this);
-                    const currentResourceId = formData.get('resource_id');
+                //     const formData = new FormData(this);
+                //     const currentResourceId = formData.get('resource_id');
                     
-                    // Show loading indicator on the button
-                    const submitBtn = commentForm.querySelector('button[type="submit"]');
-                    const originalBtnText = submitBtn.innerHTML;
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Posting...';
+                //     // Show loading indicator on the button
+                //     const submitBtn = commentForm.querySelector('button[type="submit"]');
+                //     const originalBtnText = submitBtn.innerHTML;
+                //     submitBtn.disabled = true;
+                //     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Posting...';
                     
-                    fetch('/course/comment/store_comment', {
-                        method: 'POST',
-                        credentials: 'include', // Crucial for cookies
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                            // 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') // If using Sanctum
-                        },
-                        body: JSON.stringify({
-                            resource_id: currentResourceId,
-                            content: formData.get('content')
-                        })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data && data.success) {
-                            // Clear input field
-                            const commentInput = document.querySelector('#commentForm input[name="content"]');
-                            const commentContent = commentInput.value;
-                            commentInput.value = '';
+                //     fetch('/course/comment/store_comment', {
+                //         method: 'POST',
+                //         credentials: 'include', // Crucial for cookies
+                //         headers: {
+                //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                //             'Accept': 'application/json',
+                //             'Content-Type': 'application/json',
+                //             // 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') // If using Sanctum
+                //         },
+                //         body: JSON.stringify({
+                //             resource_id: currentResourceId,
+                //             content: formData.get('content')
+                //         })
+                //     })
+                //     .then(response => {
+                //         if (!response.ok) {
+                //             throw new Error('Network response was not ok');
+                //         }
+                //         return response.json();
+                //     })
+                //     .then(data => {
+                //         if (data && data.success) {
+                //             // Clear input field
+                //             const commentInput = document.querySelector('#commentForm input[name="content"]');
+                //             const commentContent = commentInput.value;
+                //             commentInput.value = '';
                             
-                            // Update counts
-                            const commentsCount = document.getElementById('commentsCount');
-                            const currentCount = parseInt(commentsCount.textContent) || 0;
-                            const newCount = currentCount + 1;
-                            commentsCount.textContent = newCount;
+                //             // Update counts
+                //             const commentsCount = document.getElementById('commentsCount');
+                //             const currentCount = parseInt(commentsCount.textContent) || 0;
+                //             const newCount = currentCount + 1;
+                //             commentsCount.textContent = newCount;
                             
-                            // Remove "no comments" message if it exists
-                            const noComments = document.getElementById('noComments');
-                            if (noComments) {
-                                noComments.remove();
-                            }
+                //             // Remove "no comments" message if it exists
+                //             const noComments = document.getElementById('noComments');
+                //             if (noComments) {
+                //                 noComments.remove();
+                //             }
                             
-                            // Add the new comment to the list
-                            const commentsList = document.getElementById('commentsList');
+                //             // Add the new comment to the list
+                //             const commentsList = document.getElementById('commentsList');
                             
-                            // Get current user info from the form area
-                            const userImg = commentForm.querySelector('img').src;
+                //             // Get current user info from the form area
+                //             const userImg = commentForm.querySelector('img').src;
                             
-                            // Use the correct property names from the backend response
-                            const commentText = data.comment ? data.comment.content : commentContent;
-                            const commentId = data.comment ? data.comment.id : new Date().getTime();
-                            const userName = data.comment ? data.comment.user_name : "Current User";
-                            const userImage = data.comment ? data.comment.user_image : userImg;
-                            const createdAt = data.comment ? data.comment.created_at : 'Just now';
+                //             // Use the correct property names from the backend response
+                //             const commentText = data.comment ? data.comment.content : commentContent;
+                //             const commentId = data.comment ? data.comment.id : new Date().getTime();
+                //             const userName = data.comment ? data.comment.user_name : "Current User";
+                //             const userImage = data.comment ? data.comment.user_image : userImg;
+                //             const createdAt = data.comment ? data.comment.created_at : 'Just now';
                             
-                            const newCommentHtml = `
-                                <div class="d-flex mb-3" id="comment-${commentId}">
-                                    <img src="${userImage}" 
-                                        class="rounded-circle me-3" width="40" height="40" alt="User">
-                                    <div class="w-100">
-                                        <div class="d-flex justify-content-between">
-                                            <h6 class="mb-1">${userName}</h6>
-                                            <small class="text-muted mr-2"> ${createdAt}</small>
-                                        </div>
-                                        <p class="mb-1">${commentText}</p>
+                //             const newCommentHtml = `
+                //                 <div class="d-flex mb-3" id="comment-${commentId}">
+                //                     <img src="${userImage}" 
+                //                         class="rounded-circle me-3" width="40" height="40" alt="User">
+                //                     <div class="w-100">
+                //                         <div class="d-flex justify-content-between">
+                //                             <h6 class="mb-1">${userName}</h6>
+                //                             <small class="text-muted mr-2"> ${createdAt}</small>
+                //                         </div>
+                //                         <p class="mb-1">${commentText}</p>
                                         
-                                    </div>
-                                </div>
-                            `;
+                //                     </div>
+                //                 </div>
+                //             `;
                             
-                            // Prepend to show newest comments at the top
-                            commentsList.insertAdjacentHTML('afterbegin', newCommentHtml);
+                //             // Prepend to show newest comments at the top
+                //             commentsList.insertAdjacentHTML('afterbegin', newCommentHtml);
                             
-                            // Add highlight animation to new comment
-                            setTimeout(() => {
-                                const newComment = document.getElementById(`comment-${commentId}`);
-                                if (newComment) {
-                                    newComment.style.transition = 'background-color 1s ease';
-                                    newComment.style.backgroundColor = '#f0f8ff';
-                                    setTimeout(() => {
-                                        newComment.style.backgroundColor = 'transparent';
-                                    }, 1500);
-                                }
-                            }, 100);
-                        } else {
-                            // Show error if the server returned success: false
-                            alert('Failed to post comment. Please try again.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Failed to post comment. Please try again.');
-                    })
-                    .finally(() => {
-                        // Restore button state
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnText;
-                    });
-                };
+                //             // Add highlight animation to new comment
+                //             setTimeout(() => {
+                //                 const newComment = document.getElementById(`comment-${commentId}`);
+                //                 if (newComment) {
+                //                     newComment.style.transition = 'background-color 1s ease';
+                //                     newComment.style.backgroundColor = '#f0f8ff';
+                //                     setTimeout(() => {
+                //                         newComment.style.backgroundColor = 'transparent';
+                //                     }, 1500);
+                //                 }
+                //             }, 100);
+                //         } else {
+                //             // Show error if the server returned success: false
+                //             alert('Failed to post comment. Please try again.');
+                //         }
+                //     })
+                //     .catch(error => {
+                //         console.error('Error:', error);
+                //         alert('Failed to post comment. Please try again.');
+                //     })
+                //     .finally(() => {
+                //         // Restore button state
+                //         submitBtn.disabled = false;
+                //         submitBtn.innerHTML = originalBtnText;
+                //     });
+                // };
                 
-                // Add the new event listener
-                commentForm.addEventListener('submit', commentFormSubmitHandler);
+                // // Add the new event listener
+                // commentForm.addEventListener('submit', commentFormSubmitHandler);
             });
 
             document.getElementById('resourceDetailModalForumBtn').addEventListener('click', function() {
@@ -2569,51 +2591,58 @@
             });
 
             // let progress = document.querySelector("#course-progress-chart").dataset.progress;
-            let progress = parseFloat(document.querySelector("#course-progress-chart").dataset.progress) || 0;
+            // let progress = parseFloat(document.querySelector("#course-progress-chart").dataset.progress) || 0;
 
-            var options = {
-                series: [progress],
-                chart: {
-                    type: 'radialBar',
-                    offsetY: -20,
-                    sparkline: { enabled: true }
-                },
-                colors: ['rgba(var(--primary),1)'],
-                plotOptions: {
-                    radialBar: {
-                        startAngle: -90,
-                        endAngle: 90,
-                        track: {
-                            background: "#e7e7e7",
-                            strokeWidth: '97%',
-                            margin: 5,
-                            dropShadow: {
-                                enabled: true,
-                                top: 2,
-                                left: 0,
-                                color: '#999',
-                                opacity: 1,
-                                blur: 2,
-                            }
-                        },
-                        dataLabels: {
-                            name: { show: false },
-                            value: {
-                                offsetY: -4,
-                                fontSize: '22px'
+            const progressChart = document.querySelector("#course-progress-chart");
+            if (progressChart) {
+                let progress = parseFloat(progressChart.dataset.progress) || 0;
+                
+                var options = {
+                    series: [progress],
+                    chart: {
+                        type: 'radialBar',
+                        offsetY: -20,
+                        sparkline: { enabled: true }
+                    },
+                    colors: ['rgba(var(--primary),1)'],
+                    plotOptions: {
+                        radialBar: {
+                            startAngle: -90,
+                            endAngle: 90,
+                            track: {
+                                background: "#e7e7e7",
+                                strokeWidth: '97%',
+                                margin: 5,
+                                dropShadow: {
+                                    enabled: true,
+                                    top: 2,
+                                    left: 0,
+                                    color: '#999',
+                                    opacity: 1,
+                                    blur: 2,
+                                }
+                            },
+                            dataLabels: {
+                                name: { show: false },
+                                value: {
+                                    offsetY: -4,
+                                    fontSize: '22px'
+                                }
                             }
                         }
-                    }
-                },
-                grid: { padding: { top: -20 } },
-                labels: ['Overall Progress'],
-            };
+                    },
+                    grid: { padding: { top: -20 } },
+                    labels: ['Overall Progress'],
+                };
+            }
 
-            window.courseProgressChart = new ApexCharts(
-                document.querySelector("#course-progress-chart"),
-                options
-            );
-            window.courseProgressChart.render();
+            const progressEl = document.querySelector("#course-progress-chart");
+
+            if (progressEl) {
+                window.courseProgressChart = new ApexCharts(progressEl, options);
+                window.courseProgressChart.render();
+            }
+
         });
 
     </script>    
