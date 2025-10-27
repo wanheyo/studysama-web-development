@@ -541,11 +541,16 @@ class CourseController extends Controller
             ->select('t.*')
             ->get();
 
-        $user_courses = DB::table('user_courses as uc')
-            ->join('courses as c', 'uc.course_id', '=', 'c.id')
-            ->where('c.id', $course_id)
-            ->select('uc.*')
+        // $user_courses = DB::table('user_courses as uc')
+        //     ->join('courses as c', 'uc.course_id', '=', 'c.id')
+        //     ->where('c.id', $course_id)
+        //     ->select('uc.*')
+        //     ->get();
+
+        $user_courses = UserCourse::with('certificates')
+            ->whereHas('course', fn($q) => $q->where('id', $course_id))
             ->get();
+
 
         $tutor = User::join('user_courses as uc', 'uc.user_id', '=', 'users.id')
             ->where('uc.course_id', $course_id)
@@ -657,9 +662,24 @@ class CourseController extends Controller
             ? round(($totalChecked / $totalResources) * 100, 1)
             : 0;
 
+        $claimedCertificate = false;
+
+        $currentUser = $user_courses->where('user_id', Auth::id())->where('status', 1)->first();
+        
+        $certificate = null;
+
+        if ($currentUser) {
+            $certificate = $currentUser->certificates()
+                ->where('status', 1)
+                ->first();
+        }
+
+        $claimedCertificate = $certificate ? true : false;
+        // dd($claimedCertificate);
+
         // dd($courseProgress);
 
-        return view('course.course_detail', compact('course', 'topics', 'user_courses', 'tutor', 'tutor_follow', 'tutor_courses', 'course_comments', 'user_review', 'joined_users', 'courseProgress', 'totalLessons', 'totalResources', 'totalChecked', 'totalComments', 'totalCompletedLessons', 'totalCompletedResources'));
+        return view('course.course_detail', compact('course', 'topics', 'user_courses', 'tutor', 'tutor_follow', 'tutor_courses', 'course_comments', 'user_review', 'joined_users', 'courseProgress', 'totalLessons', 'totalResources', 'totalChecked', 'totalComments', 'totalCompletedLessons', 'totalCompletedResources', 'claimedCertificate'));
     }
 
     public function course_tutor_statistics(Request $request, $course_id)
@@ -764,6 +784,14 @@ class CourseController extends Controller
                         $userCourse->status = 0;
                         $userCourse->updated_at = now();
                         $userCourse->save();
+
+                        $certificate = Certificate::where('user_course_id', $userCourse->id)
+                            ->where('status', 1)
+                            ->firstOrFail();
+
+                        $certificate->status = 0;
+                        $certificate->updated_at = now();
+                        $certificate->save();
                     }
 
                     $course = Course::find($validatedData['course_id']);
@@ -771,6 +799,8 @@ class CourseController extends Controller
                         $course->total_joined = max(0, $course->total_joined - 1); // prevent negative
                         $course->save();
                     }
+
+                    
 
                 } elseif ($validatedData['status'] == 1) {
                     // Joining
@@ -853,6 +883,15 @@ class CourseController extends Controller
         $userCourse->status = 0;
         $userCourse->updated_at = now();
         $userCourse->save();
+
+        // Remove any associated certificates
+        $certificate = Certificate::where('user_course_id', $userCourse->id)
+                            ->where('status', 1)
+                            ->firstOrFail();
+
+        $certificate->status = 0;
+        $certificate->updated_at = now();
+        $certificate->save();
 
         return redirect()->back()->with('success', 'The student has been removed.');
     }
@@ -939,13 +978,15 @@ class CourseController extends Controller
         return redirect()->back()->with('success', 'Your review has been deleted.');
     }
 
-    public function course_certificate(Request $request, $course_id)
+    public function course_certificate(Request $request, $course_id, $user_course_id = null)
     {
         // $validatedData = $request->validate([
         //     'course_id' => 'required|integer|exists:courses,id',
         // ]);
 
         // dd($validatedData);
+
+        
 
         $course_id = Crypt::decrypt($course_id);
 
@@ -1030,6 +1071,26 @@ class CourseController extends Controller
         }
 
         // dd($course, $userCourse, $certificate);
+
+        return view('course.certificate', compact('course', 'userCourse', 'certificate'));
+    }
+
+    public function show_course_certificate($certificate_id)
+    {
+        $certificate_id = Crypt::decrypt($certificate_id);
+
+        $certificate = Certificate::where('id', $certificate_id)
+            ->where('status', 1)
+            ->firstOrFail();
+
+        $userCourse = UserCourse::with('user')
+            ->where('id', $certificate->user_course_id)
+            ->where('status', 1)
+            ->firstOrFail();
+
+        $course = Course::where('id', $userCourse->course_id)
+            ->where('status', 1)
+            ->firstOrFail();
 
         return view('course.certificate', compact('course', 'userCourse', 'certificate'));
     }

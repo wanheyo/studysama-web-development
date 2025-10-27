@@ -151,7 +151,11 @@
                                         <td>{{ $student->created_at->format('d M Y') }}</td>
                                         <td>
                                             @if($student->certificates->where('status', 1)->first())
-                                                <span class="badge bg-success">Claimed</span>
+                                                <span class="badge bg-success">
+                                                    <a href="{{ route('course.show_certificate', ['certificate_id' => encrypt($student->certificates->where('status', 1)->first()->id)]) }}" class="text-white">
+                                                        Claimed
+                                                    </a>
+                                                </span>
                                             @elseif ($student->progress_percentage == 100)
                                                 <span class="badge bg-light-success">Not Yet Claimed</span>
                                             @else

@@ -41,7 +41,7 @@
             <div class="col-lg-9 order-xxl-2">    
                 <div class="card">
                     <div class="card-body">
-                        @if($totalCompletedResources == $totalResources && $totalResources > 0)
+                        @if($totalCompletedResources == $totalResources && $totalResources > 0 && !$claimedCertificate)
                             <div class="alert alert-label alert-label-success justify-content-between" role="alert">
                                 <p class="mb-0">
                                     <i class="ti ti-certificate label-icon label-icon-success"></i>
@@ -426,9 +426,13 @@
                                             {{-- <button type="button" class="btn btn-primary b-r-22" id="followButton"> <i class="ti ti-user"></i>
                                                 View Profile</button> --}}
                                             {{-- <a href="{{ route('user.profile', ['user_id' => encrypt($tutor->id), 'shared' => 0]) }}" class="btn btn-primary rounded">Claim</a> --}}
-                                            <button type="button" class="btn btn-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} rounded {{ $totalCompletedResources == $totalResources ? '' : 'disabled' }}" 
+                                            {{-- <button type="button" class="btn btn-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} rounded {{ $totalCompletedResources == $totalResources ? '' : 'disabled' }}" 
                                             data-bs-toggle="modal" data-bs-target="#claim_certificate_modal" data-id="{{ $course->id }}" 
-                                            data-bs-placement="top" data-bs-toggle="tooltip" title="{{ $totalCompletedResources == $totalResources ? 'Claim Certificate' : 'You need 100% completion to claim certificate.' }}">Claim</button>
+                                            data-bs-placement="top" data-bs-toggle="tooltip" title="{{ $totalCompletedResources == $totalResources ? 'Claim Certificate' : 'You need 100% completion to claim certificate.' }}">Claim</button> --}}
+                                            
+                                            <a href="{{ route('course.certificate', ['course_id' => encrypt($course->id)]) }}" class="btn btn-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} rounded {{ $totalCompletedResources == $totalResources ? '' : 'disabled' }}">
+                                                View
+                                            </a>
                                         </div>
                                     </p>
                                 </div>
