@@ -479,8 +479,11 @@
                                             <img src="{{ $post->userCourse?->user?->image ? asset('storage/uploads/profile_picture/' . $post->userCourse?->user?->image) : asset('assets/images/avtar/4.png') }}"
                                                 class="rounded-circle avatar-md me-2" alt="avatar">
                                             <strong>{{ '@' . $post->userCourse?->user?->username ?? '@Unknown' }}</strong>
+
                                             @if($post->userCourse?->role_id == 1 || $post->userCourse?->role_id == 2)
                                                 <span class="badge text-bg-primary ms-2">Tutor</span>
+                                            @elseif($post->userCourse?->is_ex_student)
+                                                <span class="badge text-bg-secondary ms-2">Ex-Student</span>
                                             @endif
                                         </div>
                                         <div class="col-6 text-end d-flex justify-content-end align-items-center">
@@ -558,7 +561,7 @@
                                             <div class="progress-box bg-light-success w-100 p-3 rounded">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="left d-flex align-items-center">
-                                                        <b class="me-1 ms-1" id="uploadPercent">0%</b> Uploading...
+                                                        <b class="me-1 ms-1" id="uploadPercent">0%</b> Submitting...
                                                     </div>
                                                     <div class="right">
                                                         <span class="badge text-bg-success" id="uploadTimeRemaining">Estimating...</span>

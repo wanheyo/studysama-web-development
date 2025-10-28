@@ -14,6 +14,10 @@
                             <span class="badge text-bg-primary ms-2 d-flex align-items-center justify-content-center">
                                 Tutor
                             </span>
+                        @elseif($reply->userCourse?->is_ex_student)
+                            <span class="badge text-bg-secondary ms-2 d-flex align-items-center justify-content-center">
+                                Ex-Student
+                            </span>
                         @endif
                     </div>
 

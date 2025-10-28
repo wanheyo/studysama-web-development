@@ -787,11 +787,13 @@ class CourseController extends Controller
 
                         $certificate = Certificate::where('user_course_id', $userCourse->id)
                             ->where('status', 1)
-                            ->firstOrFail();
+                            ->first();
 
-                        $certificate->status = 0;
-                        $certificate->updated_at = now();
-                        $certificate->save();
+                        if($certificate) {
+                            $certificate->status = 0;
+                            $certificate->updated_at = now();
+                            $certificate->save();
+                        }
                     }
 
                     $course = Course::find($validatedData['course_id']);
@@ -887,11 +889,13 @@ class CourseController extends Controller
         // Remove any associated certificates
         $certificate = Certificate::where('user_course_id', $userCourse->id)
                             ->where('status', 1)
-                            ->firstOrFail();
+                            ->first();
 
-        $certificate->status = 0;
-        $certificate->updated_at = now();
-        $certificate->save();
+        if($certificate) {
+            $certificate->status = 0;
+            $certificate->updated_at = now();
+            $certificate->save();
+        }
 
         return redirect()->back()->with('success', 'The student has been removed.');
     }

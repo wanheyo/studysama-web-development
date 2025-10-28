@@ -706,10 +706,51 @@ class ResourceController extends Controller
             $post->total_replies_count = $this->count_all_replies($post->forumReplies);
         }
 
-        // dd($resource->toArray());
+        // Get the logged-in user ID (once)
+        $userId = auth()->id();
+
+        // Loop through all posts and replies to check Ex-Student status
+        foreach ($resource->forumPosts as $post) {
+            // Check if the poster has rejoined the course
+            if ($post->userCourse) {
+                $post->userCourse->is_ex_student = !$this->hasRejoinedCourse(
+                    $post->userCourse->course_id,
+                    $post->userCourse->user_id
+                ) && $post->userCourse->status == 0;
+            }
+
+            // Now check for all replies recursively
+            foreach ($post->forumReplies as $reply) {
+                $this->setExStudentFlagRecursive($reply);
+            }
+        }
 
         return view('course.lesson.resource.forum', compact('resource'));
+    }
 
+    private function setExStudentFlagRecursive($reply)
+    {
+        if ($reply->userCourse) {
+            $reply->userCourse->is_ex_student = !$this->hasRejoinedCourse(
+                $reply->userCourse->course_id,
+                $reply->userCourse->user_id
+            ) && $reply->userCourse->status == 0;
+        }
+
+        // Recurse for children replies
+        if (!empty($reply->childrens)) {
+            foreach ($reply->childrens as $child) {
+                $this->setExStudentFlagRecursive($child);
+            }
+        }
+    }
+
+    private function hasRejoinedCourse($courseId, $userId)
+    {
+        return UserCourse::where('course_id', $courseId)
+            ->where('user_id', $userId)
+            ->where('status', 1)
+            ->exists();
     }
 
     // helper function for forum
