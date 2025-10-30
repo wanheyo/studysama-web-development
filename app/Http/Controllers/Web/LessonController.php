@@ -154,6 +154,15 @@ class LessonController extends Controller
             'learn_outcome' => 'nullable|string',
         ]);
 
+        // Check if lesson name already exists in the same course
+        $existingLesson = Lesson::where('course_id', $course_id)
+            ->where('name', $validated['name'])
+            ->first();
+
+        if ($existingLesson) {
+            return redirect()->back()->with('error', 'Lesson name already exists in this course.');
+        }
+
         $lesson = new Lesson();
         $lesson->course_id = $course_id;
         $lesson->name = $validated['name'];
@@ -192,6 +201,16 @@ class LessonController extends Controller
             'desc' => 'nullable|string',
             'learn_outcome' => 'nullable|string',
         ]);
+
+        // Check if another lesson in the same course already has this name
+        $duplicate = Lesson::where('course_id', $lesson->course_id)
+            ->where('name', $validated['name'])
+            ->where('id', '!=', $lesson->id) // ignore current lesson
+            ->first();
+
+        if ($duplicate) {
+            return redirect()->back()->with('error', 'Lesson name already exists in this course.');
+        }
 
         $lesson->name = $validated['name'];
         $lesson->desc = $validated['desc'];

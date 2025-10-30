@@ -482,7 +482,9 @@
                                                                 <div class="resource-stats">
                                                                     {{-- <span><i class="ti ti-eye"></i> {{ $resource->total_visit ?? 0 }}</span>
                                                                     <span><i class="ti ti-download"></i> {{ $resource->resourceFile->total_download ?? 0 }}</span> --}}
-                                                                    <span><i class="ti ti-circle-check"></i> {{ $resource->studentProgressions->where('status', 1)->count() ?? 0 }}/{{ $lesson->course->userCourses->where('status', 1)->where('role_id', 3)->count() ?? 0 }}</span>
+                                                                    @if($isTutor)
+                                                                        <span><i class="ti ti-circle-check"></i> {{ $resource->studentProgressions->where('status', 1)->count() ?? 0 }}/{{ $lesson->course->userCourses->where('status', 1)->where('role_id', 3)->count() ?? 0 }}</span>
+                                                                    @endif
                                                                     {{-- <span><i class="ti ti-message"></i> {{ $resource->comments->count() }}</span> --}}
                                                                     <span><i class="ti ti-message"></i> {{ $resource->forumPosts->count() ?? 0 }}</span>
                                                                 </div>
@@ -1512,10 +1514,41 @@
                     progressBar.style.width = '0%';
 
                     if (xhr.status === 200) {
-                        // Success
-                        window.location.reload();
+                        const response = JSON.parse(xhr.responseText);
+
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: response.message,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: response.message,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                            });
+                        }
                     } else {
-                        alert('Upload failed. Please try again.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Upload failed. Please try again.',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                        });
                     }
                 };
 

@@ -208,16 +208,25 @@ class ResourceController extends Controller
                 
                 // Check file type
                 if (!in_array($fileExtension, $allowedExtensions)) {
-                    return redirect()->back()
-                        ->with('error', "The file type '.{$fileExtension}' is not supported.")
-                        ->withInput();
+                    // return redirect()->back()
+                    //     ->with('error', "The file type '.{$fileExtension}' is not supported.")
+                    //     ->withInput();
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The file type .' . $fileExtension . ' is not supported.'
+                    ]);
                 }
                 
                 // Check file size
                 if ($fileSizeInMB > $maxSizeInMB) {
-                    return redirect()->back()
-                        ->with('error', "The uploaded file is too large ({$fileSizeInMB}MB). Maximum file size allowed is {$maxSizeInMB}MB.")
-                        ->withInput();
+                    // return redirect()->back()
+                    //     ->with('error', "The uploaded file is too large ({$fileSizeInMB}MB). Maximum file size allowed is {$maxSizeInMB}MB.")
+                    //     ->withInput();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The uploaded file is too large (' . $fileSizeInMB . 'MB). Maximum file size allowed is {$maxSizeInMB}MB.'
+                    ]);
                 }
             }
             
@@ -246,7 +255,25 @@ class ResourceController extends Controller
             
             // Check if the user exists
             if (!$user) {
-                return redirect()->back()->with('error', 'User not authenticated');
+                // return redirect()->back()->with('error', 'User not authenticated');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated.'
+                ]);
+            }
+
+            // Duplicate check — resource name must be unique per lesson
+            $existingResource = Resource::where('lesson_id', $validatedData['lesson_id'])
+                ->where('name', $validatedData['name'])
+                ->where('status', 1)
+                ->first();
+
+            if ($existingResource) {
+                // return redirect()->back()->with('error', 'A resource with this name already exists in this lesson.')->withInput();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'A resource with this name already exists in this lesson.'
+                ]);
             }
 
             DB::beginTransaction();
@@ -288,11 +315,12 @@ class ResourceController extends Controller
 
                 DB::commit();
                 
-                // Flash success message to the session
-                session()->flash('success', 'Resource added successfully');
-                
-                // Redirect back to the lesson page
-                return redirect()->back();
+                // return redirect()->back()->with('success', 'Resource added successfully');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Resource added successfully!'
+                ]);
+
                 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -303,7 +331,11 @@ class ResourceController extends Controller
                     'trace' => $e->getTraceAsString(),
                 ]);
                 
-                return redirect()->back()->with('error', 'Failed to add resource. ' . $e->getMessage())->withInput();
+                // return redirect()->back()->with('error', 'Failed to add resource. ' . $e->getMessage())->withInput();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to add resource.'
+                ]);
             }
         } catch (ValidationException $e) {
             // Handle validation errors
@@ -315,7 +347,11 @@ class ResourceController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
             
-            return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.')->withInput();
+            // return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.')->withInput();
+            return response()->json([
+                    'success' => false,
+                    'message' => 'An unexpected error occurred. Please try again.'
+                ]);
         }
     }
 
@@ -342,6 +378,10 @@ class ResourceController extends Controller
             // Check if the user exists
             if (!$user) {
                 return redirect()->back()->with('error', 'User not authenticated: 401');
+                // return response()->json([
+                //     'success' => false,
+                //     'message' => 'User not authenticated.'
+                // ]);
             }
 
             // Find the resource to update
@@ -350,6 +390,24 @@ class ResourceController extends Controller
             // Check if the resource exists
             if (!$resource) {
                 return redirect()->back()->with('error', 'Resource not found: 404');
+                // return response()->json([
+                //     'success' => false,
+                //     'message' => 'Resource not found.'
+                // ]);
+            }
+
+            // Check for duplicate name (any active resource with same name)
+            $duplicate = Resource::where('name', $validatedData['name'])
+                ->where('id', '!=', $resource_id)
+                ->where('status', 1)
+                ->first();
+
+            if ($duplicate) {
+                return redirect()->back()->with('error', 'A resource with this name already exists.');
+                // return response()->json([
+                //     'success' => false,
+                //     'message' => 'A resource with this name already exists.'
+                // ]);
             }
 
             $resource_file = null;
@@ -441,6 +499,11 @@ class ResourceController extends Controller
 
             // Return a success response
             return redirect()->back()->with('success', 'Resource updated successfully');
+            // return response()->json([
+            //     'success' => true,
+            //     'message' => 'Resource updated successfully!'
+            // ]);
+
         } catch (\Exception $e) {
             // Log the error for debugging
             \Log::error('Resource update failed', [
@@ -450,6 +513,10 @@ class ResourceController extends Controller
 
             // Return an error response
             return redirect()->back()->with('error', 'Resource update failed: ' . $e->getMessage());
+            // return response()->json([
+            //     'success' => false,
+            //     'message' => 'Resource update failed.'
+            // ]);
         }
     }
 
