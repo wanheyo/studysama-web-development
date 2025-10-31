@@ -4,6 +4,13 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\User;
 use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\Resource;
+use App\Models\ResourceFile;
+use App\Models\UserProgression;
+use App\Models\Comment;
+use App\Models\ForumPost;
+use App\Models\ForumReply;
 use Illuminate\Http\Request;
 use App\Models\UserActivityLog;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +18,55 @@ use App\Http\Controllers\Controller;
 
 class MainController extends Controller
 {
+    private function calculateCourseProgress($courseId)
+    {
+        $lessons = Lesson::with([
+            'resources' => function ($query) {
+                $query->where('status', 1)
+                    ->with(['resourceFile' => function ($query) {
+                        $query->where('status', 1);
+                    }])
+                    ->with(['comments' => function ($query) {
+                        $query->where('status', 1)
+                            ->with(['userCourse.user']);
+                    }])
+                    ->with(['userProgressions' => function ($query) {
+                        $query->whereHas('userCourse', function ($subQuery) {
+                            $subQuery->where('user_id', auth()->id())
+                                    ->where('status', 1);
+                        });
+                    }]);
+            }
+        ])
+        ->where('course_id', $courseId)
+        ->where('status', 1)
+        ->orderByRaw('CASE WHEN order_index IS NULL THEN 1 ELSE 0 END, order_index ASC')
+        ->orderBy('id', 'ASC')
+        ->get();
+
+        $totalResources = 0;
+        $totalChecked   = 0;
+        $totalCompletedLessons = 0;
+
+        foreach ($lessons as $lesson) {
+            $lessonResourceCount = $lesson->resources->count();
+            $lessonCheckedCount  = $lesson->resources->sum(
+                fn($resource) => $resource->userProgressions->where('status', 1)->count()
+            );
+
+            $totalResources += $lessonResourceCount;
+            $totalChecked   += $lessonCheckedCount;
+
+            if ($lessonResourceCount > 0 && $lessonCheckedCount === $lessonResourceCount) {
+                $totalCompletedLessons++;
+            }
+        }
+
+        return $totalResources > 0
+            ? round(($totalChecked / $totalResources) * 100, 1)
+            : 0;
+    }
+
     public function homepage(Request $request)
     {
         $user = auth()->user();
@@ -47,6 +103,8 @@ class MainController extends Controller
                 ->where('tc.course_id', $course->id)
                 ->select('t.id', 't.name', 't.desc')
                 ->get();
+
+            $course->progress = $this->calculateCourseProgress($course->id);
         }
         
         // Logic to show the homepage

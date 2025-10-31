@@ -371,6 +371,7 @@ class ResourceController extends Controller
                 'link' => 'nullable|string|max:255',
                 'file_id' => 'nullable|integer',
                 'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,tiff,doc,docx,pdf,txt,rtf,odt,zip,rar,7z|max:5120',
+                'lesson_id' => 'required|integer|exists:lessons,id',
             ]);
 
             $user = Auth::user();
@@ -397,12 +398,13 @@ class ResourceController extends Controller
             }
 
             // Check for duplicate name (any active resource with same name)
-            $duplicate = Resource::where('name', $validatedData['name'])
-                ->where('id', '!=', $resource_id)
+            $existingResource = Resource::where('lesson_id', $validatedData['lesson_id'])
+                ->where('name', $validatedData['name'])
+                ->where('id', '!=', $resource_id) // exclude the same record
                 ->where('status', 1)
                 ->first();
 
-            if ($duplicate) {
+            if ($existingResource) {
                 return redirect()->back()->with('error', 'A resource with this name already exists.');
                 // return response()->json([
                 //     'success' => false,
@@ -508,7 +510,7 @@ class ResourceController extends Controller
             // Log the error for debugging
             \Log::error('Resource update failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'trace' => $e->getTraceAsString(), 
             ]);
 
             // Return an error response

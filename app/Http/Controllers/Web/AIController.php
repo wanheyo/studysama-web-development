@@ -43,6 +43,97 @@ class AIController extends Controller
         return view('ai.mcq.mcq');
     }
 
+    // public function show_ai_mcq(Request $request)
+    // {
+    //     $request->validate([
+    //         'text' => 'required|string|max:500',
+    //     ], [
+    //         'text.required' => 'Please enter a topic for your quiz.',
+    //         'text.max' => 'Topic text should not exceed 500 characters.',
+    //     ]);
+        
+    //     // dd($request->all());
+
+    //     try {
+    //         $textContent = trim($request->input('text'));
+            
+    //         $response = Http::withHeaders([
+    //             'Authorization' => 'Bearer ' . config('services.openai.key'),
+    //             'Content-Type' => 'application/json',
+    //         ])->timeout(15)->post('https://api.openai.com/v1/chat/completions', [
+    //             'model' => 'gpt-4o-mini',
+    //             'messages' => [
+    //                 [
+    //                     'role' => 'system',
+    //                     'content' => 'You are an educational assistant specialized in creating challenging but fair multiple-choice quizzes. Generate questions that test understanding, not just memorization.',
+    //                 ],
+    //                 [
+    //                     'role' => 'user',
+    //                     'content' => "
+    //                     Generate 5 multiple-choice questions based on the topic: $textContent
+                        
+    //                     Make sure each question is unique and tests a different aspect of the topic.
+    //                     Each question should have 4 options with only one correct answer.
+    //                     Make the distractors (wrong answers) plausible but clearly incorrect to someone who understands the topic.
+                        
+    //                     Provide the response in this structure:
+    //                     Question: [Question Text]
+    //                     Options: [Option1; Option2; Option3; Option4]
+    //                     Answer: [Correct answer index of option, where 0 is the first option]
+                        
+    //                     Format example = [{question: What is Apple?, options: [Vegetable, Fruit, Water, Bread], answer: 1}]
+                        
+    //                     Ensure that correct answers are distributed evenly and not in a predictable pattern.",
+    //                 ]
+    //             ],
+    //             'max_tokens' => 1500,
+    //             'temperature' => 0.7,
+    //         ]);
+            
+    //         if ($response->failed()) {
+    //             // dd("masuk sini 2", $response->body());
+    //             return redirect()->back()->with('error', 'An error occurred while generating the quiz. Please try again.');
+    //             throw new \Exception("OpenAI API error: " . $response->body());
+    //         }
+            
+            
+    //         $message = $response->json('choices.0.message.content');
+
+    //         $responseData = $response->json();
+    //         $token_used = $responseData['usage']['total_tokens'] ?? 0;
+
+    //         if (!$message) {
+    //             throw new \Exception("Unexpected response structure from OpenAI.");
+    //         }
+
+    //         $activityLogId = $this->store_user_activity_log('mcq', $token_used, $textContent, null);
+            
+    //         $quiz = $this->parseMCQ($message);
+            
+    //         if (empty($quiz)) {
+    //             return redirect()->back()->with('error', 'An error occurred while generating the quiz. Please try again.');
+    //             // return back()->withErrors(['error' => 'Could not generate quiz questions. Please try a different topic.']);
+    //         }
+            
+    //         return view('ai.mcq.mcq_generated', [
+    //             'title' => 'Quiz on ' . ucfirst($textContent),
+    //             'questions' => $quiz,
+    //             'topic' => $textContent,
+    //             'user_activity_log_id' => $activityLogId
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         \Log::error('Quiz generation error: ' . $e->getMessage());
+            
+    //         if (str_contains($e->getMessage(), 'timeout')) {
+    //             return redirect()->back()->with('error', 'An error occurred while generating the quiz. Please try again.');
+    //             // return back()->withErrors(['error' => 'The quiz generation timed out. Please try again or use a simpler topic.']);
+    //         }
+            
+    //         return redirect()->back()->with('error', 'An error occurred while generating the quiz. Please try again.');
+    //         // return back()->withErrors(['error' => 'Failed to generate quiz. ' . $e->getMessage()]);
+    //     }
+    // }
+
     public function show_ai_mcq(Request $request)
     {
         $request->validate([
@@ -51,88 +142,111 @@ class AIController extends Controller
             'text.required' => 'Please enter a topic for your quiz.',
             'text.max' => 'Topic text should not exceed 500 characters.',
         ]);
-        
-        // dd($request->all());
 
         try {
             $textContent = trim($request->input('text'));
-            
+
+            // ===== STEP 1: Prepare API Request =====
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . config('services.openai.key'),
                 'Content-Type' => 'application/json',
-            ])->timeout(15)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-3.5-turbo',
+            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => 'gpt-4o-mini', // or upgrade to gpt-4.1 for best accuracy
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are an educational assistant specialized in creating challenging but fair multiple-choice quizzes. Generate questions that test understanding, not just memorization.',
+                        'content' => "You are an educational quiz generator that returns JSON only. 
+                        Create 5 multiple-choice questions on the given topic that test understanding, not memorization.
+                        Return EXACTLY 5 questions in a valid JSON array. 
+                        Each question object must have:
+                        - 'question' (string)
+                        - 'options' (array of 4 strings)
+                        - 'answer' (integer index of the correct option, 0–3)
+                        Example:
+                        [
+                        {
+                            'question': 'What is the capital of Malaysia?',
+                            'options': ['Bangkok', 'Jakarta', 'Kuala Lumpur', 'Manila'],
+                            'answer': 2
+                        }
+                        ]
+                        Do not include any text outside the JSON array."
                     ],
                     [
                         'role' => 'user',
-                        'content' => "
-                        Generate 5 multiple-choice questions based on the topic: $textContent
-                        
-                        Make sure each question is unique and tests a different aspect of the topic.
-                        Each question should have 4 options with only one correct answer.
-                        Make the distractors (wrong answers) plausible but clearly incorrect to someone who understands the topic.
-                        
-                        Provide the response in this structure:
-                        Question: [Question Text]
-                        Options: [Option1; Option2; Option3; Option4]
-                        Answer: [Correct answer index of option, where 0 is the first option]
-                        
-                        Format example = [{question: What is Apple?, options: [Vegetable, Fruit, Water, Bread], answer: 1}]
-                        
-                        Ensure that correct answers are distributed evenly and not in a predictable pattern.",
-                    ]
+                        'content' => "Topic: $textContent
+                        Requirements:
+                        - Generate exactly 5 unique, conceptually different questions.
+                        - Each has 4 options and 1 correct answer.
+                        - Return ONLY valid JSON. No markdown, no explanation, no commentary."
+                    ],
                 ],
                 'max_tokens' => 1500,
-                'temperature' => 0.7,
+                'temperature' => 0.2, // low temperature = more consistent structure
             ]);
-            
+
+            // ===== STEP 2: Handle API Failure =====
             if ($response->failed()) {
-                // dd("masuk sini 2", $response->body());
-                return redirect()->back()->with('error', 'An error occurred while generating the quiz. Please try again.');
                 throw new \Exception("OpenAI API error: " . $response->body());
             }
-            
-            
-            $message = $response->json('choices.0.message.content');
 
+            $message = $response->json('choices.0.message.content');
             $responseData = $response->json();
             $token_used = $responseData['usage']['total_tokens'] ?? 0;
 
             if (!$message) {
-                throw new \Exception("Unexpected response structure from OpenAI.");
+                throw new \Exception("Unexpected empty response from OpenAI.");
             }
 
-            $activityLogId = $this->store_user_activity_log('mcq', $token_used, $textContent, null);
-            
-            $quiz = $this->parseMCQ($message);
-            
-            if (empty($quiz)) {
-                return redirect()->back()->with('error', 'An error occurred while generating the quiz. Please try again.');
-                // return back()->withErrors(['error' => 'Could not generate quiz questions. Please try a different topic.']);
+            // ===== STEP 3: Parse JSON Output =====
+            $quiz = json_decode($message, true);
+
+            // If model wrapped JSON in markdown or text, extract JSON substring
+            if (json_last_error() !== JSON_ERROR_NONE && preg_match('/\[\s*{.*}\s*\]/s', $message, $match)) {
+                $quiz = json_decode($match[0], true);
             }
-            
+
+            // ===== STEP 4: Validate Parsed Data =====
+            if (!is_array($quiz) || count($quiz) !== 5) {
+                \Log::warning("AI returned unexpected number of questions: " . json_encode($quiz));
+                throw new \Exception("Generated quiz did not contain 5 valid questions.");
+            }
+
+            foreach ($quiz as $i => $q) {
+                if (
+                    !isset($q['question'], $q['options'], $q['answer']) ||
+                    !is_array($q['options']) ||
+                    count($q['options']) !== 4 ||
+                    !is_int($q['answer']) ||
+                    $q['answer'] < 0 ||
+                    $q['answer'] > 3
+                ) {
+                    throw new \Exception("Invalid question structure at index $i.");
+                }
+            }
+
+            // ===== STEP 5: Log User Activity =====
+            $activityLogId = $this->store_user_activity_log('mcq', $token_used, $textContent, null);
+
+            // ===== STEP 6: Return View =====
             return view('ai.mcq.mcq_generated', [
                 'title' => 'Quiz on ' . ucfirst($textContent),
                 'questions' => $quiz,
                 'topic' => $textContent,
                 'user_activity_log_id' => $activityLogId
             ]);
+
         } catch (\Exception $e) {
             \Log::error('Quiz generation error: ' . $e->getMessage());
-            
-            if (str_contains($e->getMessage(), 'timeout')) {
-                return redirect()->back()->with('error', 'An error occurred while generating the quiz. Please try again.');
-                // return back()->withErrors(['error' => 'The quiz generation timed out. Please try again or use a simpler topic.']);
-            }
-            
-            return redirect()->back()->with('error', 'An error occurred while generating the quiz. Please try again.');
-            // return back()->withErrors(['error' => 'Failed to generate quiz. ' . $e->getMessage()]);
+
+            $errorMsg = str_contains($e->getMessage(), 'timeout')
+                ? 'The quiz generation took too long. Please try again.'
+                : 'An error occurred while generating the quiz. Please try again.';
+
+            return redirect()->back()->with('error', $errorMsg);
         }
     }
+
 
     /**
      * Parse the MCQ response from OpenAI API

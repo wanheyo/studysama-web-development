@@ -566,7 +566,7 @@
 
                                                     <!-- Footer: Tutor Info -->
                                                     <div class="p-2 border-top bg-primary-light">
-                                                        <div class="d-flex align-items-center gap-2">
+                                                        <div class="d-flex justify-content-between align-items-center">
                                                             <a href="{{ route('user.profile', ['user_id' => encrypt($course->tutor_id), 'shared' => 0]) }}" style="cursor: pointer; text-decoration: none; color: inherit;" class="d-flex align-items-center gap-2">
                                                                 <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/woman.jpg') }}"
                                                                     class="rounded-circle border"
@@ -581,9 +581,16 @@
                                                                     </span>
                                                                 </div>
                                                             </a>
+                                                            <span class="badge bg-{{ $course->progress < 100 ? 'warning' : 'success' }}" data-bs-placement="top" data-bs-toggle="tooltip"
+                                                                title="">{{ $course->progress < 100 ? 'In Progress' : 'Completed' }}</span>
                                                         </div>
                                                     </div>
-
+                                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                                        <div class="progress w-100 h-20" role="progressbar" aria-valuenow="{{ $course->progress }}" aria-valuemin="0"
+                                                                aria-valuemax="100">
+                                                            <div class="progress-bar bg-{{ $course->progress < 100 ? 'warning' : 'success' }} progress-bar-striped" style="width: {{ $course->progress }}%">{{ $course->progress }}%</div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

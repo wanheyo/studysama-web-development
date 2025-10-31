@@ -931,6 +931,7 @@
                                                 <div class="col-12">
                                                     <div id="resourceEditFormWrapper">
                                                         <input type="hidden" name="resource_id" id="edit_resource_id" value="">
+                                                        <input type="hidden" name="lesson_id" id="edit_lesson_id" value="">
                                                         <input type="hidden" name="file_id" id="edit_file_id" value="">
                                                         <input type="hidden" name="delete" id="delete_flag" value="0">
                                                         
@@ -1794,6 +1795,7 @@
                     editBtn.setAttribute('data-resource-downloads', resourceData.downloads);
                     editBtn.setAttribute('data-resource-comments', resourceData.comments);
                     editBtn.setAttribute('data-resource-created', resourceData.created);
+                    editBtn.setAttribute('data-lesson-id', resourceData.lessonId);
                 }
                 
                 // Set complete button state
@@ -2297,7 +2299,8 @@
                     path: button.getAttribute('data-resource-path'),
                     link: button.getAttribute('data-resource-link'),
                     views: button.getAttribute('data-resource-views'),
-                    downloads: button.getAttribute('data-resource-downloads')
+                    downloads: button.getAttribute('data-resource-downloads'),
+                    lessonId: button.getAttribute('data-lesson-id'),
                 };
                 
                 // Update modal header
@@ -2307,6 +2310,7 @@
                 document.getElementById('edit_resource_id').value = resourceData.id || '';
                 document.getElementById('edit_file_id').value = resourceData.fileId || '';
                 document.getElementById('delete_flag').value = '0'; // Reset delete flag
+                document.getElementById('edit_lesson_id').value = resourceData.lessonId || '';
                 
                 // Fill basic inputs
                 document.getElementById('editResourceName').value = resourceData.name || '';

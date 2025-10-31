@@ -203,7 +203,7 @@ class CourseController extends Controller
             ->join('user_courses as uc', function ($join) use ($user) {
                 $join->on('uc.course_id', '=', 'c.id')
                     ->where('uc.user_id', '=', $user->id)
-                    ->where('uc.status', '!=', 0); // ✅ filter out inactive user-course entries
+                    ->where('uc.status', '!=', 0); // filter out inactive user-course entries
             })
             ->join('user_courses as tutor_uc', function ($join) {
                 $join->on('tutor_uc.course_id', '=', 'c.id')
@@ -895,6 +895,12 @@ class CourseController extends Controller
             $certificate->status = 0;
             $certificate->updated_at = now();
             $certificate->save();
+        }
+
+        $course = Course::find($userCourse->course_id);
+        if ($course) {
+            $course->total_joined = max(0, $course->total_joined - 1); // prevent negative
+            $course->save();
         }
 
         return redirect()->back()->with('success', 'The student has been removed.');

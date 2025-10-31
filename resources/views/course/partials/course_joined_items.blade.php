@@ -129,16 +129,14 @@
                             {{-- @if($course->status == 2)
                                 
                             @endif --}}
-
-                            
                         </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div class="progress w-100 h-20" role="progressbar" aria-valuenow="{{ $course->progress }}" aria-valuemin="0"
-                                    aria-valuemax="100">
-                                <div class="progress-bar bg-{{ $course->progress < 100 ? 'warning' : 'success' }} progress-bar-striped" style="width: {{ $course->progress }}%">{{ $course->progress }}%</div>
-                            </div>
+                        <div class="progress w-100 h-20" role="progressbar" aria-valuenow="{{ $course->progress }}" aria-valuemin="0"
+                                aria-valuemax="100">
+                            <div class="progress-bar bg-{{ $course->progress < 100 ? 'warning' : 'success' }} progress-bar-striped" style="width: {{ $course->progress }}%">{{ $course->progress }}%</div>
                         </div>
+                    </div>
                     {{-- <div class="ribbon file-right bg-{{ $course->progress < 100 ? 'warning' : 'success' }}">{{ $course->progress }}%</div> --}}
                 </div>
             </div>
