@@ -14,8 +14,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Container\Attributes\Log;
+// use Illuminate\Container\Attributes\Log;
+use Illuminate\Support\Facades\Log;
 
+use Smalot\PdfParser\Parser as PdfParser;
+use PhpOffice\PhpWord\IOFactory;
+use Illuminate\Support\Str;
 
 class AIController extends Controller
 {
@@ -136,117 +140,248 @@ class AIController extends Controller
 
     public function show_ai_mcq(Request $request)
     {
+        // return response()->json([
+        //     'received' => true,
+        //     'data' => $request->all(),
+        // ]);
+
         $request->validate([
-            'text' => 'required|string|max:500',
+            'text' => 'nullable|string|max:500',
+            'path' => 'nullable|string',
+            'type' => 'nullable|string',
         ], [
-            'text.required' => 'Please enter a topic for your quiz.',
             'text.max' => 'Topic text should not exceed 500 characters.',
+            'link.url' => 'The provided link must be a valid URL.',
         ]);
 
-        try {
-            $textContent = trim($request->input('text'));
+        // dd($request->all());
 
-            // ===== STEP 1: Prepare API Request =====
+        try {
+            $type = strtolower(trim($request->input('type', '')));
+            $path = trim($request->input('path', ''));
+            $textContent = trim($request->input('text', ''));
+
+            if (empty($path) && empty($textContent)) {
+                return back()->with('error', 'No input provided.');
+            }
+
+            $promptContent = '';
+            $sourceName = 'Custom Topic';
+
+            // ========= AUTO DETECTION =========
+            Log::info('AI MCQ Request:', ['type' => $type, 'path' => $path]);
+
+            if (in_array($type, ['pdf', 'docx', 'doc', 'txt', 'rtf', 'odt'])) {
+                // It's a file type
+                $relativePath = str_replace(url('/').'/storage', 'storage', $path);
+                $localPath = public_path($relativePath);
+
+                if (!file_exists($localPath)) {
+                    Log::error("File not found at: " . $localPath);
+                    return back()->with('error', 'The resource file could not be found on the server.');
+                }
+
+                $promptContent = $this->extractTextFromFile(new \Illuminate\Http\File($localPath));
+                $sourceName = basename($localPath);
+
+                if (empty($promptContent)) {
+                    return back()->with('error', 'Unable to extract readable text from the uploaded file.');
+                }
+
+            } elseif (Str::startsWith($path, [url('/').'/storage/uploads/resource_file'])) {
+                // ✅ Treat local storage links as files
+                $relativePath = str_replace(url('/').'/storage', 'storage', $path);
+                $localPath = public_path($relativePath);
+
+                if (!file_exists($localPath)) {
+                    Log::error("Local storage file not found: " . $localPath);
+                    return back()->with('error', 'The local resource file could not be found.');
+                }
+
+                $promptContent = $this->extractTextFromFile(new \Illuminate\Http\File($localPath));
+                $sourceName = basename($localPath);
+
+            } elseif ($type === 'link' || Str::startsWith($path, ['http://', 'https://'])) {
+                // It's an external link
+                if (Str::contains($path, ['youtube.com', 'youtu.be'])) {
+                    $promptContent = $this->fetchYoutubeTranscript($path);
+                    $sourceName = 'YouTube Video';
+                } else {
+                    $promptContent = $this->fetchUrlText($path);
+                    $sourceName = 'Web Link';
+                }
+
+                if (empty($promptContent)) {
+                    return back()->with('error', 'Could not extract content from the provided link.');
+                }
+
+            } else {
+                // It's a text topic
+                $promptContent = $textContent ?: $path;
+                $sourceName = 'Topic Input';
+            }
+
+            // ====== SEND TO GPT ======
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . config('services.openai.key'),
                 'Content-Type' => 'application/json',
-            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-4o-mini', // or upgrade to gpt-4.1 for best accuracy
+            ])->timeout(40)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => 'gpt-4o-mini',
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => "You are an educational quiz generator that returns JSON only. 
-                        Create 5 multiple-choice questions on the given topic that test understanding, not memorization.
-                        Return EXACTLY 5 questions in a valid JSON array. 
+                        'content' => "You are an educational quiz generator that returns JSON only.
+                        Create 5 multiple-choice questions that test understanding, not memorization.
+                        Return EXACTLY 5 questions in a valid JSON array.
                         Each question object must have:
                         - 'question' (string)
                         - 'options' (array of 4 strings)
                         - 'answer' (integer index of the correct option, 0–3)
-                        Example:
-                        [
-                        {
-                            'question': 'What is the capital of Malaysia?',
-                            'options': ['Bangkok', 'Jakarta', 'Kuala Lumpur', 'Manila'],
-                            'answer': 2
-                        }
-                        ]
                         Do not include any text outside the JSON array."
                     ],
                     [
                         'role' => 'user',
-                        'content' => "Topic: $textContent
-                        Requirements:
-                        - Generate exactly 5 unique, conceptually different questions.
-                        - Each has 4 options and 1 correct answer.
-                        - Return ONLY valid JSON. No markdown, no explanation, no commentary."
-                    ],
+                        'content' => "Content Source: {$sourceName}\n\n{$promptContent}\n\nGenerate exactly 5 unique questions with 4 options each, return JSON only."
+                    ]
                 ],
                 'max_tokens' => 1500,
-                'temperature' => 0.2, // low temperature = more consistent structure
+                'temperature' => 0.2,
             ]);
 
-            // ===== STEP 2: Handle API Failure =====
             if ($response->failed()) {
                 throw new \Exception("OpenAI API error: " . $response->body());
             }
 
             $message = $response->json('choices.0.message.content');
-            $responseData = $response->json();
-            $token_used = $responseData['usage']['total_tokens'] ?? 0;
+            $token_used = $response->json('usage.total_tokens') ?? 0;
 
             if (!$message) {
                 throw new \Exception("Unexpected empty response from OpenAI.");
             }
 
-            // ===== STEP 3: Parse JSON Output =====
             $quiz = json_decode($message, true);
-
-            // If model wrapped JSON in markdown or text, extract JSON substring
             if (json_last_error() !== JSON_ERROR_NONE && preg_match('/\[\s*{.*}\s*\]/s', $message, $match)) {
                 $quiz = json_decode($match[0], true);
             }
 
-            // ===== STEP 4: Validate Parsed Data =====
+            // Validate quiz structure
             if (!is_array($quiz) || count($quiz) !== 5) {
-                \Log::warning("AI returned unexpected number of questions: " . json_encode($quiz));
                 throw new \Exception("Generated quiz did not contain 5 valid questions.");
             }
 
             foreach ($quiz as $i => $q) {
-                if (
-                    !isset($q['question'], $q['options'], $q['answer']) ||
+                if (!isset($q['question'], $q['options'], $q['answer']) ||
                     !is_array($q['options']) ||
                     count($q['options']) !== 4 ||
                     !is_int($q['answer']) ||
                     $q['answer'] < 0 ||
                     $q['answer'] > 3
                 ) {
-                    throw new \Exception("Invalid question structure at index $i.");
+                    throw new \Exception("Invalid question structure at index {$i}.");
                 }
             }
 
-            // ===== STEP 5: Log User Activity =====
-            $activityLogId = $this->store_user_activity_log('mcq', $token_used, $textContent, null);
+            // Log activity
+            $activityLogId = $this->store_user_activity_log('mcq', $token_used, $textContent ?: $sourceName, null);
 
-            // ===== STEP 6: Return View =====
             return view('ai.mcq.mcq_generated', [
-                'title' => 'Quiz on ' . ucfirst($textContent),
+                'title' => 'Quiz on ' . ucfirst($textContent ?: $sourceName),
                 'questions' => $quiz,
-                'topic' => $textContent,
-                'user_activity_log_id' => $activityLogId
+                'topic' => $textContent ?: $sourceName,
+                'user_activity_log_id' => $activityLogId,
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Quiz generation error: ' . $e->getMessage());
-
-            $errorMsg = str_contains($e->getMessage(), 'timeout')
-                ? 'The quiz generation took too long. Please try again.'
-                : 'An error occurred while generating the quiz. Please try again.';
-
-            return redirect()->back()->with('error', $errorMsg);
+            Log::error('Quiz generation error: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while generating the quiz. Please try again.');
         }
     }
 
+
+    private function extractTextFromFile($file)
+    {
+        $ext = strtolower(pathinfo($file->getPathname(), PATHINFO_EXTENSION));
+        $content = '';
+
+        try {
+            switch ($ext) {
+                case 'txt':
+                case 'rtf':
+                case 'odt':
+                    $content = file_get_contents($file->getRealPath());
+                    break;
+
+                case 'pdf':
+                    $parser = new PdfParser();
+                    $pdf = $parser->parseFile($file->getRealPath());
+                    $content = $pdf->getText();
+                    break;
+
+                case 'docx':
+                case 'doc':
+                    $phpWord = IOFactory::load($file->getRealPath());
+                    $text = '';
+                    foreach ($phpWord->getSections() as $section) {
+                        foreach ($section->getElements() as $element) {
+                            if (method_exists($element, 'getText')) {
+                                $text .= $element->getText() . " ";
+                            }
+                        }
+                    }
+                    $content = $text;
+                    break;
+
+                default:
+                    $content = ''; // unsupported for quiz generation
+            }
+        } catch (\Exception $e) {
+            Log::error("File extraction failed: " . $e->getMessage());
+        }
+
+        // Clean and trim
+        return trim(Str::limit(preg_replace('/\s+/', ' ', $content), 4000)); // limit ~4k chars
+    }
+
+    private function fetchUrlText(string $url): ?string
+    {
+        try {
+            $html = Http::timeout(10)->get($url)->body();
+
+            // Strip HTML tags and scripts
+            $text = strip_tags(preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html));
+            $text = preg_replace('/\s+/', ' ', $text);
+
+            return Str::limit(trim($text), 4000); // limit length
+        } catch (\Exception $e) {
+            Log::error("Failed to fetch URL content: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    private function fetchYoutubeTranscript(string $youtubeUrl): ?string
+    {
+        try {
+            // Extract video ID
+            preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $youtubeUrl, $matches);
+            if (empty($matches[1])) return null;
+
+            $videoId = $matches[1];
+            $apiUrl = "https://youtubetranscript.com/?server_vid_id={$videoId}";
+
+            $response = Http::timeout(10)->get($apiUrl);
+
+            if ($response->failed()) return null;
+
+            $json = $response->json();
+            if (!is_array($json)) return null;
+
+            $transcript = collect($json)->pluck('text')->implode(' ');
+            return Str::limit(trim($transcript), 4000);
+        } catch (\Exception $e) {
+            Log::error("YouTube transcript fetch failed: " . $e->getMessage());
+            return null;
+        }
+    }
 
     /**
      * Parse the MCQ response from OpenAI API
@@ -336,117 +471,224 @@ class AIController extends Controller
         return view('ai.flashcard.flashcard');
     }
 
+    // public function show_ai_flashcard(Request $request)
+    // {
+    //     $request->validate([
+    //         'text' => 'required|string|max:500',
+    //     ], [
+    //         'text.required' => 'Please enter a topic for your quiz.',
+    //         'text.max' => 'Topic text should not exceed 500 characters.',
+    //     ]);
+
+    //     try {
+    //         $textContent = trim($request->input('text'));
+    //         // $sessionKey = 'flashcards_' . md5($textContent);
+
+    //         // // Check session first to avoid re-calling OpenAI
+    //         // if (session()->has($sessionKey)) {
+    //         //     $flashcards = session()->get($sessionKey);
+
+    //         //     return view('ai.flashcard.flashcard_generated', [
+    //         //         'title' => 'Flashcards on ' . ucfirst($textContent),
+    //         //         'flashcards' => $flashcards,
+    //         //         'topic' => $textContent,
+    //         //     ]);
+    //         // }
+            
+    //         $response = Http::withHeaders([
+    //             'Authorization' => 'Bearer ' . config('services.openai.key'),
+    //             'Content-Type' => 'application/json',
+    //         ])->timeout(15)->post('https://api.openai.com/v1/chat/completions', [
+    //             'model' => 'gpt-3.5-turbo',
+    //             'messages' => [
+    //                 [
+    //                     'role' => 'system',
+    //                     'content' => 'You are an educational assistant specialized in creating comprehensive list of 10 flashcards base on the topic given by the user.',
+    //                 ],
+    //                 [
+    //                     'role' => 'user',
+    //                     'content' => "
+    //                     Generate list of 10 flashcards based on the topic: $textContent
+
+    //                     Make sure each flashcard have 2 sides. 1 side is the question or term, the other is the answer or definition.
+
+    //                     Provide the response in this structure: 
+    //                     {
+    //                         \"flashcards\": [
+    //                             {
+    //                                 \"frontside\": \"term1\",
+    //                                 \"backside\": \"definition1\"
+    //                             },
+    //                             {
+    //                                 \"frontside\": \"term2\",
+    //                                 \"backside\": \"definition2\"
+    //                             },
+    //                             ...
+    //                         ]
+    //                     }
+
+    //                     Ensure that flashcards are distributed evenly and not in a predictable pattern."
+    //                 ]
+    //             ],
+    //             'max_tokens' => 2000,
+    //             'temperature' => 0.7,
+    //         ]);
+            
+    //         if ($response->failed()) {
+    //             // dd("masuk sini 2", $response->body());
+    //             return redirect()->back()->with('error', 'An error occurred while generating the flashcards. Please try again.');
+    //             throw new \Exception("OpenAI API error: " . $response->body());
+    //         }
+            
+    //         $message = $response->json('choices.0.message.content');
+            
+    //         // dd($message);
+    //         $responseData = $response->json();
+    //         $token_used = $responseData['usage']['total_tokens'] ?? 0;
+            
+    //         if (!$message) {
+    //             throw new \Exception("Unexpected response structure from OpenAI.");
+    //         }
+            
+    //         $activityLogId = $this->store_user_activity_log('flashcard', $token_used, $textContent, null);
+            
+    //         $flashcards = $this->parseFlashcard($message);
+
+    //         // dd($flashcards);
+            
+    //         if (empty($flashcards)) {
+    //             return redirect()->back()->with('error', 'An error occurred while generating the flashcards. Please try again.');
+    //             // return back()->withErrors(['error' => 'Could not generate quiz questions. Please try a different topic.']);
+    //         }
+
+    //         // Store flashcards in session to prevent duplicate requests
+    //         // session()->put($sessionKey, $flashcards);            
+            
+    //         return view('ai.flashcard.flashcard_generated', [
+    //             'title' => 'Flashcards on ' . ucfirst($textContent),
+    //             'flashcards' => $flashcards,
+    //             'topic' => $textContent,
+    //             'user_activity_log_id' => $activityLogId
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         \Log::error('Flashcard generation error: ' . $e->getMessage());
+            
+    //         if (str_contains($e->getMessage(), 'timeout')) {
+    //             return redirect()->back()->with('error', 'An error occurred while generating the flashcards. Please try again.');
+    //             // return back()->withErrors(['error' => 'The quiz generation timed out. Please try again or use a simpler topic.']);
+    //         }
+            
+    //         return redirect()->back()->with('error', 'An error occurred while generating the flashcards. Please try again.');
+    //         // return back()->withErrors(['error' => 'Failed to generate quiz. ' . $e->getMessage()]);
+    //     }
+    // }
+
     public function show_ai_flashcard(Request $request)
     {
         $request->validate([
             'text' => 'required|string|max:500',
         ], [
-            'text.required' => 'Please enter a topic for your quiz.',
+            'text.required' => 'Please enter a topic for your flashcards.',
             'text.max' => 'Topic text should not exceed 500 characters.',
         ]);
 
         try {
             $textContent = trim($request->input('text'));
-            // $sessionKey = 'flashcards_' . md5($textContent);
 
-            // // Check session first to avoid re-calling OpenAI
-            // if (session()->has($sessionKey)) {
-            //     $flashcards = session()->get($sessionKey);
-
-            //     return view('ai.flashcard.flashcard_generated', [
-            //         'title' => 'Flashcards on ' . ucfirst($textContent),
-            //         'flashcards' => $flashcards,
-            //         'topic' => $textContent,
-            //     ]);
-            // }
-            
+            // ===== STEP 1: Make API Request =====
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . config('services.openai.key'),
                 'Content-Type' => 'application/json',
-            ])->timeout(15)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-3.5-turbo',
+            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => 'gpt-4o-mini', // or 'gpt-4.1' for top consistency
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are an educational assistant specialized in creating comprehensive list of 10 flashcards base on the topic given by the user.',
+                        'content' => "You are an educational assistant that returns JSON only.
+                        Create exactly 10 high-quality flashcards for a given topic.
+                        Each flashcard must have:
+                        - 'frontside' (the term or question)
+                        - 'backside' (the definition or answer)
+                        Return ONLY a JSON array, no extra text, no markdown.
+                        Example:
+                        [
+                        { 'frontside': 'Photosynthesis', 'backside': 'The process by which green plants convert sunlight into energy.' },
+                        { 'frontside': 'Mitochondria', 'backside': 'The powerhouse of the cell.' }
+                        ]"
                     ],
                     [
                         'role' => 'user',
-                        'content' => "
-                        Generate list of 10 flashcards based on the topic: $textContent
-
-                        Make sure each flashcard have 2 sides. 1 side is the question or term, the other is the answer or definition.
-
-                        Provide the response in this structure: 
-                        {
-                            \"flashcards\": [
-                                {
-                                    \"frontside\": \"term1\",
-                                    \"backside\": \"definition1\"
-                                },
-                                {
-                                    \"frontside\": \"term2\",
-                                    \"backside\": \"definition2\"
-                                },
-                                ...
-                            ]
-                        }
-
-                        Ensure that flashcards are distributed evenly and not in a predictable pattern."
-                    ]
+                        'content' => "Topic: $textContent
+                        Requirements:
+                        - Exactly 10 unique flashcards.
+                        - Each frontside must be a clear term or question.
+                        - Each backside must be a concise but informative answer.
+                        - Return valid JSON array only, no explanation or formatting."
+                    ],
                 ],
                 'max_tokens' => 2000,
-                'temperature' => 0.7,
+                'temperature' => 0.3, // lower = more consistent structure
             ]);
-            
+
+            // ===== STEP 2: Handle API Failure =====
             if ($response->failed()) {
-                // dd("masuk sini 2", $response->body());
-                return redirect()->back()->with('error', 'An error occurred while generating the flashcards. Please try again.');
                 throw new \Exception("OpenAI API error: " . $response->body());
             }
-            
+
             $message = $response->json('choices.0.message.content');
-            
-            // dd($message);
             $responseData = $response->json();
             $token_used = $responseData['usage']['total_tokens'] ?? 0;
-            
+
             if (!$message) {
-                throw new \Exception("Unexpected response structure from OpenAI.");
+                throw new \Exception("Empty response from OpenAI API.");
             }
-            
+
+            // ===== STEP 3: Parse JSON Response =====
+            $flashcards = json_decode($message, true);
+
+            // If model wrapped output in markdown or text, extract JSON substring
+            if (json_last_error() !== JSON_ERROR_NONE && preg_match('/\[\s*{.*}\s*\]/s', $message, $match)) {
+                $flashcards = json_decode($match[0], true);
+            }
+
+            // ===== STEP 4: Validate Data =====
+            if (!is_array($flashcards) || count($flashcards) !== 10) {
+                \Log::warning("AI returned unexpected number of flashcards: " . json_encode($flashcards));
+                throw new \Exception("Generated flashcards did not contain 10 valid entries.");
+            }
+
+            foreach ($flashcards as $i => $card) {
+                if (
+                    !isset($card['frontside'], $card['backside']) ||
+                    !is_string($card['frontside']) ||
+                    !is_string($card['backside'])
+                ) {
+                    throw new \Exception("Invalid flashcard structure at index $i.");
+                }
+            }
+
+            // ===== STEP 5: Log User Activity =====
             $activityLogId = $this->store_user_activity_log('flashcard', $token_used, $textContent, null);
-            
-            $flashcards = $this->parseFlashcard($message);
 
-            // dd($flashcards);
-            
-            if (empty($flashcards)) {
-                return redirect()->back()->with('error', 'An error occurred while generating the flashcards. Please try again.');
-                // return back()->withErrors(['error' => 'Could not generate quiz questions. Please try a different topic.']);
-            }
-
-            // Store flashcards in session to prevent duplicate requests
-            // session()->put($sessionKey, $flashcards);            
-            
+            // ===== STEP 6: Return View =====
             return view('ai.flashcard.flashcard_generated', [
                 'title' => 'Flashcards on ' . ucfirst($textContent),
                 'flashcards' => $flashcards,
                 'topic' => $textContent,
-                'user_activity_log_id' => $activityLogId
+                'user_activity_log_id' => $activityLogId,
             ]);
+
         } catch (\Exception $e) {
             \Log::error('Flashcard generation error: ' . $e->getMessage());
-            
-            if (str_contains($e->getMessage(), 'timeout')) {
-                return redirect()->back()->with('error', 'An error occurred while generating the flashcards. Please try again.');
-                // return back()->withErrors(['error' => 'The quiz generation timed out. Please try again or use a simpler topic.']);
-            }
-            
-            return redirect()->back()->with('error', 'An error occurred while generating the flashcards. Please try again.');
-            // return back()->withErrors(['error' => 'Failed to generate quiz. ' . $e->getMessage()]);
+
+            $errorMsg = str_contains($e->getMessage(), 'timeout')
+                ? 'The flashcard generation took too long. Please try again.'
+                : 'An error occurred while generating the flashcards. Please try again.';
+
+            return redirect()->back()->with('error', $errorMsg);
         }
     }
+
 
     /**
      * Parse the Flashcard response from OpenAI API
@@ -497,100 +739,205 @@ class AIController extends Controller
         return view('ai.word_search_puzzle.word_search_puzzle');
     }
 
+    // public function show_ai_wsp(Request $request)
+    // {
+    //     $request->validate([
+    //         'text' => 'required|string|max:500',
+    //     ], [
+    //         'text.required' => 'Please enter a topic for your quiz.',
+    //         'text.max' => 'Topic text should not exceed 500 characters.',
+    //     ]);
+
+    //     try {
+    //         $textContent = trim($request->input('text'));
+            
+    //         $response = Http::withHeaders([
+    //             'Authorization' => 'Bearer ' . config('services.openai.key'),
+    //             'Content-Type' => 'application/json',
+    //         ])->timeout(15)->post('https://api.openai.com/v1/chat/completions', [
+    //             'model' => 'gpt-3.5-turbo',
+    //             'messages' => [
+    //                 [
+    //                     'role' => 'system',
+    //                     'content' => 'You are an educational assistant specialized in creating list of 10 words that will be used as word search puzzle base on the topic given by the user.',
+    //                 ],
+    //                 [
+    //                     'role' => 'user',
+    //                     'content' => "
+    //                     Generate a list of 10 words for word search puzzle based on the topic: $textContent
+
+    //                     Make sure each word is unique and is related to the topic.
+
+    //                     Provide the response in this structure: 
+    //                     {
+    //                         \"words\": [\"word1\", \"word2\", ...]
+    //                     }
+
+    //                     Ensure that the words are distributed evenly and not in a predictable pattern. The words MUST NOT HAVE SPACINGS. "
+    //                 ]
+    //             ],
+    //             'max_tokens' => 1500,
+    //             'temperature' => 0.7,
+    //         ]);
+            
+    //         if ($response->failed()) {
+    //             return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
+    //             throw new \Exception("OpenAI API error: " . $response->body());
+    //         }
+
+    //         // dd($response->json('choices.0.message.content'));
+            
+    //         $message = $response->json('choices.0.message.content');
+            
+    //         // dd($message);
+    //         $responseData = $response->json();
+    //         $token_used = $responseData['usage']['total_tokens'] ?? 0;
+
+    //         if (!$message) {
+    //             throw new \Exception("Unexpected response structure from OpenAI.");
+    //         }
+
+    //         $activityLogId = $this->store_user_activity_log('wsp', $token_used, $textContent, null);
+            
+    //         $words = $this->parseWsp($message);
+
+    //         // dd($words);
+            
+    //         if (empty($words)) {
+    //             return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
+    //             // return back()->withErrors(['error' => 'Could not generate quiz questions. Please try a different topic.']);
+    //         }
+
+    //         // Generate the word search grid
+    //         $grid = $this->generateWordSearchGrid($words);
+
+    //         // Store flashcards in session to prevent duplicate requests
+    //         // session()->put($sessionKey, $flashcards);            
+            
+    //         return view('ai.word_search_puzzle.word_search_puzzle_generated', [
+    //             'title' => 'Word Search Puzzle on ' . ucfirst($textContent),
+    //             'words' => $words,
+    //             'grid' => $grid,
+    //             'topic' => $textContent,
+    //             'user_activity_log_id' => $activityLogId
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         \Log::error('Word Search Puzzle generation error: ' . $e->getMessage());
+            
+    //         if (str_contains($e->getMessage(), 'timeout')) {
+    //             return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
+    //             // return back()->withErrors(['error' => 'The quiz generation timed out. Please try again or use a simpler topic.']);
+    //         }
+
+    //         return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
+    //         // return back()->withErrors(['error' => 'Failed to generate quiz. ' . $e->getMessage()]);
+    //     }
+    // }
+
     public function show_ai_wsp(Request $request)
     {
         $request->validate([
             'text' => 'required|string|max:500',
         ], [
-            'text.required' => 'Please enter a topic for your quiz.',
+            'text.required' => 'Please enter a topic for your puzzle.',
             'text.max' => 'Topic text should not exceed 500 characters.',
         ]);
 
         try {
             $textContent = trim($request->input('text'));
-            
+
+            // ===== STEP 1: Request OpenAI =====
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . config('services.openai.key'),
                 'Content-Type' => 'application/json',
-            ])->timeout(15)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-3.5-turbo',
+            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => 'gpt-4o-mini',
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'You are an educational assistant specialized in creating list of 10 words that will be used as word search puzzle base on the topic given by the user.',
+                        'content' => "You are an educational assistant that ONLY returns valid JSON.
+                        Generate exactly 10 unique, single words for a word search puzzle about a given topic.
+                        Each word:
+                        - Must relate closely to the topic
+                        - Must not include spaces, numbers, or symbols
+                        - Must be in uppercase (A–Z only)
+                        Return ONLY a JSON array like this:
+                        [\"WORD1\", \"WORD2\", \"WORD3\", ...]"
                     ],
                     [
                         'role' => 'user',
-                        'content' => "
-                        Generate a list of 10 words for word search puzzle based on the topic: $textContent
-
-                        Make sure each word is unique and is related to the topic.
-
-                        Provide the response in this structure: 
-                        {
-                            \"words\": [\"word1\", \"word2\", ...]
-                        }
-
-                        Ensure that the words are distributed evenly and not in a predictable pattern. The words MUST NOT HAVE SPACINGS. "
+                        'content' => "Topic: $textContent
+                        Requirements:
+                        - Output exactly 10 unique uppercase words
+                        - Use only letters (no spaces or punctuation)
+                        - Return valid JSON array only (no explanation, no markdown)."
                     ]
                 ],
-                'max_tokens' => 1500,
-                'temperature' => 0.7,
+                'max_tokens' => 800,
+                'temperature' => 0.4, // Low temp = higher consistency
             ]);
-            
+
             if ($response->failed()) {
-                return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
                 throw new \Exception("OpenAI API error: " . $response->body());
             }
 
-            // dd($response->json('choices.0.message.content'));
-            
+            // ===== STEP 2: Parse the Response =====
             $message = $response->json('choices.0.message.content');
-            
-            // dd($message);
             $responseData = $response->json();
             $token_used = $responseData['usage']['total_tokens'] ?? 0;
 
             if (!$message) {
-                throw new \Exception("Unexpected response structure from OpenAI.");
+                throw new \Exception("Empty response from OpenAI API.");
             }
 
+            // Try direct JSON decode first
+            $words = json_decode($message, true);
+
+            // Fallback if model wrapped JSON inside text or markdown
+            if (json_last_error() !== JSON_ERROR_NONE && preg_match('/\[\s*".*"\s*\]/s', $message, $match)) {
+                $words = json_decode($match[0], true);
+            }
+
+            // ===== STEP 3: Validate Output =====
+            if (!is_array($words) || count($words) !== 10) {
+                \Log::warning("AI returned invalid word list: " . $message);
+                throw new \Exception("Generated list did not contain exactly 10 valid words.");
+            }
+
+            // Ensure words meet conditions
+            $words = array_map('trim', $words);
+            foreach ($words as $i => $word) {
+                if (!preg_match('/^[A-Z]+$/', $word)) {
+                    throw new \Exception("Invalid word format at index $i: $word");
+                }
+            }
+
+            // ===== STEP 4: Log User Activity =====
             $activityLogId = $this->store_user_activity_log('wsp', $token_used, $textContent, null);
-            
-            $words = $this->parseWsp($message);
 
-            // dd($words);
-            
-            if (empty($words)) {
-                return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
-                // return back()->withErrors(['error' => 'Could not generate quiz questions. Please try a different topic.']);
-            }
-
-            // Generate the word search grid
+            // ===== STEP 5: Generate Word Search Grid =====
             $grid = $this->generateWordSearchGrid($words);
 
-            // Store flashcards in session to prevent duplicate requests
-            // session()->put($sessionKey, $flashcards);            
-            
+            // ===== STEP 6: Return the View =====
             return view('ai.word_search_puzzle.word_search_puzzle_generated', [
                 'title' => 'Word Search Puzzle on ' . ucfirst($textContent),
                 'words' => $words,
                 'grid' => $grid,
                 'topic' => $textContent,
-                'user_activity_log_id' => $activityLogId
+                'user_activity_log_id' => $activityLogId,
             ]);
+
         } catch (\Exception $e) {
             \Log::error('Word Search Puzzle generation error: ' . $e->getMessage());
-            
-            if (str_contains($e->getMessage(), 'timeout')) {
-                return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
-                // return back()->withErrors(['error' => 'The quiz generation timed out. Please try again or use a simpler topic.']);
-            }
 
-            return redirect()->back()->with('error', 'An error occurred while generating the word search puzzle. Please try again.');
-            // return back()->withErrors(['error' => 'Failed to generate quiz. ' . $e->getMessage()]);
+            $errorMsg = str_contains($e->getMessage(), 'timeout')
+                ? 'The word search generation took too long. Please try again.'
+                : 'An error occurred while generating the word search puzzle. Please try again.';
+
+            return redirect()->back()->with('error', $errorMsg);
         }
     }
+
 
     /**
      * Parse the Flashcard response from OpenAI API

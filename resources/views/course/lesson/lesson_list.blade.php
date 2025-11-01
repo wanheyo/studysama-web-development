@@ -591,6 +591,14 @@
                                                         @endif
                                                     </div>
                                                 </div>
+
+                                                <!-- Help Text -->
+                                                <div class="alert alert-info mt-4 d-flex align-items-start" role="alert">
+                                                    <i class="ti ti-info-circle me-2 mt-1"></i>
+                                                    <div class="small">
+                                                        <strong>Need help?</strong> Click the Forum button to discuss this resource with other students and instructors.
+                                                    </div>
+                                                </div>
                                                 
                                                 <!-- Stats Card -->
                                                 @if($isTutor)
@@ -687,14 +695,43 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
-                                                <!-- Help Text -->
-                                                <div class="alert alert-info mt-4 d-flex align-items-start" role="alert">
-                                                    <i class="ti ti-info-circle me-2 mt-1"></i>
-                                                    <div class="small">
-                                                        <strong>Need help?</strong> Click the Forum button to discuss this resource with other students and instructors.
+
+                                                @if(!$isTutor)
+                                                <!-- AI-Powered Study Tools -->
+                                                    <div class="card border border-primary mb-4">
+                                                        <div class="card-header bg-primary bg-opacity-10">
+                                                            <h6 class="fw-semibold text-white">
+                                                                <i class="ti ti-sparkles me-2"></i>AI-Powered Study Tools
+                                                            </h6>
+                                                        </div>
+                                                        <div class="card-body p-3">
+                                                            <p class="text-muted small mb-3">
+                                                                Generate interactive study materials from this resource using AI. 
+                                                                <span class="badge bg-success">Best with PDF, DOCX, TXT, URL Links</span>
+                                                            </p>
+                                                            
+                                                            <div class="d-grid gap-2">
+                                                                <button class="btn btn-outline-primary" id="generateMCQBtn">
+                                                                    <i class="ti ti-list-check me-2"></i>Generate MCQ Quiz
+                                                                </button>
+                                                                <button class="btn btn-outline-info" id="generateFlashcardBtn">
+                                                                    <i class="ti ti-cards me-2"></i>Generate Flashcards
+                                                                </button>
+                                                                <button class="btn btn-outline-success" id="generateWordSearchBtn">
+                                                                    <i class="ti ti-grid-dots me-2"></i>Generate Word Search Puzzle
+                                                                </button>
+                                                            </div>
+                                                            
+                                                            <div class="alert alert-warning alert-sm mt-3 mb-0 d-flex align-items-start" role="alert">
+                                                                <i class="ti ti-alert-circle me-2 mt-1 flex-shrink-0"></i>
+                                                                <small>
+                                                                    <strong>Note:</strong> AI generation works best with text-based files (PDF, Word, TXT) or links (Web, YouTube). 
+                                                                    Images and videos require additional processing.
+                                                                </small>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -1743,7 +1780,6 @@
                     studentsCountEl.textContent = resourceData.totalStudents;
                     forumsCountEl.textContent = resourceData.forums;
                 }
-
                 
                 // Update resource info
                 document.getElementById('resourceName').textContent = resourceData.name;
@@ -1782,6 +1818,79 @@
                 if (forumLink) {
                     forumLink.href = "{{ route('resource.forum', ':id') }}".replace(':id', resourceData.idEncrypted);
                 }
+
+                // Set mcq button
+                const mcqBtn = document.getElementById('generateMCQBtn');
+                if (mcqBtn) {
+                    mcqBtn.setAttribute('data-resource-type', resourceData.type);
+                    mcqBtn.setAttribute('data-resource-file-name', resourceData.fileName);
+                    mcqBtn.setAttribute('data-resource-path', resourceData.path);
+
+                    mcqBtn.addEventListener("click", function () {
+                        const type = mcqBtn.getAttribute("data-resource-type");
+                        const fileName = mcqBtn.getAttribute("data-resource-file-name");
+                        const path = mcqBtn.getAttribute("data-resource-path");
+
+                        // 🔹 Create loading overlay
+                        const loadingOverlay = document.createElement("div");
+                        loadingOverlay.innerHTML = `
+                            <div id="aiLoadingOverlay" style="
+                                position: fixed;
+                                top: 0; left: 0; width: 100%; height: 100%;
+                                background: rgba(0,0,0,0.4);
+                                display: flex; flex-direction: column;
+                                justify-content: center; align-items: center;
+                                z-index: 9999;
+                                color: white;
+                                backdrop-filter: blur(2px);
+                            ">
+                                <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status"></div>
+                                <p class="mt-3 fw-semibold">Generating quiz... Please wait</p>
+                            </div>
+                        `;
+                        document.body.appendChild(loadingOverlay);
+
+                        // 🔹 Create hidden form
+                        const form = document.createElement("form");
+                        form.method = "POST";
+                        form.action = "{{ route('ai.mcq_generated') }}";
+
+                        // CSRF token
+                        const csrf = document.createElement("input");
+                        csrf.type = "hidden";
+                        csrf.name = "_token";
+                        csrf.value = "{{ csrf_token() }}";
+                        form.appendChild(csrf);
+
+                        // Fields
+                        const typeInput = document.createElement("input");
+                        typeInput.type = "hidden";
+                        typeInput.name = "type";
+                        typeInput.value = type;
+                        form.appendChild(typeInput);
+
+                        const pathInput = document.createElement("input");
+                        pathInput.type = "hidden";
+                        pathInput.name = "path";
+                        pathInput.value = path;
+                        form.appendChild(pathInput);
+
+                        const fileNameInput = document.createElement("input");
+                        fileNameInput.type = "hidden";
+                        fileNameInput.name = "file_name";
+                        fileNameInput.value = fileName;
+                        form.appendChild(fileNameInput);
+
+                        document.body.appendChild(form);
+
+                        // 🔹 Submit with short delay (so overlay appears before redirect)
+                        setTimeout(() => {
+                            form.submit();
+                        }, 100);
+                    });
+                }
+
+
 
                 if (editBtn) {
                     editBtn.setAttribute('data-resource-id', resourceData.id);
