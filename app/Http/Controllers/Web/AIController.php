@@ -42,6 +42,107 @@ class AIController extends Controller
         return $activity_log->id;
     }
 
+    private function extractTextFromFile($file)
+    {
+        $ext = strtolower(pathinfo($file->getPathname(), PATHINFO_EXTENSION));
+        $content = '';
+
+        try {
+            switch ($ext) {
+                case 'txt':
+                case 'rtf':
+                case 'odt':
+                    $content = file_get_contents($file->getRealPath());
+                    break;
+
+                case 'pdf':
+                    $parser = new PdfParser();
+                    $pdf = $parser->parseFile($file->getRealPath());
+                    $content = $pdf->getText();
+                    break;
+
+                // case 'docx':
+                // case 'docx':
+                //     $zip = new \ZipArchive;
+                //     if ($zip->open($file->getRealPath()) === true) {
+                //         $xmlIndex = 'word/document.xml';
+                //         $content = '';
+                //         if (($index = $zip->locateName($xmlIndex)) !== false) {
+                //             $data = $zip->getFromIndex($index);
+                //             $xml = new \DOMDocument();
+                //             $xml->loadXML($data);
+                //             $content = strip_tags($xml->saveXML());
+                //         }
+                //         $zip->close();
+                //     }
+                //     break;
+
+                default:
+                    $content = ''; // unsupported for quiz generation
+            }
+        } catch (\Exception $e) {
+            Log::error("File extraction failed: " . $e->getMessage());
+        }
+
+        // Clean and trim
+        return trim(Str::limit(preg_replace('/\s+/', ' ', $content), 4000)); // limit ~4k chars
+    }
+
+    private function fetchUrlText(string $url): ?string
+    {
+        try {
+            $html = Http::timeout(10)->get($url)->body();
+
+            // Strip HTML tags and scripts
+            $text = strip_tags(preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html));
+            $text = preg_replace('/\s+/', ' ', $text);
+
+            return Str::limit(trim($text), 4000); // limit length
+        } catch (\Exception $e) {
+            Log::error("Failed to fetch URL content: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    private function fetchYoutubeTranscript(string $youtubeUrl): ?string
+    {
+        try {
+            // Extract video ID
+            preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $youtubeUrl, $matches);
+            if (empty($matches[1])) {
+                Log::error("Invalid YouTube URL: " . $youtubeUrl);
+                return null;
+            }
+
+            $videoId = $matches[1];
+            $apiUrl = "https://youtubetranscript.com/api/?video_id={$videoId}";
+
+            $response = Http::timeout(10)->get($apiUrl);
+
+            if ($response->failed()) {
+                Log::error("YouTube transcript API failed for video: " . $videoId);
+                return null;
+            }
+
+            $json = $response->json();
+            if (!is_array($json)) {
+                Log::error("Invalid JSON returned for YouTube transcript: " . $videoId);
+                return null;
+            }
+
+            // Join transcript segments
+            $transcript = collect($json)
+                ->pluck('text')
+                ->implode(' ');
+
+            return Str::limit(trim($transcript), 4000);
+
+        } catch (\Exception $e) {
+            Log::error("YouTube transcript fetch failed: " . $e->getMessage());
+            return null;
+        }
+    }
+
     public function show_ai_mcq_section()
     {
         return view('ai.mcq.mcq');
@@ -163,6 +264,13 @@ class AIController extends Controller
 
             if (empty($path) && empty($textContent)) {
                 return back()->with('error', 'No input provided.');
+            }
+
+            // $allowedTypes = ['pdf', 'docx', 'doc', 'txt', 'rtf', 'odt', 'link'];
+            $allowedTypes = ['pdf', 'txt', 'rtf', 'odt', 'link'];
+
+            if (!in_array($type, $allowedTypes) && !$textContent) {
+                return back()->with('error', 'Unsupported file type. AI generation works only for text-based or link resources.');
             }
 
             $promptContent = '';
@@ -294,92 +402,6 @@ class AIController extends Controller
         } catch (\Exception $e) {
             Log::error('Quiz generation error: ' . $e->getMessage());
             return back()->with('error', 'An error occurred while generating the quiz. Please try again.');
-        }
-    }
-
-
-    private function extractTextFromFile($file)
-    {
-        $ext = strtolower(pathinfo($file->getPathname(), PATHINFO_EXTENSION));
-        $content = '';
-
-        try {
-            switch ($ext) {
-                case 'txt':
-                case 'rtf':
-                case 'odt':
-                    $content = file_get_contents($file->getRealPath());
-                    break;
-
-                case 'pdf':
-                    $parser = new PdfParser();
-                    $pdf = $parser->parseFile($file->getRealPath());
-                    $content = $pdf->getText();
-                    break;
-
-                case 'docx':
-                case 'doc':
-                    $phpWord = IOFactory::load($file->getRealPath());
-                    $text = '';
-                    foreach ($phpWord->getSections() as $section) {
-                        foreach ($section->getElements() as $element) {
-                            if (method_exists($element, 'getText')) {
-                                $text .= $element->getText() . " ";
-                            }
-                        }
-                    }
-                    $content = $text;
-                    break;
-
-                default:
-                    $content = ''; // unsupported for quiz generation
-            }
-        } catch (\Exception $e) {
-            Log::error("File extraction failed: " . $e->getMessage());
-        }
-
-        // Clean and trim
-        return trim(Str::limit(preg_replace('/\s+/', ' ', $content), 4000)); // limit ~4k chars
-    }
-
-    private function fetchUrlText(string $url): ?string
-    {
-        try {
-            $html = Http::timeout(10)->get($url)->body();
-
-            // Strip HTML tags and scripts
-            $text = strip_tags(preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html));
-            $text = preg_replace('/\s+/', ' ', $text);
-
-            return Str::limit(trim($text), 4000); // limit length
-        } catch (\Exception $e) {
-            Log::error("Failed to fetch URL content: " . $e->getMessage());
-            return null;
-        }
-    }
-
-    private function fetchYoutubeTranscript(string $youtubeUrl): ?string
-    {
-        try {
-            // Extract video ID
-            preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $youtubeUrl, $matches);
-            if (empty($matches[1])) return null;
-
-            $videoId = $matches[1];
-            $apiUrl = "https://youtubetranscript.com/?server_vid_id={$videoId}";
-
-            $response = Http::timeout(10)->get($apiUrl);
-
-            if ($response->failed()) return null;
-
-            $json = $response->json();
-            if (!is_array($json)) return null;
-
-            $transcript = collect($json)->pluck('text')->implode(' ');
-            return Str::limit(trim($transcript), 4000);
-        } catch (\Exception $e) {
-            Log::error("YouTube transcript fetch failed: " . $e->getMessage());
-            return null;
         }
     }
 
@@ -586,48 +608,112 @@ class AIController extends Controller
     public function show_ai_flashcard(Request $request)
     {
         $request->validate([
-            'text' => 'required|string|max:500',
+            'text' => 'nullable|string|max:500',
+            'path' => 'nullable|string',
+            'type' => 'nullable|string',
         ], [
-            'text.required' => 'Please enter a topic for your flashcards.',
             'text.max' => 'Topic text should not exceed 500 characters.',
         ]);
 
         try {
-            $textContent = trim($request->input('text'));
+            $type = strtolower(trim($request->input('type', '')));
+            $path = trim($request->input('path', ''));
+            $textContent = trim($request->input('text', ''));
+
+            if (empty($path) && empty($textContent)) {
+                return back()->with('error', 'No input provided.');
+            }
+
+            $allowedTypes = ['pdf', 'txt', 'rtf', 'odt', 'link'];
+
+            if (!in_array($type, $allowedTypes) && !$textContent) {
+                return back()->with('error', 'Unsupported file type. AI flashcards work only for text-based or link resources.');
+            }
+
+            $promptContent = '';
+            $sourceName = 'Custom Topic';
+
+            Log::info('AI Flashcard Request:', ['type' => $type, 'path' => $path]);
+
+            // ========= AUTO DETECTION =========
+            if (in_array($type, ['pdf', 'docx', 'doc', 'txt', 'rtf', 'odt'])) {
+                // File-based resource
+                $relativePath = str_replace(url('/') . '/storage', 'storage', $path);
+                $localPath = public_path($relativePath);
+
+                if (!file_exists($localPath)) {
+                    Log::error("File not found at: " . $localPath);
+                    return back()->with('error', 'The resource file could not be found on the server.');
+                }
+
+                $promptContent = $this->extractTextFromFile(new \Illuminate\Http\File($localPath));
+                $sourceName = basename($localPath);
+
+                if (empty($promptContent)) {
+                    return back()->with('error', 'Unable to extract readable text from the uploaded file.');
+                }
+
+            } elseif (Str::startsWith($path, [url('/') . '/storage/uploads/resource_file'])) {
+                // Local storage file (auto-detect)
+                $relativePath = str_replace(url('/') . '/storage', 'storage', $path);
+                $localPath = public_path($relativePath);
+
+                if (!file_exists($localPath)) {
+                    Log::error("Local storage file not found: " . $localPath);
+                    return back()->with('error', 'The local resource file could not be found.');
+                }
+
+                $promptContent = $this->extractTextFromFile(new \Illuminate\Http\File($localPath));
+                $sourceName = basename($localPath);
+
+            } elseif ($type === 'link' || Str::startsWith($path, ['http://', 'https://'])) {
+                // External link
+                if (Str::contains($path, ['youtube.com', 'youtu.be'])) {
+                    $promptContent = $this->fetchYoutubeTranscript($path);
+                    $sourceName = 'YouTube Video';
+                } else {
+                    $promptContent = $this->fetchUrlText($path);
+                    $sourceName = 'Web Link';
+                }
+
+                if (empty($promptContent)) {
+                    return back()->with('error', 'Could not extract content from the provided link.');
+                }
+
+            } else {
+                // Raw text input
+                $promptContent = $textContent ?: $path;
+                $sourceName = 'Topic Input';
+            }
 
             // ===== STEP 1: Make API Request =====
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . config('services.openai.key'),
                 'Content-Type' => 'application/json',
-            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-4o-mini', // or 'gpt-4.1' for top consistency
+            ])->timeout(40)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => 'gpt-4o-mini',
                 'messages' => [
                     [
                         'role' => 'system',
                         'content' => "You are an educational assistant that returns JSON only.
-                        Create exactly 10 high-quality flashcards for a given topic.
+                        Create exactly 10 high-quality flashcards that help learners understand key ideas.
                         Each flashcard must have:
-                        - 'frontside' (the term or question)
-                        - 'backside' (the definition or answer)
-                        Return ONLY a JSON array, no extra text, no markdown.
+                        - 'frontside' (term or question)
+                        - 'backside' (definition or answer)
+                        Return ONLY a valid JSON array with 10 items, no markdown or extra text.
                         Example:
                         [
-                        { 'frontside': 'Photosynthesis', 'backside': 'The process by which green plants convert sunlight into energy.' },
-                        { 'frontside': 'Mitochondria', 'backside': 'The powerhouse of the cell.' }
+                        {\"frontside\": \"Photosynthesis\", \"backside\": \"Process by which green plants convert sunlight into energy.\"},
+                        {\"frontside\": \"Mitochondria\", \"backside\": \"Powerhouse of the cell.\"}
                         ]"
                     ],
                     [
                         'role' => 'user',
-                        'content' => "Topic: $textContent
-                        Requirements:
-                        - Exactly 10 unique flashcards.
-                        - Each frontside must be a clear term or question.
-                        - Each backside must be a concise but informative answer.
-                        - Return valid JSON array only, no explanation or formatting."
+                        'content' => "Content Source: {$sourceName}\n\n{$promptContent}\n\nGenerate exactly 10 unique flashcards, return JSON only."
                     ],
                 ],
                 'max_tokens' => 2000,
-                'temperature' => 0.3, // lower = more consistent structure
+                'temperature' => 0.3,
             ]);
 
             // ===== STEP 2: Handle API Failure =====
@@ -636,8 +722,7 @@ class AIController extends Controller
             }
 
             $message = $response->json('choices.0.message.content');
-            $responseData = $response->json();
-            $token_used = $responseData['usage']['total_tokens'] ?? 0;
+            $token_used = $response->json('usage.total_tokens') ?? 0;
 
             if (!$message) {
                 throw new \Exception("Empty response from OpenAI API.");
@@ -646,14 +731,14 @@ class AIController extends Controller
             // ===== STEP 3: Parse JSON Response =====
             $flashcards = json_decode($message, true);
 
-            // If model wrapped output in markdown or text, extract JSON substring
+            // Handle wrapped JSON
             if (json_last_error() !== JSON_ERROR_NONE && preg_match('/\[\s*{.*}\s*\]/s', $message, $match)) {
                 $flashcards = json_decode($match[0], true);
             }
 
             // ===== STEP 4: Validate Data =====
             if (!is_array($flashcards) || count($flashcards) !== 10) {
-                \Log::warning("AI returned unexpected number of flashcards: " . json_encode($flashcards));
+                Log::warning("AI returned unexpected flashcard count: " . json_encode($flashcards));
                 throw new \Exception("Generated flashcards did not contain 10 valid entries.");
             }
 
@@ -668,26 +753,27 @@ class AIController extends Controller
             }
 
             // ===== STEP 5: Log User Activity =====
-            $activityLogId = $this->store_user_activity_log('flashcard', $token_used, $textContent, null);
+            $activityLogId = $this->store_user_activity_log('flashcard', $token_used, $textContent ?: $sourceName, null);
 
             // ===== STEP 6: Return View =====
             return view('ai.flashcard.flashcard_generated', [
-                'title' => 'Flashcards on ' . ucfirst($textContent),
+                'title' => 'Flashcards on ' . ucfirst($textContent ?: $sourceName),
                 'flashcards' => $flashcards,
-                'topic' => $textContent,
+                'topic' => $textContent ?: $sourceName,
                 'user_activity_log_id' => $activityLogId,
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Flashcard generation error: ' . $e->getMessage());
+            Log::error('Flashcard generation error: ' . $e->getMessage());
 
             $errorMsg = str_contains($e->getMessage(), 'timeout')
                 ? 'The flashcard generation took too long. Please try again.'
                 : 'An error occurred while generating the flashcards. Please try again.';
 
-            return redirect()->back()->with('error', $errorMsg);
+            return back()->with('error', $errorMsg);
         }
     }
+
 
 
     /**
@@ -837,20 +923,89 @@ class AIController extends Controller
     public function show_ai_wsp(Request $request)
     {
         $request->validate([
-            'text' => 'required|string|max:500',
+            'text' => 'nullable|string|max:500',
+            'path' => 'nullable|string',
+            'type' => 'nullable|string',
         ], [
-            'text.required' => 'Please enter a topic for your puzzle.',
             'text.max' => 'Topic text should not exceed 500 characters.',
         ]);
 
         try {
-            $textContent = trim($request->input('text'));
+            $type = strtolower(trim($request->input('type', '')));
+            $path = trim($request->input('path', ''));
+            $textContent = trim($request->input('text', ''));
+
+            if (empty($path) && empty($textContent)) {
+                return back()->with('error', 'No input provided.');
+            }
+
+            $allowedTypes = ['pdf', 'txt', 'rtf', 'odt', 'link'];
+
+            if (!in_array($type, $allowedTypes) && !$textContent) {
+                return back()->with('error', 'Unsupported file type. AI puzzle generation works only for text-based or link resources.');
+            }
+
+            $promptContent = '';
+            $sourceName = 'Custom Topic';
+
+            Log::info('AI Word Search Request:', ['type' => $type, 'path' => $path]);
+
+            // ========= AUTO DETECTION =========
+            if (in_array($type, ['pdf', 'docx', 'doc', 'txt', 'rtf', 'odt'])) {
+                // File input
+                $relativePath = str_replace(url('/') . '/storage', 'storage', $path);
+                $localPath = public_path($relativePath);
+
+                if (!file_exists($localPath)) {
+                    Log::error("File not found at: " . $localPath);
+                    return back()->with('error', 'The resource file could not be found on the server.');
+                }
+
+                $promptContent = $this->extractTextFromFile(new \Illuminate\Http\File($localPath));
+                $sourceName = basename($localPath);
+
+                if (empty($promptContent)) {
+                    return back()->with('error', 'Unable to extract readable text from the uploaded file.');
+                }
+
+            } elseif (Str::startsWith($path, [url('/') . '/storage/uploads/resource_file'])) {
+                // Local storage file
+                $relativePath = str_replace(url('/') . '/storage', 'storage', $path);
+                $localPath = public_path($relativePath);
+
+                if (!file_exists($localPath)) {
+                    Log::error("Local storage file not found: " . $localPath);
+                    return back()->with('error', 'The local resource file could not be found.');
+                }
+
+                $promptContent = $this->extractTextFromFile(new \Illuminate\Http\File($localPath));
+                $sourceName = basename($localPath);
+
+            } elseif ($type === 'link' || Str::startsWith($path, ['http://', 'https://'])) {
+                // External link
+                if (Str::contains($path, ['youtube.com', 'youtu.be'])) {
+                    $promptContent = $this->fetchYoutubeTranscript($path);
+                    $sourceName = 'YouTube Video';
+                } else {
+                    $promptContent = $this->fetchUrlText($path);
+                    $sourceName = 'Web Link';
+                }
+
+                if (empty($promptContent)) {
+                    return back()->with('error', 'Could not extract content from the provided link.');
+                }
+
+            } else {
+                // Text topic input
+                $promptContent = $textContent ?: $path;
+                $sourceName = 'Topic Input';
+            }
 
             // ===== STEP 1: Request OpenAI =====
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . config('services.openai.key'),
                 'Content-Type' => 'application/json',
-            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
+            ])->timeout(40)->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-4o-mini',
                 'messages' => [
                     [
@@ -866,15 +1021,11 @@ class AIController extends Controller
                     ],
                     [
                         'role' => 'user',
-                        'content' => "Topic: $textContent
-                        Requirements:
-                        - Output exactly 10 unique uppercase words
-                        - Use only letters (no spaces or punctuation)
-                        - Return valid JSON array only (no explanation, no markdown)."
+                        'content' => "Content Source: {$sourceName}\n\n{$promptContent}\n\nGenerate exactly 10 unique uppercase words related to the content. Return JSON array only."
                     ]
                 ],
                 'max_tokens' => 800,
-                'temperature' => 0.4, // Low temp = higher consistency
+                'temperature' => 0.4,
             ]);
 
             if ($response->failed()) {
@@ -883,28 +1034,26 @@ class AIController extends Controller
 
             // ===== STEP 2: Parse the Response =====
             $message = $response->json('choices.0.message.content');
-            $responseData = $response->json();
-            $token_used = $responseData['usage']['total_tokens'] ?? 0;
+            $token_used = $response->json('usage.total_tokens') ?? 0;
 
             if (!$message) {
                 throw new \Exception("Empty response from OpenAI API.");
             }
 
-            // Try direct JSON decode first
+            // Try direct JSON decode
             $words = json_decode($message, true);
 
-            // Fallback if model wrapped JSON inside text or markdown
+            // Fallback if JSON is wrapped in text
             if (json_last_error() !== JSON_ERROR_NONE && preg_match('/\[\s*".*"\s*\]/s', $message, $match)) {
                 $words = json_decode($match[0], true);
             }
 
             // ===== STEP 3: Validate Output =====
             if (!is_array($words) || count($words) !== 10) {
-                \Log::warning("AI returned invalid word list: " . $message);
+                Log::warning("AI returned invalid word list: " . $message);
                 throw new \Exception("Generated list did not contain exactly 10 valid words.");
             }
 
-            // Ensure words meet conditions
             $words = array_map('trim', $words);
             foreach ($words as $i => $word) {
                 if (!preg_match('/^[A-Z]+$/', $word)) {
@@ -913,30 +1062,31 @@ class AIController extends Controller
             }
 
             // ===== STEP 4: Log User Activity =====
-            $activityLogId = $this->store_user_activity_log('wsp', $token_used, $textContent, null);
+            $activityLogId = $this->store_user_activity_log('wsp', $token_used, $textContent ?: $sourceName, null);
 
             // ===== STEP 5: Generate Word Search Grid =====
             $grid = $this->generateWordSearchGrid($words);
 
             // ===== STEP 6: Return the View =====
             return view('ai.word_search_puzzle.word_search_puzzle_generated', [
-                'title' => 'Word Search Puzzle on ' . ucfirst($textContent),
+                'title' => 'Word Search Puzzle on ' . ucfirst($textContent ?: $sourceName),
                 'words' => $words,
                 'grid' => $grid,
-                'topic' => $textContent,
+                'topic' => $textContent ?: $sourceName,
                 'user_activity_log_id' => $activityLogId,
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Word Search Puzzle generation error: ' . $e->getMessage());
+            Log::error('Word Search Puzzle generation error: ' . $e->getMessage());
 
             $errorMsg = str_contains($e->getMessage(), 'timeout')
                 ? 'The word search generation took too long. Please try again.'
                 : 'An error occurred while generating the word search puzzle. Please try again.';
 
-            return redirect()->back()->with('error', $errorMsg);
+            return back()->with('error', $errorMsg);
         }
     }
+
 
 
     /**

@@ -707,7 +707,7 @@
                                                         <div class="card-body p-3">
                                                             <p class="text-muted small mb-3">
                                                                 Generate interactive study materials from this resource using AI. 
-                                                                <span class="badge bg-success">Best with PDF, DOCX, TXT, URL Links</span>
+                                                                {{-- <span class="badge bg-success">Best with PDF, DOCX, TXT, URL Links</span> --}}
                                                             </p>
                                                             
                                                             <div class="d-grid gap-2">
@@ -725,8 +725,8 @@
                                                             <div class="alert alert-warning alert-sm mt-3 mb-0 d-flex align-items-start" role="alert">
                                                                 <i class="ti ti-alert-circle me-2 mt-1 flex-shrink-0"></i>
                                                                 <small>
-                                                                    <strong>Note:</strong> AI generation works best with text-based files (PDF, Word, TXT) or links (Web, YouTube). 
-                                                                    Images and videos require additional processing.
+                                                                    AI generation <strong>works only for text-based</strong> (pdf, docx, doc, txt, rtf, odt) or <strong>url link</strong> (website) resources.
+                                                                    <strong>Please review</strong> the generated content for accuracy before use. AI-generated materials <strong> may contain errors or inaccuracies</strong>.
                                                                 </small>
                                                             </div>
                                                         </div>
@@ -1831,7 +1831,7 @@
                         const fileName = mcqBtn.getAttribute("data-resource-file-name");
                         const path = mcqBtn.getAttribute("data-resource-path");
 
-                        // 🔹 Create loading overlay
+                        // Create loading overlay
                         const loadingOverlay = document.createElement("div");
                         loadingOverlay.innerHTML = `
                             <div id="aiLoadingOverlay" style="
@@ -1850,7 +1850,7 @@
                         `;
                         document.body.appendChild(loadingOverlay);
 
-                        // 🔹 Create hidden form
+                        // Create hidden form
                         const form = document.createElement("form");
                         form.method = "POST";
                         form.action = "{{ route('ai.mcq_generated') }}";
@@ -1883,14 +1883,154 @@
 
                         document.body.appendChild(form);
 
-                        // 🔹 Submit with short delay (so overlay appears before redirect)
+                        // Submit with short delay (so overlay appears before redirect)
                         setTimeout(() => {
                             form.submit();
                         }, 100);
                     });
                 }
 
+                // Set flashcard button
+                const flashcardBtn = document.getElementById('generateFlashcardBtn');
+                if (flashcardBtn) {
+                    flashcardBtn.setAttribute('data-resource-type', resourceData.type);
+                    flashcardBtn.setAttribute('data-resource-file-name', resourceData.fileName);
+                    flashcardBtn.setAttribute('data-resource-path', resourceData.path);
 
+                    flashcardBtn.addEventListener("click", function () {
+                        const type = flashcardBtn.getAttribute("data-resource-type");
+                        const fileName = flashcardBtn.getAttribute("data-resource-file-name");
+                        const path = flashcardBtn.getAttribute("data-resource-path");
+
+                        // Create loading overlay
+                        const loadingOverlay = document.createElement("div");
+                        loadingOverlay.innerHTML = `
+                            <div id="aiLoadingOverlay" style="
+                                position: fixed;
+                                top: 0; left: 0; width: 100%; height: 100%;
+                                background: rgba(0,0,0,0.4);
+                                display: flex; flex-direction: column;
+                                justify-content: center; align-items: center;
+                                z-index: 9999;
+                                color: white;
+                                backdrop-filter: blur(2px);
+                            ">
+                                <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status"></div>
+                                <p class="mt-3 fw-semibold">Generating flashcards... Please wait</p>
+                            </div>
+                        `;
+                        document.body.appendChild(loadingOverlay);
+
+                        // Create hidden form
+                        const form = document.createElement("form");
+                        form.method = "POST";
+                        form.action = "{{ route('ai.flashcard_generated') }}";
+
+                        // CSRF token
+                        const csrf = document.createElement("input");
+                        csrf.type = "hidden";
+                        csrf.name = "_token";
+                        csrf.value = "{{ csrf_token() }}";
+                        form.appendChild(csrf);
+
+                        // Fields
+                        const typeInput = document.createElement("input");
+                        typeInput.type = "hidden";
+                        typeInput.name = "type";
+                        typeInput.value = type;
+                        form.appendChild(typeInput);
+
+                        const pathInput = document.createElement("input");
+                        pathInput.type = "hidden";
+                        pathInput.name = "path";
+                        pathInput.value = path;
+                        form.appendChild(pathInput);
+
+                        const fileNameInput = document.createElement("input");
+                        fileNameInput.type = "hidden";
+                        fileNameInput.name = "file_name";
+                        fileNameInput.value = fileName;
+                        form.appendChild(fileNameInput);
+
+                        document.body.appendChild(form);
+
+                        // Submit with short delay (so overlay appears before redirect)
+                        setTimeout(() => {
+                            form.submit();
+                        }, 100);
+                    });
+                }
+
+                // Set wsp button
+                const wordSearchBtn = document.getElementById('generateWordSearchBtn');
+                if (wordSearchBtn) {
+                    wordSearchBtn.setAttribute('data-resource-type', resourceData.type);
+                    wordSearchBtn.setAttribute('data-resource-file-name', resourceData.fileName);
+                    wordSearchBtn.setAttribute('data-resource-path', resourceData.path);
+
+                    wordSearchBtn.addEventListener("click", function () {
+                        const type = wordSearchBtn.getAttribute("data-resource-type");
+                        const fileName = wordSearchBtn.getAttribute("data-resource-file-name");
+                        const path = wordSearchBtn.getAttribute("data-resource-path");
+
+                        // Create loading overlay
+                        const loadingOverlay = document.createElement("div");
+                        loadingOverlay.innerHTML = `
+                            <div id="aiLoadingOverlay" style="
+                                position: fixed;
+                                top: 0; left: 0; width: 100%; height: 100%;
+                                background: rgba(0,0,0,0.4);
+                                display: flex; flex-direction: column;
+                                justify-content: center; align-items: center;
+                                z-index: 9999;
+                                color: white;
+                                backdrop-filter: blur(2px);
+                            ">
+                                <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status"></div>
+                                <p class="mt-3 fw-semibold">Generating word search puzzle... Please wait</p>
+                            </div>
+                        `;
+                        document.body.appendChild(loadingOverlay);
+
+                        // Create hidden form
+                        const form = document.createElement("form");
+                        form.method = "POST";
+                        form.action = "{{ route('ai.word_search_puzzle_generated') }}";
+
+                        // CSRF token
+                        const csrf = document.createElement("input");
+                        csrf.type = "hidden";
+                        csrf.name = "_token";
+                        csrf.value = "{{ csrf_token() }}";
+                        form.appendChild(csrf);
+
+                        // Fields
+                        const typeInput = document.createElement("input");
+                        typeInput.type = "hidden";
+                        typeInput.name = "type";
+                        typeInput.value = type;
+                        form.appendChild(typeInput);
+
+                        const pathInput = document.createElement("input");
+                        pathInput.type = "hidden";
+                        pathInput.name = "path";
+                        pathInput.value = path;
+                        form.appendChild(pathInput);
+
+                        const fileNameInput = document.createElement("input");
+                        fileNameInput.type = "hidden";
+                        fileNameInput.name = "file_name";
+                        fileNameInput.value = fileName;
+                        form.appendChild(fileNameInput);
+
+                        document.body.appendChild(form);
+
+                        // Submit with short delay (so overlay appears before redirect)
+                        setTimeout(() => {
+                            form.submit();
+                        }, 100);
+                    });
+                }
 
                 if (editBtn) {
                     editBtn.setAttribute('data-resource-id', resourceData.id);
