@@ -391,11 +391,9 @@
                                                                             </div>
                                                                         {{-- VIDEO FILES --}}
                                                                         @elseif(in_array(strtolower($resource->resourceFile->type), ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'webm']))
-                                                                            <div class="thumbnail-image-wrapper position-relative overflow-hidden">
-                                                                                <video src="{{ asset('storage/uploads/resource_file/' . $resource->resourceFile->name) }}" class="w-100" style="height: 180px; object-fit: cover;" muted></video>
-                                                                                <div class="position-absolute top-50 start-50 translate-middle text-white">
-                                                                                    <i class="ph-bold ph-play-circle" style="font-size: 3rem; opacity: 0.85;"></i>
-                                                                                </div>
+                                                                            <div class="thumbnail-image-wrapper d-flex flex-column align-items-center justify-content-center p-3">
+                                                                                <i class="ph-bold ph-play-circle mb-2" style="font-size: 2rem;"></i>
+                                                                                <span class="small">Video File</span>
                                                                                 <div class="thumbnail-badge">
                                                                                     <i class="ph-bold ph-film-strip" style="color: white;"></i> {{ strtoupper($resource->resourceFile->type) }}
                                                                                 </div>
@@ -404,8 +402,8 @@
                                                                         {{-- AUDIO FILES --}}
                                                                         @elseif(in_array(strtolower($resource->resourceFile->type), ['mp3', 'wav', 'm4a', 'aac', 'flac']))
                                                                             <div class="thumbnail-image-wrapper d-flex flex-column align-items-center justify-content-center p-3">
-                                                                                <i class="ph-bold ph-speaker-high text-white mb-2" style="font-size: 2rem;"></i>
-                                                                                <span class="text-white small">Audio File</span>
+                                                                                <i class="ph-bold ph-speaker-high mb-2" style="font-size: 2rem;"></i>
+                                                                                <span class="small">Audio File</span>
                                                                                 <div class="thumbnail-badge">
                                                                                     <i class="ph-bold ph-music-note" style="color: white;"></i> {{ strtoupper($resource->resourceFile->type) }}
                                                                                 </div>
@@ -561,6 +559,18 @@
                                                     <a id="downloadBtn" href="#" class="btn btn-primary btn-lg" download>
                                                         <i class="ti ti-download me-2"></i> Download Resource
                                                     </a>
+                                                    {{-- <button id="previewBtn" class="btn btn-dark btn-lg" data-bs-toggle="modal" data-bs-target="#resourcePreviewModal">
+                                                        <i class="ti ti-arrows-maximize me-2"></i> Preview Fullscreen
+                                                    </button> --}}
+                                                    <button 
+                                                        id="previewBtn" 
+                                                        class="btn btn-outline-dark btn-lg" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#resourcePreviewModal">
+                                                        <i class="ti ti-eye me-2"></i> Preview
+                                                    </button>
+
+
                                                     
                                                     <div class="row g-2">
                                                         @if ($isTutor)
@@ -599,48 +609,6 @@
                                                         <strong>Need help?</strong> Click the Forum button to discuss this resource with other students and instructors.
                                                     </div>
                                                 </div>
-                                                
-                                                <!-- Stats Card -->
-                                                @if($isTutor)
-                                                    <div class="card shadow-sm border">
-                                                        <div class="card-header bg-light">
-                                                            <h6 class="fw-semibold">
-                                                                <i class="ti ti-chart-bar me-2"></i>Resource Statistics
-                                                            </h6>
-                                                        </div>
-                                                        <div class="card-body">
-                                                            <div class="row text-center">
-                                                                <div class="col-6 border-end">
-                                                                    <a href="#" id="resourceStatsCardLink" class="text-decoration-none">
-                                                                        <div class="py-2">
-                                                                            <div class="d-flex align-items-center justify-content-center mb-2">
-                                                                                <i class="ti ti-circle-check fs-4 text-success me-2"></i>
-                                                                                <div>
-                                                                                    <span class="fs-4 fw-bold text-dark" id="completedCount">0</span>
-                                                                                    <span class="text-muted mx-1">/</span>
-                                                                                    <span class="fs-5 text-muted" id="studentsCount">0</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <p class="text-muted mb-0 small">Students Completed</p>
-                                                                        </div>
-                                                                    </a>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <a href="#" id="resourceForumCardLink" class="text-decoration-none">
-                                                                        <div class="py-2">
-                                                                            <div class="d-flex align-items-center justify-content-center mb-2">
-                                                                                <i class="ti ti-message-circle fs-4 text-info me-2"></i>
-                                                                                <span class="fs-4 fw-bold text-dark" id="forumsCount">0</span>
-                                                                                {{-- <span class="fs-4 fw-bold text-dark" id="commentsCount">0</span> --}}
-                                                                            </div>
-                                                                            <p class="text-muted mb-0 small">Forum Discussions</p>
-                                                                        </div>
-                                                                    </a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
                                             </div>
                                         </div>
                                         
@@ -698,8 +666,8 @@
 
                                                 @if(!$isTutor)
                                                 <!-- AI-Powered Study Tools -->
-                                                    <div class="card border border-primary mb-4">
-                                                        <div class="card-header bg-primary bg-opacity-10">
+                                                    <div class="card border">
+                                                        <div class="card-header bg-primary">
                                                             <h6 class="fw-semibold text-white">
                                                                 <i class="ti ti-sparkles me-2"></i>AI-Powered Study Tools
                                                             </h6>
@@ -725,9 +693,51 @@
                                                             <div class="alert alert-warning alert-sm mt-3 mb-0 d-flex align-items-start" role="alert">
                                                                 <i class="ti ti-alert-circle me-2 mt-1 flex-shrink-0"></i>
                                                                 <small>
-                                                                    AI generation <strong>works only for text-based</strong> (pdf, docx, doc, txt, rtf, odt) or <strong>url link</strong> (website) resources.
+                                                                    AI generation <strong>works only for PDF</strong> file type or <strong>url link</strong> (website) resources.
                                                                     <strong>Please review</strong> the generated content for accuracy before use. AI-generated materials <strong> may contain errors or inaccuracies</strong>.
                                                                 </small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                                <!-- Stats Card -->
+                                                @if($isTutor)
+                                                    <div class="card border">
+                                                        <div class="card-header bg-light">
+                                                            <h6 class="fw-semibold">
+                                                                <i class="ti ti-chart-bar me-2"></i>Resource Statistics
+                                                            </h6>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="row text-center">
+                                                                <div class="col-6 border-end">
+                                                                    <a href="#" id="resourceStatsCardLink" class="text-decoration-none">
+                                                                        <div class="py-2">
+                                                                            <div class="d-flex align-items-center justify-content-center mb-2">
+                                                                                <i class="ti ti-circle-check fs-4 text-success me-2"></i>
+                                                                                <div>
+                                                                                    <span class="fs-4 fw-bold text-dark" id="completedCount">0</span>
+                                                                                    <span class="text-muted mx-1">/</span>
+                                                                                    <span class="fs-5 text-muted" id="studentsCount">0</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <p class="text-muted mb-0 small">Students Completed</p>
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <a href="#" id="resourceForumCardLink" class="text-decoration-none">
+                                                                        <div class="py-2">
+                                                                            <div class="d-flex align-items-center justify-content-center mb-2">
+                                                                                <i class="ti ti-message-circle fs-4 text-info me-2"></i>
+                                                                                <span class="fs-4 fw-bold text-dark" id="forumsCount">0</span>
+                                                                                {{-- <span class="fs-4 fw-bold text-dark" id="commentsCount">0</span> --}}
+                                                                            </div>
+                                                                            <p class="text-muted mb-0 small">Forum Discussions</p>
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -905,7 +915,7 @@
                                                             <input type="hidden" name="file_name" id="file_name">
                                                             <input type="hidden" name="file_type" id="file_type">
                                                             <div class="text-center text-muted mt-2">
-                                                                <small>Supported formats: jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, mp4, mov, avi, mkv, wmv, webm, mp3, wav, m4a, aac, flac (Max: 100MB)</small>
+                                                                <small>Supported formats: jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, ppt, pptx, xls, xlsx, csv, mp4, mov, avi, mkv, wmv, webm, mp3, wav, m4a, aac, flac (Max: 100MB)</small>
                                                             </div>
                                                             
                                                         </div>
@@ -1050,6 +1060,66 @@
                         </div>
                     </div>
                     <!--resourceEditModal modal end -->
+
+                    <!-- Resource Preview Modal Start -->
+                    <div class="modal fade" id="resourcePreviewModal" tabindex="-1" aria-labelledby="resourcePreviewModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-fullscreen">
+                            <div class="modal-content bg-dark">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title text-white" id="resourcePreviewModalLabel">
+                                        <i class="ti ti-eye me-2"></i> Resource Preview
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body bg-dark p-0">
+                                    <div id="resourcePreviewContainer" class="h-100 d-flex justify-content-center align-items-center position-relative">
+                                        <!-- Loading Spinner -->
+                                        <div id="resourcePreviewLoading" class="text-center">
+                                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                                            <p class="text-muted">Loading preview...</p>
+                                        </div>
+
+                                        <!-- Dynamic Preview Content -->
+                                        <iframe id="resourcePreviewIframe" 
+                                                src="" 
+                                                class="w-100 h-100 border-0 d-none"
+                                                allowfullscreen></iframe>
+
+                                        <img id="resourcePreviewImage" 
+                                            src="" 
+                                            class="img-fluid rounded shadow d-none" 
+                                            style="max-height: 90%; max-width: 90%;" 
+                                            alt="Resource Preview">
+
+                                        <video id="resourcePreviewVideo" 
+                                            controls 
+                                            class="d-none w-100 h-100">
+                                            <source id="resourcePreviewVideoSource" src="" type="video/mp4">
+                                            Your browser does not support video preview.
+                                        </video>
+
+                                        <div id="resourcePreviewTextContainer" 
+                                            class="bg-white border rounded shadow p-4 mx-3 d-none overflow-auto"
+                                            style="max-height: 90%; width: 80%;">
+                                            <pre id="resourcePreviewText" class="mb-0 text-muted small"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer border-0">
+                                    <a id="resourcePreviewDownloadBtn" href="#" download class="btn btn-primary">
+                                        <i class="ti ti-download me-2"></i>Download
+                                    </a>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Resource Preview Modal End -->
+
 
                     <!-- rename modal  -->
                     <div aria-hidden="true" aria-labelledby="renameModalLabel" class="modal fade"
@@ -1794,6 +1864,22 @@
                 downloadBtn.download = resourceData.name + '.' + resourceData.type;
                 downloadBtn.innerHTML = `<i class="ti ti-download me-1"></i> Download`;
 
+                // Set preview button
+                const previewBtn = document.getElementById('previewBtn');
+                previewBtn.setAttribute('data-resource-path', resourceData.path);
+                previewBtn.setAttribute('data-resource-type', resourceData.type);
+                previewBtn.classList.remove('d-none');
+
+                // const regexCheck = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+                // const matchCheck = resourceData.path.match(regexCheck);
+                // const videoIdCheck = matchCheck ? matchCheck[1] : null;
+
+                if(resourceData.type === 'doc' || resourceData.type === 'docx' || resourceData.type === 'pptx' || 
+                    resourceData.type === 'ppt' || resourceData.type === 'xls' || resourceData.type === 'xlsx' ||
+                    resourceData.type === 'zip' || resourceData.type === 'link') {
+                    previewBtn.classList.add('d-none');
+                }
+
                 // Set forum button
                 const forumBtn = document.getElementById('resourceDetailModalForumBtn');
                 forumBtn.setAttribute('data-resource-id-encrypted', resourceData.idEncrypted);
@@ -2291,13 +2377,11 @@
                 } else if (['mp3', 'wav', 'm4a', 'aac', 'flac'].includes(resourceData.type.toLowerCase())) {
                     // ---- AUDIO PREVIEW ----
                     previewContainer.innerHTML = `
-                        <div class="text-center py-4">
-                            <audio controls preload="metadata" class="w-100 rounded shadow-sm" style="max-width: 400px;">
+                        <div class="ratio ratio-16x9">
+                            <audio controls preload="metadata" class="w-100 rounded shadow-sm"">
                                 <source src="${resourceData.path}" type="audio/${resourceData.type.toLowerCase()}">
                                 Your browser does not support the audio element.
                             </audio>
-                            <p class="mt-2 mb-0 fw-semibold">${resourceData.name}</p>
-                            <small class="text-muted">${resourceData.type.toUpperCase()} Audio</small>
                         </div>
                     `;
                     downloadBtn.innerHTML = '<i class="ti ti-music me-1"></i> Play Audio';
@@ -2311,6 +2395,101 @@
                         </div>
                     `;
                 }
+
+                if (!previewBtn) return;
+
+                previewBtn.addEventListener('click', () => {
+                    // Elements inside the preview modal
+                    const modalTitle = document.getElementById('resourcePreviewModalLabel');
+                    const iframe = document.getElementById('resourcePreviewIframe');
+                    const img = document.getElementById('resourcePreviewImage');
+                    const video = document.getElementById('resourcePreviewVideo');
+                    const videoSrc = document.getElementById('resourcePreviewVideoSource');
+                    const textContainer = document.getElementById('resourcePreviewTextContainer');
+                    const textContent = document.getElementById('resourcePreviewText');
+                    const loading = document.getElementById('resourcePreviewLoading');
+                    const downloadBtn = document.getElementById('resourcePreviewDownloadBtn');
+
+                    // Get resource info
+                    const name = document.getElementById('resourceName')?.textContent.trim() || 'Resource Preview';
+                    const path = previewBtn.getAttribute('data-resource-path') || '';
+                    const type = (previewBtn.getAttribute('data-resource-type') || '').toLowerCase();
+
+                    // Reset everything
+                    modalTitle.textContent = name;
+                    downloadBtn.href = path;
+                    loading.classList.remove('d-none');
+                    previewBtn.classList.remove('d-none');
+
+                    // Hide all preview types initially
+                    [iframe, img, video, textContainer].forEach(el => el.classList.add('d-none'));
+
+                    // Helper function to show one element
+                    const show = (el) => {
+                        loading.classList.add('d-none');
+                        el.classList.remove('d-none');
+                    };
+
+                    // Handle different preview types
+                    if (['jpg','jpeg','png','gif','svg'].includes(type)) {
+                        img.src = path;
+                        show(img);
+                    } 
+                    else if (type === 'pdf') {
+                        iframe.src = `${path}#view=fitH`;
+                        show(iframe);
+                    } 
+                    else if (['doc','docx','xls','xlsx','ppt','pptx'].includes(type)) {
+                        iframe.src = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(path)}`;
+                        show(iframe);
+                    } 
+                    else if (['mp4','mov','avi','mkv','wmv','webm'].includes(type)) {
+                        videoSrc.src = path;
+                        video.load();
+                        show(video);
+                    } 
+                    else if (['mp3','wav','m4a','aac','flac'].includes(type)) {
+                        textContainer.innerHTML = `<audio src="${path}" controls class="w-100"></audio>`;
+                        show(textContainer);
+                    } 
+                    else if (type === 'link' && path.includes('youtube')) {
+                        const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+                        const match = path.match(regex);
+                        const videoId = match ? match[1] : null;
+                        if (videoId) {
+                            iframe.removeAttribute('src'); // reset before applying
+                            iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                            iframe.setAttribute('allowfullscreen', '');
+                        } else {
+                            iframe.src = path;
+                        }
+                        show(iframe);
+                    } 
+                    else if (type === 'link') {
+                        iframe.src = path;
+                        show(iframe);
+                    } 
+                    else if (['txt','json','csv','log'].includes(type)) {
+                        fetch(path)
+                            .then(r => r.text())
+                            .then(text => {
+                                textContent.textContent = text;
+                                show(textContainer);
+                            })
+                            .catch(() => {
+                                textContent.textContent = 'Unable to load text preview.';
+                                show(textContainer);
+                            });
+                    } 
+                    else {
+                        textContainer.innerHTML = `<div class="text-center text-muted">
+                            <i class="ti ti-alert-triangle fs-1 mb-3 d-block"></i>
+                            <p>Preview not available for this file type.</p>
+                        </div>`;
+                        show(textContainer);
+                    }
+                });
 
                 // Set resource ID for comment form
                 // document.getElementById('commentResourceId').value = resourceData.id;
@@ -2463,7 +2642,7 @@
             // Handle modal close - optional cleanup
             resourceModal.addEventListener('hidden.bs.modal', function() {
                 // Clear comments when modal is closed to avoid confusion
-                document.getElementById('commentsList').innerHTML = '';
+                // document.getElementById('commentsList').innerHTML = '';
             });
             
             // Function to load comments for a specific resource

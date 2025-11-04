@@ -730,7 +730,10 @@ class CourseController extends Controller
             $completedCount = $student->userProgressions
                 ->where('status', 1)
                 ->filter(function ($progression) {
-                    return $progression->resource && $progression->resource->status != 0;
+                    return $progression->resource
+                        && $progression->resource->status == 1
+                        && $progression->resource->lesson
+                        && $progression->resource->lesson->status == 1;
                 })
                 ->count();
 

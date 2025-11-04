@@ -184,7 +184,7 @@ class ResourceController extends Controller
     {
         try {
             // Define supported file types for better error messages
-            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, mp4, mov, avi, mkv, wmv, webm, mp3, wav, m4a, aac, flac';
+            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, ppt, pptx, xls, xlsx, csv, mp4, mov, avi, mkv, wmv, webm, mp3, wav, m4a, aac, flac';
             
             // Manual file checks BEFORE validation to provide custom error messages
             if ($request->hasFile('file')) {
@@ -197,7 +197,7 @@ class ResourceController extends Controller
                     // Documents & archives
                     'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff',
                     'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt',
-                    'zip', 'rar', '7z',
+                    'zip', 'rar', '7z', 'ppt', 'pptx', 'xls', 'xlsx', 'csv',
 
                     // Video formats
                     'mp4', 'mov', 'avi', 'mkv', 'wmv', 'webm',
@@ -240,7 +240,7 @@ class ResourceController extends Controller
                 
                 'file_name' => 'nullable|string|max:255',
                 'file_type' => 'nullable|string|max:255',
-                'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,tiff,doc,docx,pdf,txt,rtf,odt,zip,rar,7z,mp4,mov,avi,mkv,wmv,webm,mp3,wav,m4a,aac,flac|max:102400', // 100MB
+                'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,tiff,doc,docx,pdf,txt,rtf,odt,zip,rar,7z,ppt,pptx,xls,xlsx,csv,mp4,mov,avi,mkv,wmv,webm,mp3,wav,m4a,aac,flac|max:102400', // 100MB
             ], [
                 // Custom validation messages
                 'file.mimes' => 'The uploaded file type is not supported.',

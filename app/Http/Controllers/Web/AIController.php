@@ -267,10 +267,10 @@ class AIController extends Controller
             }
 
             // $allowedTypes = ['pdf', 'docx', 'doc', 'txt', 'rtf', 'odt', 'link'];
-            $allowedTypes = ['pdf', 'txt', 'rtf', 'odt', 'link'];
+            $allowedTypes = ['pdf', 'link'];
 
             if (!in_array($type, $allowedTypes) && !$textContent) {
-                return back()->with('error', 'Unsupported file type. AI generation works only for text-based or link resources.');
+                return back()->with('error', 'Unsupported file type. AI generation works only for PDF or link resources.');
             }
 
             $promptContent = '';
@@ -624,10 +624,10 @@ class AIController extends Controller
                 return back()->with('error', 'No input provided.');
             }
 
-            $allowedTypes = ['pdf', 'txt', 'rtf', 'odt', 'link'];
+            $allowedTypes = ['pdf', 'link'];
 
             if (!in_array($type, $allowedTypes) && !$textContent) {
-                return back()->with('error', 'Unsupported file type. AI flashcards work only for text-based or link resources.');
+                return back()->with('error', 'Unsupported file type. AI flashcards work only for PDF or link resources.');
             }
 
             $promptContent = '';
@@ -939,10 +939,10 @@ class AIController extends Controller
                 return back()->with('error', 'No input provided.');
             }
 
-            $allowedTypes = ['pdf', 'txt', 'rtf', 'odt', 'link'];
+            $allowedTypes = ['pdf', 'link'];
 
             if (!in_array($type, $allowedTypes) && !$textContent) {
-                return back()->with('error', 'Unsupported file type. AI puzzle generation works only for text-based or link resources.');
+                return back()->with('error', 'Unsupported file type. AI puzzle generation works only for PDF or link resources.');
             }
 
             $promptContent = '';
