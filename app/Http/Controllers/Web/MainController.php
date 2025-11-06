@@ -5,18 +5,22 @@ namespace App\Http\Controllers\Web;
 use App\Models\User;
 use App\Models\Course;
 use App\Models\Lesson;
-use App\Models\Resource;
-use App\Models\ResourceFile;
-use App\Models\UserProgression;
+use App\Models\Report;
 use App\Models\Comment;
+use App\Models\Resource;
 use App\Models\ForumPost;
 use App\Models\ForumReply;
-use App\Models\Report;
-use App\Models\SystemNotification;
+use App\Models\ResourceFile;
 use Illuminate\Http\Request;
 use App\Models\UserActivityLog;
+use App\Models\UserProgression;
+use App\Models\SystemNotification;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Validation\ValidationException;
+
+use function PHPUnit\Framework\isNull;
 
 class MainController extends Controller
 {
@@ -183,84 +187,119 @@ class MainController extends Controller
 
     public function create_notification($noti_type, $parent_type, $title, $content, $parent_id = null)
     {
-        $user_id = 0;
-        if($parent_type === 'forum_reply') {
-            $forum_reply = ForumReply::find($parent_id);
-            if($forum_reply) {
-                $user_id = $forum_reply->userCourse()->user_id;
-            }
-        } else if($parent_type === 'forum_post') {
-            $forum_post = ForumPost::find($parent_id);
-            if($forum_post) {
-                $user_id = $forum_post->userCourse()->user_id;
-            }
-        } else if($parent_type === 'course') {
-            $course = Course::find($parent_id);
-            if($course) {
-                $tutor_user_course = $course->userCourses()->where('role_id', 1)->first();
-                if($tutor_user_course) {
-                    $user_id = $tutor_user_course->user_id;
-                }
-            }
-        } 
-        else if($parent_type === 'resource') {
-            $resource = Resource::find($parent_id);
-            if($resource) {
-                $lesson = $resource->lesson;
-                if($lesson) {
-                    $user_course = $lesson->course->userCourses()->where('role_id', 1)->first();
-                    if($user_course) {
-                        $user_id = $user_course->user_id;
-                    }
-                }
-            }
-        } else if($parent_type === 'lesson') {
-            $lesson = Lesson::find($parent_id);
-            if($lesson) {
-                $user_course = $lesson->course->userCourses()->where('role_id', 1)->first();
-                if($user_course) {
-                    $user_id = $user_course->user_id;
-                }
-            }
-        } else if($parent_type === 'user') {
-            $user = User::find($parent_id);
-            if($user) {
-                $user_id = $user->id;
-            }
+        $user_id = null;
+
+        switch ($parent_type) {
+            case 'forum_reply':
+                $forum_reply = ForumReply::find($parent_id);
+                $user_id = $forum_reply?->userCourse?->user_id;
+                break;
+
+            case 'forum_post':
+                $forum_post = ForumPost::find($parent_id);
+                $user_id = $forum_post?->userCourse?->user_id;
+                break;
+
+            case 'course':
+                $course = Course::find($parent_id);
+                $user_id = $course?->userCourses()
+                    ->where('role_id', 1)
+                    ->first()?->user_id;
+                break;
+
+            case 'resource':
+                $resource = Resource::find($parent_id);
+                $user_id = $resource?->lesson?->course
+                    ?->userCourses()
+                    ->where('role_id', 1)
+                    ->first()?->user_id;
+                break;
+
+            case 'lesson':
+                $lesson = Lesson::find($parent_id);
+                $user_id = $lesson?->course
+                    ?->userCourses()
+                    ->where('role_id', 1)
+                    ->first()?->user_id;
+                break;
+
+            case 'user':
+                $user_id = User::find($parent_id)?->id;
+                break;
         }
 
-        $notification = new SystemNotification();
-        $notification->user_id = $user_id;
-        $notification->noti_type = $noti_type;
-        $notification->parent_type = $parent_type;
-        $notification->title = $title;
-        $notification->content = $content;
-        $notification->parent_id = $parent_id ?? 0;
-        $notification->is_read = false;
-        $notification->status = 1;
-        $notification->save();
+        if (!$user_id) {
+            \Log::warning("Notification not created — no user found for parent_type={$parent_type}, parent_id={$parent_id}");
+            return null;
+        }
 
-        return $notification;
+        return SystemNotification::create([
+            'user_id' => $user_id,
+            'noti_type' => $noti_type,
+            'parent_type' => $parent_type,
+            'title' => $title,
+            'content' => $content,
+            'parent_id' => $parent_id ?? 0,
+            'is_read' => false,
+            'status' => 1,
+        ]);
     }
+
 
     public function submit_report(Request $request)
     {
-        $request->validate([
-            'reported_id' => 'required|integer',
-            'reported_type' => 'required|string', // e.g., 'forum_post', 'forum_reply', etc.
-            'reason' => 'nullable|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'reported_id' => 'required|string', // encrypted, so string
+                'reported_type' => 'required|string', // e.g., 'forum_post', 'forum_reply'
+                'reason' => 'nullable|string',
+            ]);
 
-        $report = Report::create([
-            'user_id' => auth()->id(),
-            'reported_id' => $request->reported_id,
-            'reported_type' => $request->reported_type,
-            'reason' => $request->reason ?? null,
-            'status' => 1,
-        ]);
+            try {
+                $reported_id = Crypt::decrypt($validated['reported_id']);
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'Invalid report ID.');
+            }
 
-        $this->create_notification('report', $report->reported_type, 'Report received', 'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type, $report->reported_id);
+            $report = Report::create([
+                'user_id' => auth()->id(),
+                'reported_id' => $reported_id,
+                'reported_type' => $validated['reported_type'],
+                'reason' => $validated['reason'] ?? null,
+                'status' => 1,
+            ]);
 
-        return redirect()->back()->with('success', 'Report submitted successfully.');
+            if ($validated['reported_type'] === 'forum_post') {
+                $forum_post = ForumPost::find($reported_id);
+                if (!$forum_post) {
+                    return redirect()->back()->with('error', 'Forum post not found.');
+                }
+                $forum_post->update(['status' => 2]);
+            } elseif ($validated['reported_type'] === 'forum_reply') {
+                $forum_reply = ForumReply::find($reported_id);
+                if (!$forum_reply) {
+                    return redirect()->back()->with('error', 'Forum reply not found.');
+                }
+                $forum_reply->update(['status' => 2]);
+            } else {
+                return redirect()->back()->with('error', 'Invalid report type.');
+            }
+
+            $this->create_notification(
+                'report',
+                $report->reported_type,
+                'Report received',
+                'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type,
+                $reported_id
+            );
+
+            return redirect()->back()->with('success', 'Report submitted successfully.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Something went wrong while submitting the report.');
+        }
     }
+
 }

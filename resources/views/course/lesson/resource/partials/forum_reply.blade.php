@@ -25,7 +25,7 @@
                         <i class="ph ph-clock me-1"></i>
                         {{ $reply->created_at->diffForHumans() }} • 
                         {{ $reply->created_at->format('j M, Y g:i A') }}
-                        @if($reply->updated_at && $reply->updated_at != $reply->created_at && $reply->status !== 0)
+                        @if($reply->updated_at && $reply->updated_at != $reply->created_at && $reply->status !== 0 && $reply->status !== 2)
                             (<strong>Edited: </strong>
                             {{ $reply->updated_at->diffForHumans() }})
                         @endif
@@ -44,15 +44,21 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="replyActions{{ $reply->id }}">
                             @if($reply->userCourse?->user_id === auth()->id())
-                                <li>
-                                    <button class="dropdown-item btn-edit-reply"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#replyEditModal"
-                                        data-reply-id="{{ encrypt($reply->id) }}"
-                                        data-reply-content="{{ $reply->content }}">
-                                        Edit
-                                    </button>
-                                </li>
+                                @if($reply->status !== 0 && $reply->status !== 2)
+                                    <li>
+                                        <button class="dropdown-item btn-edit-reply"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#replyEditModal"
+                                            data-reply-id="{{ encrypt($reply->id) }}"
+                                            data-reply-content="{{ $reply->content }}">
+                                            Edit
+                                        </button>
+                                    </li>
+                                @else
+                                    <li>
+                                        <span class="dropdown-item text-muted">Edit Unavailable</span>
+                                    </li>
+                                @endif
                                 <li>
                                     <button class="dropdown-item text-danger btn-delete-reply"
                                         data-reply-id="{{ encrypt($reply->id) }}">
@@ -61,12 +67,16 @@
                                 </li>
                             @else
                                 <li>
-                                    <button class="dropdown-item text-danger btn-report-reply"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#replyReportModal"
-                                        data-reply-id="{{ encrypt($reply->id) }}">
-                                        Report
-                                    </button>
+                                    @if($reply->status !== 0 && $reply->status !== 2)
+                                        <button class="dropdown-item text-danger btn-report-reply"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#replyReportModal"
+                                            data-reply-id="{{ encrypt($reply->id) }}">
+                                            Report
+                                        </button>
+                                    @else
+                                        <span class="dropdown-item text-muted">Report Unavailable</span>
+                                    @endif
                                 </li>
                             @endif
                         </ul>
@@ -75,7 +85,9 @@
             </div>
 
             @if($reply->status === 0)
-                <span class="badge bg-danger mb-2">This reply is deleted {{ $reply->created_at->diffForHumans() }}</span>
+                <span class="badge bg-danger mb-2">This reply is deleted {{ $reply->updated_at->diffForHumans() }}</span>
+            @elseif($reply->status === 2)
+                <span class="badge bg-warning mb-2">This reply is under review {{ $reply->updated_at->diffForHumans() }}</span>
             @else
                 <p class="mb-2" style="line-height: 1.6;">{!! nl2br(e($reply->content)) !!}</p>
 

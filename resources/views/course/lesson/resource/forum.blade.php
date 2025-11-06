@@ -782,7 +782,7 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <form id="reportReplyForm" method="POST">
                 @csrf
-                <input type="hidden" name="reply_id" id="reportReplyId">
+                <input type="hidden" name="reported_id" id="reportReplyId">
                 <input type="hidden" name="reported_type" id="reportReplyType">
                 <div class="modal-content">
                     <div class="modal-header bg-primary">
@@ -795,7 +795,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="mb-3">
-                                    <textarea class="form-control" name="content" id="reportReplyReason" rows="4" required></textarea>
+                                    <textarea class="form-control" name="reason" id="reportReplyReason" rows="4" required placeholder="Your reason for reporting..."></textarea>
                                 </div>
                                 <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
                                     role="alert">
@@ -1233,7 +1233,7 @@
 
                 const updateReplyForm = document.getElementById('reportReplyForm');
                 const reportFormUrl = "{{ route('main.submit_report') }}";
-                reportForm.action = reportFormUrl;
+                updateReplyForm.action = reportFormUrl;
 
                 document.getElementById('reportReplyId').value = replyId;
                 document.getElementById('reportReplyType').value = reportedType;

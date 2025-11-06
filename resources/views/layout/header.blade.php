@@ -537,22 +537,25 @@
                         <div class="moon-logo head-icon">
                             <i class="iconoir-half-moon"></i>
                         </div>
-                    </li>
+                    </li> --}}
                     
                     <li class="header-notification">
                         <a aria-controls="notificationcanvasRight"
-                           class="d-block head-icon position-relative"
-                           data-bs-target="#notificationcanvasRight"
-                           data-bs-toggle="offcanvas"
-                           href="#"
-                           role="button">
+                            class="d-block head-icon position-relative"
+                            data-bs-target="#notificationcanvasRight"
+                            data-bs-toggle="offcanvas"
+                            href="#"
+                            role="button">
                             <i class="iconoir-bell"></i>
-                            <span
-                                class="position-absolute translate-middle p-1 bg-success border border-light rounded-circle animate__animated animate__fadeIn animate__infinite animate__slower"></span>
+                            @if(isset($headerNotifications) && count($headerNotifications)>0)
+                                <span
+                                    class="position-absolute translate-middle p-1 bg-success border border-light rounded-circle animate__animated animate__fadeIn animate__infinite animate__slower">
+                                </span>
+                            @endif
                         </a>
                         <div aria-labelledby="notificationcanvasRightLabel"
-                             class="offcanvas offcanvas-end header-notification-canvas"
-                             id="notificationcanvasRight" tabindex="-1">
+                            class="offcanvas offcanvas-end header-notification-canvas"
+                            id="notificationcanvasRight" tabindex="-1">
                             <div class="offcanvas-header">
                                 <h5 class="offcanvas-title" id="notificationcanvasRightLabel">
                                     Notification</h5>
@@ -561,15 +564,43 @@
                             </div>
                             <div class="offcanvas-body notification-offcanvas-body app-scroll p-0">
                                 <div class="head-container notification-head-container">
-                                    <div class="notification-message head-box">
+                                    @foreach($headerNotifications as $noti)
+                                        <div class="notification-message head-box">
+                                            <div class="message-images">
+                                                <span
+                                                    class="bg-secondary h-35 w-35 d-flex-center b-r-10 position-relative">
+                                                <img alt="avtar" class="img-fluid b-r-10"
+                                                        src="{{ asset('assets/images/ai_avtar/6.jpg') }}">
+                                                <span
+                                                    class="position-absolute bottom-30 end-0 p-1 bg-secondary border border-light rounded-circle notification-avtar"></span>
+                                                </span>
+                                            </div>
+                                            <div class="message-content-box flex-grow-1 ps-2">
+
+                                                <h3 class="f-s-15 text-secondary mb-0">{{ $noti->title }}</h3>
+                                                <p class="text-muted">{{ $noti->content }}</p>
+                                                <small class="d-block text-muted mb-1">
+                                                    <i class="ph ph-clock me-1"></i>{{ $noti->created_at->diffForHumans() }}
+                                                </small>
+                                                <div class="d-block">
+                                                    <span class="badge text-light-{{ $noti->noti_type == 'report' ? 'danger' : 'secondary' }} mt-2">{{ $noti->noti_type }}</span>
+                                                    <span class="badge text-light-primary mt-2">{{ $noti->parent_type }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="align-self-start text-end">
+                                                <i class="iconoir-xmark close-btn"></i>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                    {{-- <div class="notification-message head-box">
                                         <div class="message-images">
-                                                          <span
-                                                              class="bg-secondary h-35 w-35 d-flex-center b-r-10 position-relative">
-                                                            <img alt="avtar" class="img-fluid b-r-10"
-                                                                 src="{{ asset('assets/images/ai_avtar/6.jpg') }}">
-                                                            <span
-                                                                class="position-absolute bottom-30 end-0 p-1 bg-secondary border border-light rounded-circle notification-avtar"></span>
-                                                          </span>
+                                            <span
+                                                class="bg-secondary h-35 w-35 d-flex-center b-r-10 position-relative">
+                                            <img alt="avtar" class="img-fluid b-r-10"
+                                                    src="{{ asset('assets/images/ai_avtar/6.jpg') }}">
+                                            <span
+                                                class="position-absolute bottom-30 end-0 p-1 bg-secondary border border-light rounded-circle notification-avtar"></span>
+                                            </span>
                                         </div>
                                         <div class="message-content-box flex-grow-1 ps-2">
 
@@ -685,7 +716,7 @@
                                         <div class="align-self-start text-end">
                                             <i class="iconoir-xmark close-btn"></i>
                                         </div>
-                                    </div>
+                                    </div> --}}
 
                                     <div class="hidden-massage py-4 px-3">
                                         <img alt=""
@@ -702,7 +733,7 @@
                                 </div>
                             </div>
                         </div>
-                    </li> --}}
+                    </li>
 
                     @auth
                         <li class="header-level">
