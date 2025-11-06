@@ -62,6 +62,8 @@
                             @else
                                 <li>
                                     <button class="dropdown-item text-danger btn-report-reply"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#replyReportModal"
                                         data-reply-id="{{ encrypt($reply->id) }}">
                                         Report
                                     </button>

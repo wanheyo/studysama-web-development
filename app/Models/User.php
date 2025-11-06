@@ -7,7 +7,13 @@ use App\Models\Badge;
 use App\Models\Course;
 use App\Models\SocialLink;
 use App\Models\UserCourse;
+use App\Models\UserPoint;
+use App\Models\UserChallenge;
+use App\Models\UserBadge;
+use App\Models\UserFollow;
+use App\Models\UserCertificate;
 use App\Models\UserActivityLog;
+use App\Models\Report;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -133,4 +139,8 @@ class User extends Authenticatable implements CanResetPassword
         return $this->role === 'User';
     }
 
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
 }

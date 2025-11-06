@@ -11,6 +11,8 @@ use App\Models\UserProgression;
 use App\Models\Comment;
 use App\Models\ForumPost;
 use App\Models\ForumReply;
+use App\Models\Report;
+use App\Models\SystemNotification;
 use Illuminate\Http\Request;
 use App\Models\UserActivityLog;
 use Illuminate\Support\Facades\DB;
@@ -177,5 +179,88 @@ class MainController extends Controller
         
         // Logic to show the homepage
         return view('admin.main.homepage', compact('user', 'users', 'user_activity_logs', 'courses'));
+    }
+
+    public function create_notification($noti_type, $parent_type, $title, $content, $parent_id = null)
+    {
+        $user_id = 0;
+        if($parent_type === 'forum_reply') {
+            $forum_reply = ForumReply::find($parent_id);
+            if($forum_reply) {
+                $user_id = $forum_reply->userCourse()->user_id;
+            }
+        } else if($parent_type === 'forum_post') {
+            $forum_post = ForumPost::find($parent_id);
+            if($forum_post) {
+                $user_id = $forum_post->userCourse()->user_id;
+            }
+        } else if($parent_type === 'course') {
+            $course = Course::find($parent_id);
+            if($course) {
+                $tutor_user_course = $course->userCourses()->where('role_id', 1)->first();
+                if($tutor_user_course) {
+                    $user_id = $tutor_user_course->user_id;
+                }
+            }
+        } 
+        else if($parent_type === 'resource') {
+            $resource = Resource::find($parent_id);
+            if($resource) {
+                $lesson = $resource->lesson;
+                if($lesson) {
+                    $user_course = $lesson->course->userCourses()->where('role_id', 1)->first();
+                    if($user_course) {
+                        $user_id = $user_course->user_id;
+                    }
+                }
+            }
+        } else if($parent_type === 'lesson') {
+            $lesson = Lesson::find($parent_id);
+            if($lesson) {
+                $user_course = $lesson->course->userCourses()->where('role_id', 1)->first();
+                if($user_course) {
+                    $user_id = $user_course->user_id;
+                }
+            }
+        } else if($parent_type === 'user') {
+            $user = User::find($parent_id);
+            if($user) {
+                $user_id = $user->id;
+            }
+        }
+
+        $notification = new SystemNotification();
+        $notification->user_id = $user_id;
+        $notification->noti_type = $noti_type;
+        $notification->parent_type = $parent_type;
+        $notification->title = $title;
+        $notification->content = $content;
+        $notification->parent_id = $parent_id ?? 0;
+        $notification->is_read = false;
+        $notification->status = 1;
+        $notification->save();
+
+        return $notification;
+    }
+
+    public function submit_report(Request $request)
+    {
+        $request->validate([
+            'reported_id' => 'required|integer',
+            'reported_type' => 'required|string', // e.g., 'forum_post', 'forum_reply', etc.
+            'reason' => 'nullable|string',
+        ]);
+
+        $report = Report::create([
+            'user_id' => auth()->id(),
+            'reported_id' => $request->reported_id,
+            'reported_type' => $request->reported_type,
+            'reason' => $request->reason ?? null,
+            'status' => 1,
+        ]);
+
+        $this->create_notification('report', $report->reported_type, 'Report received', 'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type, $report->reported_id);
+
+        return redirect()->back()->with('success', 'Report submitted successfully.');
     }
 }

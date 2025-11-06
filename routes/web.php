@@ -45,6 +45,7 @@ Route::middleware(['auth:web'])->group(function () {
     Route::group(['prefix' => 'main'], function () {
         Route::get('homepage', [MainController::class, 'homepage'])->name('main.homepage');
         Route::get('search', [MainController::class, 'search'])->name('main.search');
+        Route::post('submit_report', [MainController::class, 'submit_report'])->name('main.submit_report');
 
         // Admin
         Route::group(['prefix' => 'admin'], function () {

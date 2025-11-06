@@ -777,6 +777,45 @@
         </div>
     </div>
 
+    <!-- replyReportModal Modal -->
+    <div class="modal fade" id="replyReportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <form id="reportReplyForm" method="POST">
+                @csrf
+                <input type="hidden" name="reply_id" id="reportReplyId">
+                <input type="hidden" name="reported_type" id="reportReplyType">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title fs-5 text-white">Report Reply</h5>
+                        <button aria-label="Close" class="btn-close m-0"
+                            data-bs-dismiss="modal"
+                            type="button"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <textarea class="form-control" name="content" id="reportReplyReason" rows="4" required></textarea>
+                                </div>
+                                <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                    role="alert">
+                                    <p class="mb-0">
+                                        <i class="ti ti-alert-triangle f-s-18 me-2"></i>Please provide a clear and concise reason for reporting this reply. Our team will review your report and take appropriate action.
+                                    </p>
+                                    <i class="ti ti-x" data-bs-dismiss="alert"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" id="reportReplyCancelBtn" type="button">Cancel</button>
+                        <button class="btn btn-primary" id="reportReplySaveBtn" type="submit">Save Change</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Preview Modal -->
     <div class="modal fade" id="previewModal{{ $resource->id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen">
@@ -1178,6 +1217,27 @@
             //         updatePostForm.action = `${updateReplyFormUrl}/${replyId}`;
             //     }
             // });
+
+            // Report REPLY HANDLER
+            const replyReportModal = document.getElementById('replyReportModal');
+
+            replyReportModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+
+                const replyId = button.getAttribute('data-reply-id');
+                const reportedType = 'forum_reply';
+                // const replyReason = button.getAttribute('data-reply-reason');
+
+                // document.getElementById('editReplyId').value = replyId;
+                // document.getElementById('reportReplyReason').value = replyReason || '';
+
+                const updateReplyForm = document.getElementById('reportReplyForm');
+                const reportFormUrl = "{{ route('main.submit_report') }}";
+                reportForm.action = reportFormUrl;
+
+                document.getElementById('reportReplyId').value = replyId;
+                document.getElementById('reportReplyType').value = reportedType;
+            })
         });
 
         /* ---------- ADD HIGHLIGHT ANIMATION STYLE ---------- */

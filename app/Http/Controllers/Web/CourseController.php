@@ -748,7 +748,6 @@ class CourseController extends Controller
 
 
         $inProgressStudents = $totalStudents - $completedStudents;
-
         // dd($students->toArray());
 
         return view('course.course_tutor_statistics', compact(
