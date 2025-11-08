@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Report;
 use App\Models\ForumPost;
+use App\Models\ForumReply;
 use App\Models\UserCourse;
 use App\Models\ResourceFile;
 use Illuminate\Database\Eloquent\Model;
@@ -50,4 +52,10 @@ class ForumReply extends Model
     {
         return $this->hasMany(ForumReply::class, 'forum_reply_id');
     }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reported');
+    }
+
 }

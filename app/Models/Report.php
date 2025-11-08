@@ -48,4 +48,10 @@ class Report extends Model
     {
         return $this->belongsTo(User::class, 'admin_id');
     }
+
+    public function reported()
+    {
+        return $this->morphTo();
+    }
+
 }

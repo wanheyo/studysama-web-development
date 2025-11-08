@@ -58,4 +58,9 @@ class SystemNotification extends Model
     {
         return $this->hasMany(SystemNotification::class, 'parent_id');
     }
+
+    public function parentable()
+    {
+        return $this->morphTo(__FUNCTION__, 'parent_type', 'parent_id');
+    }
 }

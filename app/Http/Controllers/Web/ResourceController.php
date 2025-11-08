@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Services\NotificationService;
+
 use App\Models\User;
 use App\Models\UserCourse;
 use App\Models\Course;
@@ -12,6 +14,8 @@ use App\Models\Resource;
 use App\Models\ResourceFile;
 use App\Models\ForumPost;
 use App\Models\ForumReply;
+use App\Models\Report;
+use App\Models\SystemNotification;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +27,13 @@ use Illuminate\Support\Facades\Crypt;
 
 class ResourceController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     // Web API
     public function get_comments($resource_id)
     {
@@ -1140,6 +1151,19 @@ class ResourceController extends Controller
                 ]);
 
                 DB::commit();
+
+                $noti_content = 'A new reply by ' . $user->username . ' was posted to your forum post';
+                if($validatedData['forum_reply_id']) {
+                    $noti_content = 'A new reply by ' . $user->username . ' was posted to your forum reply';
+                }
+
+                $this->notificationService->create(
+                    'reply',          // noti_type
+                    'forum_reply',           // parent_type (or 'forum_post' depending)
+                    'New Reply Added',      // title
+                    $noti_content, // content
+                    $forumReply->id  // parent_id
+                );
                 
                 // Flash success message to the session
                 session()->flash('success', 'Reply added successfully');

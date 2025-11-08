@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Report;
 use App\Models\Resource;
 use App\Models\ForumReply;
 use App\Models\UserCourse;
@@ -45,5 +46,10 @@ class ForumPost extends Model
     public function forumReplies()
     {
         return $this->hasMany(ForumReply::class);
+    }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reported');
     }
 }

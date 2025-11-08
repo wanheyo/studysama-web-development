@@ -397,17 +397,23 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                         @if($post->userCourse && $post->userCourse->user_id === auth()->id())
-                                            <li>
-                                                <button class="dropdown-item" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#postEditModal"
-                                                    data-post-id="{{ encrypt($post->id) }}"
-                                                    data-post-title="{{ $post->title }}"
-                                                    data-post-content="{{ $post->content }}"
-                                                    data-post-resource-file-id="{{ $post->resource_file_id }}">
-                                                    Edit
-                                                </button>
-                                            </li>
+                                            @if($post->status !== 0 && $post->status !== 2)
+                                                <li>
+                                                    <button class="dropdown-item" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#postEditModal"
+                                                        data-post-id="{{ encrypt($post->id) }}"
+                                                        data-post-title="{{ $post->title }}"
+                                                        data-post-content="{{ $post->content }}"
+                                                        data-post-resource-file-id="{{ $post->resource_file_id }}">
+                                                        Edit
+                                                    </button>
+                                                </li>
+                                            @else
+                                                <li>
+                                                    <span class="dropdown-item text-muted">Edit Unavailable</span>
+                                                </li>
+                                            @endif
                                             <li>
                                                 <button class="dropdown-item text-danger btn-delete-post" 
                                                     data-post-id="{{ encrypt($post->id) }}"
@@ -417,17 +423,26 @@
                                             </li>
                                         @else
                                             <li>
-                                                <button class="dropdown-item text-danger btn-report-post" 
-                                                    data-post-id="{{ encrypt($post->id) }}"
+                                                @if($post->status !== 0 && $post->status !== 2)
+                                                    <button class="dropdown-item text-danger btn-report-post"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#postReportModal"
+                                                        data-post-id="{{ encrypt($post->id) }}">
+                                                        Report
+                                                    </button>
+                                                @else
+                                                    <span class="dropdown-item text-muted">Report Unavailable</span>
+                                                @endif
+                                                {{-- <button class="dropdown-item text-danger btn-report-post" 
+                                                    data-post-id="{{ encrypt($post->id) }}"  
                                                     data-post-title="{{ $post->title }}">
                                                     Report
-                                                </button>
+                                                </button> --}}
                                             </li>
                                         @endif
                                     </ul>
                                 </div>
                             </div>
-
 
                             <!-- Post Content -->
                             <div class="card-body p-4">
@@ -440,7 +455,6 @@
                                 <p class="text-dark mb-3" style="line-height: 1.7; white-space: pre-line;">
                                     {{ $post->content }}
                                 </p>
-
 
                                 @if($post->resourceFile)
                                     <div class="mt-4 pt-3 border-top">
@@ -771,6 +785,45 @@
                     <div class="modal-footer">
                         <button class="btn btn-secondary" data-bs-dismiss="modal" id="editReplyCancelBtn" type="button">Cancel</button>
                         <button class="btn btn-primary" id="editReplySaveBtn" type="submit">Save Change</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- postReportModal Modal -->
+    <div class="modal fade" id="postReportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <form id="reportPostForm" method="POST">
+                @csrf
+                <input type="hidden" name="reported_id" id="reportPostId">
+                <input type="hidden" name="reported_type" id="reportPostType">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title fs-5 text-white">Report Post</h5>
+                        <button aria-label="Close" class="btn-close m-0"
+                            data-bs-dismiss="modal"
+                            type="button"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <textarea class="form-control" name="reason" id="reportPostReason" rows="4" required placeholder="Your reason for reporting..."></textarea>
+                                </div>
+                                <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                    role="alert">
+                                    <p class="mb-0">
+                                        <i class="ti ti-alert-triangle f-s-18 me-2"></i>Please provide a clear and concise reason for reporting this reply. Our team will review your report and take appropriate action.
+                                    </p>
+                                    <i class="ti ti-x" data-bs-dismiss="alert"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" id="reportPostCancelBtn" type="button">Cancel</button>
+                        <button class="btn btn-primary" id="reportPostSaveBtn" type="submit">Save Change</button>
                     </div>
                 </div>
             </form>
@@ -1218,6 +1271,27 @@
             //     }
             // });
 
+            // Report POST HANDLER
+            const postReportModal = document.getElementById('postReportModal');
+
+            postReportModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+
+                const postId = button.getAttribute('data-post-id');
+                const reportedType = 'forum_post';
+                // const replyReason = button.getAttribute('data-reply-reason');
+
+                // document.getElementById('editReplyId').value = replyId;
+                // document.getElementById('reportReplyReason').value = replyReason || '';
+
+                const reportPostForm = document.getElementById('reportPostForm');
+                const reportFormUrl = "{{ route('main.submit_report') }}";
+                reportPostForm.action = reportFormUrl;
+
+                document.getElementById('reportPostId').value = postId;
+                document.getElementById('reportPostType').value = reportedType;
+            })
+
             // Report REPLY HANDLER
             const replyReportModal = document.getElementById('replyReportModal');
 
@@ -1231,9 +1305,9 @@
                 // document.getElementById('editReplyId').value = replyId;
                 // document.getElementById('reportReplyReason').value = replyReason || '';
 
-                const updateReplyForm = document.getElementById('reportReplyForm');
+                const reportReplyForm = document.getElementById('reportReplyForm');
                 const reportFormUrl = "{{ route('main.submit_report') }}";
-                updateReplyForm.action = reportFormUrl;
+                reportReplyForm.action = reportFormUrl;
 
                 document.getElementById('reportReplyId').value = replyId;
                 document.getElementById('reportReplyType').value = reportedType;

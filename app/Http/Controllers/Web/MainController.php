@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Services\NotificationService;
+
 use App\Models\User;
 use App\Models\Course;
 use App\Models\Lesson;
@@ -24,6 +26,13 @@ use function PHPUnit\Framework\isNull;
 
 class MainController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     private function calculateCourseProgress($courseId)
     {
         $lessons = Lesson::with([
@@ -185,65 +194,65 @@ class MainController extends Controller
         return view('admin.main.homepage', compact('user', 'users', 'user_activity_logs', 'courses'));
     }
 
-    public function create_notification($noti_type, $parent_type, $title, $content, $parent_id = null)
-    {
-        $user_id = null;
+    // public function create_notification($noti_type, $parent_type, $title, $content, $parent_id = null)
+    // {
+    //     $user_id = null;
 
-        switch ($parent_type) {
-            case 'forum_reply':
-                $forum_reply = ForumReply::find($parent_id);
-                $user_id = $forum_reply?->userCourse?->user_id;
-                break;
+    //     switch ($parent_type) {
+    //         case 'forum_reply':
+    //             $forum_reply = ForumReply::find($parent_id);
+    //             $user_id = $forum_reply?->userCourse?->user_id;
+    //             break;
 
-            case 'forum_post':
-                $forum_post = ForumPost::find($parent_id);
-                $user_id = $forum_post?->userCourse?->user_id;
-                break;
+    //         case 'forum_post':
+    //             $forum_post = ForumPost::find($parent_id);
+    //             $user_id = $forum_post?->userCourse?->user_id;
+    //             break;
 
-            case 'course':
-                $course = Course::find($parent_id);
-                $user_id = $course?->userCourses()
-                    ->where('role_id', 1)
-                    ->first()?->user_id;
-                break;
+    //         case 'course':
+    //             $course = Course::find($parent_id);
+    //             $user_id = $course?->userCourses()
+    //                 ->where('role_id', 1)
+    //                 ->first()?->user_id;
+    //             break;
 
-            case 'resource':
-                $resource = Resource::find($parent_id);
-                $user_id = $resource?->lesson?->course
-                    ?->userCourses()
-                    ->where('role_id', 1)
-                    ->first()?->user_id;
-                break;
+    //         case 'resource':
+    //             $resource = Resource::find($parent_id);
+    //             $user_id = $resource?->lesson?->course
+    //                 ?->userCourses()
+    //                 ->where('role_id', 1)
+    //                 ->first()?->user_id;
+    //             break;
 
-            case 'lesson':
-                $lesson = Lesson::find($parent_id);
-                $user_id = $lesson?->course
-                    ?->userCourses()
-                    ->where('role_id', 1)
-                    ->first()?->user_id;
-                break;
+    //         case 'lesson':
+    //             $lesson = Lesson::find($parent_id);
+    //             $user_id = $lesson?->course
+    //                 ?->userCourses()
+    //                 ->where('role_id', 1)
+    //                 ->first()?->user_id;
+    //             break;
 
-            case 'user':
-                $user_id = User::find($parent_id)?->id;
-                break;
-        }
+    //         case 'user':
+    //             $user_id = User::find($parent_id)?->id;
+    //             break;
+    //     }
 
-        if (!$user_id) {
-            \Log::warning("Notification not created — no user found for parent_type={$parent_type}, parent_id={$parent_id}");
-            return null;
-        }
+    //     if (!$user_id) {
+    //         \Log::warning("Notification not created — no user found for parent_type={$parent_type}, parent_id={$parent_id}");
+    //         return null;
+    //     }
 
-        return SystemNotification::create([
-            'user_id' => $user_id,
-            'noti_type' => $noti_type,
-            'parent_type' => $parent_type,
-            'title' => $title,
-            'content' => $content,
-            'parent_id' => $parent_id ?? 0,
-            'is_read' => false,
-            'status' => 1,
-        ]);
-    }
+    //     return SystemNotification::create([
+    //         'user_id' => $user_id,
+    //         'noti_type' => $noti_type,
+    //         'parent_type' => $parent_type,
+    //         'title' => $title,
+    //         'content' => $content,
+    //         'parent_id' => $parent_id ?? 0,
+    //         'is_read' => false,
+    //         'status' => 1,
+    //     ]);
+    // }
 
 
     public function submit_report(Request $request)
@@ -285,7 +294,8 @@ class MainController extends Controller
                 return redirect()->back()->with('error', 'Invalid report type.');
             }
 
-            $this->create_notification(
+            // $this->create_notification(
+            $this->notificationService->create(
                 'report',
                 $report->reported_type,
                 'Report received',
