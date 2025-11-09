@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Course;
 use App\Models\Resource;
+use App\Models\Report;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
@@ -32,5 +33,10 @@ class Lesson extends Model
     public function resources()
     {
         return $this->hasMany(Resource::class);
+    }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reported');
     }
 }

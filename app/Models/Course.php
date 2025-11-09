@@ -7,6 +7,7 @@ use App\Models\Folder;
 use App\Models\Lesson;
 use App\Models\TutorSlot;
 use App\Models\UserCourse;
+use App\Models\Report;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Database\Eloquent\Model;
@@ -78,4 +79,8 @@ class Course extends Model
         return $this->hasMany(TutorSlot::class);
     }
 
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reported');
+    }
 }

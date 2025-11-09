@@ -265,6 +265,15 @@
                                                             type="button"><i class="ti ti-file-upload"></i> Add New Resource
                                                     </button>
                                                 </div>
+                                            @else
+                                                <div class="d-flex flex-column flex-md-row gap-2">
+                                                    <button class="btn btn-warning b-r-22"
+                                                            data-bs-target="#lessonReportModal"
+                                                            data-bs-toggle="modal"
+                                                            data-lesson-id="{{ encrypt($lesson->id) }}"
+                                                            type="button"><i class="ti ti-flag"></i> Report
+                                                    </button>
+                                                </div>
                                             @endif
                                         </div>
                                     </div>
@@ -588,14 +597,23 @@
                                                                 </button>
                                                             </div>
                                                         @else
-                                                            <div class="col-6">
+                                                            <div class="col-4">
                                                                 <button class="btn btn-outline-success w-100" id="resourceDetailModalCompleteBtn">
                                                                     <i class="ti ti-circle-check me-1"></i> Complete
                                                                 </button>
                                                             </div>
-                                                            <div class="col-6">
+                                                            <div class="col-4">
                                                                 <button class="btn btn-outline-info w-100" id="resourceDetailModalForumBtn">
                                                                     <i class="ti ti-message-circle me-1"></i> Forum
+                                                                </button>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <button class="btn btn-outline-warning w-100" 
+                                                                    id="resourceDetailModalReportBtn" 
+                                                                    data-bs-toggle="modal" 
+                                                                    data-bs-target="#resourceReportModal"
+                                                                    data-resource-id="">
+                                                                    <i class="ti ti-flag me-1"></i> Report
                                                                 </button>
                                                             </div>
                                                         @endif
@@ -1119,6 +1137,84 @@
                         </div>
                     </div>
                     <!-- Resource Preview Modal End -->
+
+                    <!-- lessonReportModal Modal -->
+                    <div class="modal fade" id="lessonReportModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <form id="reportLessonForm" method="POST">
+                                @csrf
+                                <input type="hidden" name="reported_id" id="reportLessonId">
+                                <input type="hidden" name="reported_type" id="reportLessonType">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary">
+                                        <h5 class="modal-title fs-5 text-white">Report Lesson</h5>
+                                        <button aria-label="Close" class="btn-close m-0"
+                                            data-bs-dismiss="modal"
+                                            type="button"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="mb-3">
+                                                    <textarea class="form-control" name="reason" id="reportLessonReason" rows="4" required placeholder="Your reason for reporting..."></textarea>
+                                                </div>
+                                                <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                                    role="alert">
+                                                    <p class="mb-0">
+                                                        <i class="ti ti-alert-triangle f-s-18 me-2"></i>Please provide a clear and concise reason for reporting this reply. Our team will review your report and take appropriate action.
+                                                    </p>
+                                                    <i class="ti ti-x" data-bs-dismiss="alert"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-secondary" data-bs-dismiss="modal" id="reportLessonCancelBtn" type="button">Cancel</button>
+                                        <button class="btn btn-primary" id="reportLessonSaveBtn" type="submit">Save Change</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- resourceReportModal Modal -->
+                    <div class="modal fade" id="resourceReportModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <form id="reportResourceForm" method="POST">
+                                @csrf
+                                <input type="hidden" name="reported_id" id="reportResourceId">
+                                <input type="hidden" name="reported_type" id="reportResourceType">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary">
+                                        <h5 class="modal-title fs-5 text-white">Report Resource</h5>
+                                        <button aria-label="Close" class="btn-close m-0"
+                                            data-bs-dismiss="modal"
+                                            type="button"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="mb-3">
+                                                    <textarea class="form-control" name="reason" id="reportResourceReason" rows="4" required placeholder="Your reason for reporting..."></textarea>
+                                                </div>
+                                                <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                                    role="alert">
+                                                    <p class="mb-0">
+                                                        <i class="ti ti-alert-triangle f-s-18 me-2"></i>Please provide a clear and concise reason for reporting this reply. Our team will review your report and take appropriate action.
+                                                    </p>
+                                                    <i class="ti ti-x" data-bs-dismiss="alert"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-secondary" data-bs-dismiss="modal" id="reportResourceCancelBtn" type="button">Cancel</button>
+                                        <button class="btn btn-primary" id="reportResourceSaveBtn" type="submit">Save Change</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
 
                     <!-- rename modal  -->
@@ -1807,6 +1903,27 @@
                 document.body.removeChild(deleteForm);
             }
 
+            // Report LESSON HANDLER
+            const lessonReportModal = document.getElementById('lessonReportModal');
+
+            lessonReportModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+
+                const lessonId = button.getAttribute('data-lesson-id');
+                const reportedType = 'lesson';
+                // const replyReason = button.getAttribute('data-reply-reason');
+
+                // document.getElementById('editReplyId').value = replyId;
+                // document.getElementById('reportReplyReason').value = replyReason || '';
+
+                const reportLessonForm = document.getElementById('reportLessonForm');
+                const reportFormUrl = "{{ route('main.submit_report') }}";
+                reportLessonForm.action = reportFormUrl;
+
+                document.getElementById('reportLessonId').value = lessonId;
+                document.getElementById('reportLessonType').value = reportedType;
+            })
+
             // Resource detail modal
             const resourceModal = document.getElementById('resourceDetailModal');
             let commentFormSubmitHandler = null; // Store the reference to the event handler
@@ -1904,6 +2021,10 @@
                 if (forumLink) {
                     forumLink.href = "{{ route('resource.forum', ':id') }}".replace(':id', resourceData.idEncrypted);
                 }
+
+                // Set report button
+                const reportBtn = document.getElementById('resourceDetailModalReportBtn');
+                reportBtn.setAttribute('data-resource-id', resourceData.idEncrypted);
 
                 // Set mcq button
                 const mcqBtn = document.getElementById('generateMCQBtn');
@@ -2490,6 +2611,27 @@
                         show(textContainer);
                     }
                 });
+
+                // Report RESOURCE HANDLER
+                const resourceReportModal = document.getElementById('resourceReportModal');
+
+                resourceReportModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+
+                    const resourceId = button.getAttribute('data-resource-id');
+                    const reportedType = 'resource';
+                    // const replyReason = button.getAttribute('data-reply-reason');
+
+                    // document.getElementById('editReplyId').value = replyId;
+                    // document.getElementById('reportReplyReason').value = replyReason || '';
+
+                    const reportResourceForm = document.getElementById('reportResourceForm');
+                    const reportFormUrl = "{{ route('main.submit_report') }}";
+                    reportResourceForm.action = reportFormUrl;
+
+                    document.getElementById('reportResourceId').value = resourceId;
+                    document.getElementById('reportResourceType').value = reportedType;
+                })
 
                 // Set resource ID for comment form
                 // document.getElementById('commentResourceId').value = resourceData.id;

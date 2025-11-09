@@ -290,6 +290,24 @@ class MainController extends Controller
                     return redirect()->back()->with('error', 'Forum reply not found.');
                 }
                 $forum_reply->update(['status' => 2]);
+            } else if ($validated['reported_type'] === 'resource') {
+                $resource = Resource::find($reported_id);
+                if (!$resource) {
+                    return redirect()->back()->with('error', 'Resource not found.');
+                }
+                $resource->update(['status' => 2]);
+            } else if ($validated['reported_type'] === 'lesson') {
+                $lesson = Lesson::find($reported_id);
+                if (!$lesson) {
+                    return redirect()->back()->with('error', 'Lesson not found.');
+                }
+                $lesson->update(['status' => 2]);
+            } else if ($validated['reported_type'] === 'course') {
+                $course = Course::find($reported_id);
+                if (!$course) {
+                    return redirect()->back()->with('error', 'Course not found.');
+                }
+                $course->update(['status' => 2]);
             } else {
                 return redirect()->back()->with('error', 'Invalid report type.');
             }
@@ -298,7 +316,7 @@ class MainController extends Controller
             $this->notificationService->create(
                 'report',
                 $report->reported_type,
-                'Report received',
+                'Report Received',
                 'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type,
                 $reported_id
             );

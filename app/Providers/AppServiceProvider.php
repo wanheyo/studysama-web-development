@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Models\Report;
 use App\Models\ForumPost;
 use App\Models\ForumReply;
+use App\Models\Resource;
+use App\Models\Lesson;
+use App\Models\Course;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +40,9 @@ class AppServiceProvider extends ServiceProvider
             'report' => Report::class,
             'forum_reply' => ForumReply::class,
             'forum_post'  => ForumPost::class,
+            'resource'    => Resource::class,
+            'lesson'      => Lesson::class,
+            'course'      => Course::class,
             // You can add more later, e.g.:
             // 'course'      => \App\Models\Course::class,
             // 'lesson'      => \App\Models\Lesson::class,

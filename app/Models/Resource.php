@@ -7,6 +7,7 @@ use App\Models\Comment;
 use App\Models\ForumPost;
 use App\Models\ResourceFile;
 use App\Models\UserProgression;
+use App\Models\Report;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -62,5 +63,10 @@ class Resource extends Model
     public function forumPosts()
     {
         return $this->hasMany(ForumPost::class);
+    }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reported');
     }
 }

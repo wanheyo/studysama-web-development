@@ -2,28 +2,29 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Services\NotificationService;
-
 use App\Models\User;
-use App\Models\UserCourse;
+
 use App\Models\Course;
 use App\Models\Lesson;
-use App\Models\UserProgression;
+use App\Models\Report;
 use App\Models\Comment;
 use App\Models\Resource;
-use App\Models\ResourceFile;
 use App\Models\ForumPost;
 use App\Models\ForumReply;
-use App\Models\Report;
-use App\Models\SystemNotification;
-use App\Http\Controllers\Controller;
+use App\Models\UserCourse;
+use App\Models\ResourceFile;
 use Illuminate\Http\Request;
+use App\Models\UserProgression;
+use App\Models\SystemNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use App\Services\NotificationService;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Crypt;
 
 class ResourceController extends Controller
 {
@@ -980,6 +981,19 @@ class ResourceController extends Controller
                 ]);
 
                 DB::commit();
+
+                $resource = Resource::with('lesson.course')->find($validatedData['resource_id']);
+
+                // Create notification for the new post
+                $noti_content = 'A new post titled "' . $forumPost->title . '" by ' . $user->username . ' has been added to the forum of resource "' . $resource->name . '" in lesson "' . $resource->lesson->name . '" of course "' . $resource->lesson->course->name . '"';
+
+                $this->notificationService->create(
+                    'reply',          // noti_type
+                    'forum_post',           // parent_type (or 'forum_post' depending)
+                    'New Post Added',      // title
+                    $noti_content, // content
+                    $forumPost->id  // parent_id
+                );
                 
                 // Flash success message to the session
                 session()->flash('success', 'Post added successfully');
@@ -1152,9 +1166,29 @@ class ResourceController extends Controller
 
                 DB::commit();
 
-                $noti_content = 'A new reply by ' . $user->username . ' was posted to your forum post';
-                if($validatedData['forum_reply_id']) {
-                    $noti_content = 'A new reply by ' . $user->username . ' was posted to your forum reply';
+                $repliedToForumPost = ForumPost::with('resource.lesson.course')->find($validatedData['forum_post_id']);
+
+                $repliedToForumReply = null;
+
+                $noti_content = sprintf(
+                    '%s replied to your forum post "%s" under Resource "%s" → Lesson "%s" → Course "%s"',
+                    $user->username,
+                    $repliedToForumPost->title,
+                    $repliedToForumPost->resource->name,
+                    $repliedToForumPost->resource->lesson->name,
+                    $repliedToForumPost->resource->lesson->course->name
+                );
+
+                if (isset($validatedData['forum_reply_id']) && $validatedData['forum_reply_id'] !== null) {
+                    $repliedToForumReply = ForumReply::with('forumPost.resource.lesson.course')->find($validatedData['forum_reply_id']);
+                    $noti_content = sprintf(
+                        '%s replied to your comment on the forum post "%s" under Resource "%s" → Lesson "%s" → Course "%s"',
+                        $user->username,
+                        $repliedToForumReply->forumPost->title,
+                        $repliedToForumReply->forumPost->resource->name,
+                        $repliedToForumReply->forumPost->resource->lesson->name,
+                        $repliedToForumReply->forumPost->resource->lesson->course->name
+                    );
                 }
 
                 $this->notificationService->create(

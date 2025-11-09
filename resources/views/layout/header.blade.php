@@ -587,6 +587,18 @@
                                                             of "{{ Str::limit($noti->parentable->title, 100) }}"
                                                             , with a reason of "{{ $noti->parentable->reports->first()->reason ?? 'No reason' }}".
                                                             Your post will be hidden until it being resolved.
+                                                        @elseif($noti->parent_type === 'resource' && $noti->parentable)
+                                                            of "{{ Str::limit($noti->parentable->name, 100) }}"
+                                                            , with a reason of "{{ $noti->parentable->reports->first()->reason ?? 'No reason' }}".
+                                                            The resource and its forum content will be hidden until it being resolved.
+                                                        @elseif($noti->parent_type === 'lesson' && $noti->parentable)
+                                                            of "{{ Str::limit($noti->parentable->name, 100) }}"
+                                                            , with a reason of "{{ $noti->parentable->reports->first()->reason ?? 'No reason' }}".
+                                                            The lesson and its resources will be hidden until it being resolved.
+                                                        @elseif($noti->parent_type === 'course' && $noti->parentable)
+                                                            of "{{ Str::limit($noti->parentable->title, 100) }}"
+                                                            , with a reason of "{{ $noti->parentable->reports->first()->reason ?? 'No reason' }}".
+                                                            The course and all its content will be hidden until it being resolved.
                                                         @endif
                                                     </p>
                                                     <small class="d-block text-muted mb-1">

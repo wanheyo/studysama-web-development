@@ -1,5 +1,5 @@
 <div class="row">
-    @foreach ($courses->where('role_id', 3) as $course)
+    @foreach ($courses->where('role_id', 3)->where('status', 1) as $course)
         <div class="col-xxl-4 col-md-6 col-sm-6 mb-4">
             <div class="card overflow-hidden h-100 border">
                 <div class="card-body p-0 d-flex flex-column">

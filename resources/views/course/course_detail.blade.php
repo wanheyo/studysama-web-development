@@ -142,7 +142,14 @@
                                                     <div class="btn-group dropdown-icon-none" role="group">
                                                         <button type="button" class="btn btn-outline-primary icon-btn b-r-22 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">:</button>
                                                         <ul class="dropdown-menu">
-                                                            <li><button type="submit" class="dropdown-item">Report Course</button></li>
+                                                            <li>
+                                                                <button type="button" class="dropdown-item text-warning"
+                                                                    data-bs-target="#courseReportModal"
+                                                                    data-bs-toggle="modal"
+                                                                    data-course-id="{{ encrypt($course->id) }}">
+                                                                    Report
+                                                                </button>
+                                                            </li>
                                                         </ul>
                                                     </div>
                                                 @else
@@ -157,7 +164,14 @@
                                                                 <li>
                                                                     <button type="submit" class="dropdown-item leave-course-btn text-danger">Leave Course</button>
                                                                 </li>
-                                                                <li><a class="dropdown-item text-warning">Report Course</a></li>
+                                                                <li>
+                                                                    <button type="button" class="dropdown-item text-warning"
+                                                                        data-bs-target="#courseReportModal"
+                                                                        data-bs-toggle="modal"
+                                                                        data-course-id="{{ encrypt($course->id) }}">
+                                                                        Report
+                                                                    </button>
+                                                                </li>
                                                             </ul>
                                                         </div>
                                                     @else
@@ -167,7 +181,15 @@
                                                         <div class="btn-group" role="group">
                                                             <button type="button" class="btn btn-outline-success icon-btn b-r-22 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
                                                             <ul class="dropdown-menu">
-                                                                <li><a class="dropdown-item" href="#">Report Course</a></li>
+                                                                <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#joinedUsersModal" style="cursor: pointer;">Joined User</a></li>
+                                                                <li>
+                                                                    <button type="button" class="dropdown-item text-warning"
+                                                                        data-bs-target="#courseReportModal"
+                                                                        data-bs-toggle="modal"
+                                                                        data-course-id="{{ encrypt($course->id) }}">
+                                                                        Report
+                                                                    </button>
+                                                                </li>
                                                             </ul>
                                                         </div>
                                                     @endif
@@ -570,6 +592,45 @@
         </div>
     </div>
 
+    <!-- lessonReportModal Modal -->
+    <div class="modal fade" id="courseReportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <form id="reportCourseForm" method="POST">
+                @csrf
+                <input type="hidden" name="reported_id" id="reportCourseId">
+                <input type="hidden" name="reported_type" id="reportCourseType">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title fs-5 text-white">Report Course</h5>
+                        <button aria-label="Close" class="btn-close m-0"
+                            data-bs-dismiss="modal"
+                            type="button"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <textarea class="form-control" name="reason" id="reportCourseReason" rows="4" required placeholder="Your reason for reporting..."></textarea>
+                                </div>
+                                <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
+                                    role="alert">
+                                    <p class="mb-0">
+                                        <i class="ti ti-alert-triangle f-s-18 me-2"></i>Please provide a clear and concise reason for reporting this reply. Our team will review your report and take appropriate action.
+                                    </p>
+                                    <i class="ti ti-x" data-bs-dismiss="alert"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" id="reportCourseCancelBtn" type="button">Cancel</button>
+                        <button class="btn btn-primary" id="reportCourseSaveBtn" type="submit">Save Change</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <style>
         .swal2-toast {
@@ -679,8 +740,10 @@
             });
         });
 
-        // let progress = document.querySelector("#course-progress-chart").dataset.progress;
-        let progress = parseFloat(document.querySelector("#course-progress-chart").dataset.progress) || 0;
+        const chartEl = document.querySelector("#course-progress-chart");
+        if (!chartEl) return; // Exit if the element doesn't exist
+
+        let progress = parseFloat(chartEl.dataset.progress) || 0;
 
         var options = {
             series: [progress],
@@ -694,37 +757,37 @@
                 radialBar: {
                     startAngle: -90,
                     endAngle: 90,
-                    track: {
-                        background: "#e7e7e7",
-                        strokeWidth: '97%',
-                        margin: 5,
-                        dropShadow: {
-                            enabled: true,
-                            top: 2,
-                            left: 0,
-                            color: '#999',
-                            opacity: 1,
-                            blur: 2,
-                        }
-                    },
-                    dataLabels: {
-                        name: { show: false },
-                        value: {
-                            offsetY: -4,
-                            fontSize: '22px'
-                        }
-                    }
+                    track: { background: "#e7e7e7", strokeWidth: '97%', margin: 5 },
+                    dataLabels: { name: { show: false }, value: { offsetY: -4, fontSize: '22px' } }
                 }
             },
             grid: { padding: { top: -20 } },
             labels: ['Overall Progress'],
         };
 
-        window.courseProgressChart = new ApexCharts(
-            document.querySelector("#course-progress-chart"),
-            options
-        );
+        window.courseProgressChart = new ApexCharts(chartEl, options);
         window.courseProgressChart.render();
+
+        // Report COURSE HANDLER
+        const courseReportModal = document.getElementById('courseReportModal');
+
+        courseReportModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+
+            const courseId = button.getAttribute('data-course-id');
+            const reportedType = 'course';
+            // const replyReason = button.getAttribute('data-reply-reason');
+
+            // document.getElementById('editReplyId').value = replyId;
+            // document.getElementById('reportReplyReason').value = replyReason || '';
+
+            const reportCourseForm = document.getElementById('reportCourseForm');
+            const reportFormUrl = "{{ route('main.submit_report') }}";
+            reportCourseForm.action = reportFormUrl;
+
+            document.getElementById('reportCourseId').value = courseId;
+            document.getElementById('reportCourseType').value = reportedType;
+        })
     });
 
     function validateReviewForm() {

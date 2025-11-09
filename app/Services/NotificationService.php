@@ -40,7 +40,8 @@ class NotificationService
 
             case 'forum_post':
                 $forum_post = ForumPost::find($parent_id);
-                $user_id = $forum_post?->userCourse?->user_id;
+                // $user_id = $forum_post?->userCourse?->user_id;
+                $user_id = $forum_post?->resource?->lesson?->course?->userCourses()->where('role_id', 1)->first()?->user_id;
                 break;
 
             case 'course':
