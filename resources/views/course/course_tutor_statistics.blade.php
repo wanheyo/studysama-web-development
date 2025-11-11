@@ -89,6 +89,37 @@
                 </div>
             </div>
 
+            <!-- Course Info -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Course Information</h5>
+                    </div>
+                    <table class="table table-borderless">
+                        <tr>
+                            <th>Course Name:</th>
+                            <td>{{ $course->name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Lessons:</th>
+                            <td>{{ $course->lessons->where('status', 1)->count() }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Resources:</th>
+                            <td>
+                                {{ $course->lessons
+                                    ->where('status', 1)
+                                    ->sum(fn($lesson) => $lesson->resources->where('status', 1)->count()) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Latest Resource Added On:</th>
+                            <td>{{ $latestResourceDate ? \Carbon\Carbon::parse($latestResourceDate)->format('d M Y') : 'N/A' }}</td>
+                        </tr>
+                    </table>
+                </div>                
+            </div>
+
             <!-- Students Table -->
             <div class="card shadow-sm">
                 <div class="card-body">
@@ -151,11 +182,19 @@
                                         <td>{{ $student->created_at->format('d M Y') }}</td>
                                         <td>
                                             @if($student->certificates->where('status', 1)->first())
-                                                <span class="badge bg-success">
-                                                    <a href="{{ route('course.show_certificate', ['certificate_id' => encrypt($student->certificates->where('status', 1)->first()->id)]) }}" class="text-white">
-                                                        Claimed
-                                                    </a>
-                                                </span>
+                                                @if($student->progress_percentage == 100)
+                                                    <span class="badge bg-success">
+                                                        <a href="{{ route('course.show_certificate', ['certificate_id' => encrypt($student->certificates->where('status', 1)->first()->id)]) }}" class="text-white">
+                                                            Claimed
+                                                        </a>
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-success">
+                                                        <a href="{{ route('course.show_certificate', ['certificate_id' => encrypt($student->certificates->where('status', 1)->first()->id)]) }}" class="text-white">
+                                                            Claimed (Outdated)
+                                                        </a>
+                                                    </span>
+                                                @endif   
                                             @elseif ($student->progress_percentage == 100)
                                                 <span class="badge bg-light-success">Not Yet Claimed</span>
                                             @else

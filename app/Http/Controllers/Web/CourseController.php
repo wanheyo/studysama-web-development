@@ -679,14 +679,15 @@ class CourseController extends Controller
 
         // dd($courseProgress);
 
-        return view('course.course_detail', compact('course', 'topics', 'user_courses', 'tutor', 'tutor_follow', 'tutor_courses', 'course_comments', 'user_review', 'joined_users', 'courseProgress', 'totalLessons', 'totalResources', 'totalChecked', 'totalComments', 'totalCompletedLessons', 'totalCompletedResources', 'claimedCertificate'));
+        return view('course.course_detail', compact('course', 'topics', 'user_courses', 'tutor', 'tutor_follow', 'tutor_courses', 'course_comments', 'user_review', 'joined_users', 'courseProgress', 'totalLessons', 'totalResources', 'totalChecked', 'totalComments', 'totalCompletedLessons', 'totalCompletedResources', 'claimedCertificate', 'certificate'));
     }
 
     public function course_tutor_statistics(Request $request, $course_id)
     {
         $course_id = Crypt::decrypt($course_id);
 
-        $course = Course::where('id', $course_id)
+        $course = Course::with(['lessons.resources'])
+            ->where('id', $course_id)
             ->where('status', 1)
             ->firstOrFail();
 
@@ -750,12 +751,20 @@ class CourseController extends Controller
         $inProgressStudents = $totalStudents - $completedStudents;
         // dd($students->toArray());
 
+        $latestResourceDate = Resource::where('status', 1)
+        ->whereHas('lesson', function ($q) use ($course_id) {
+            $q->where('course_id', $course_id);
+        })
+        ->max('created_at');
+
+
         return view('course.course_tutor_statistics', compact(
             'course',
             'students',
             'totalStudents',
             'completedStudents',
-            'inProgressStudents'
+            'inProgressStudents',
+            'latestResourceDate'
         ));
     }
 
@@ -998,8 +1007,6 @@ class CourseController extends Controller
 
         // dd($validatedData);
 
-        
-
         $course_id = Crypt::decrypt($course_id);
 
         $course = Course::where('id', $course_id)
@@ -1084,7 +1091,7 @@ class CourseController extends Controller
 
         // dd($course, $userCourse, $certificate);
 
-        return view('course.certificate', compact('course', 'userCourse', 'certificate'));
+        return view('course.certificate', compact('course', 'userCourse', 'certificate', 'courseProgress'));
     }
 
     public function show_course_certificate($certificate_id)
@@ -1104,7 +1111,56 @@ class CourseController extends Controller
             ->where('status', 1)
             ->firstOrFail();
 
-        return view('course.certificate', compact('course', 'userCourse', 'certificate'));
+        $lessons = Lesson::with(['resources' => function ($query) use ($userCourse) {
+            $query->where('status', 1)
+            ->with(['resourceFile' => function ($query) {
+                $query->where('status', 1);
+            }])
+            ->with(['comments' => function ($query) {
+                $query->where('status', 1)
+                    ->with(['userCourse.user']);
+            }])
+            ->with(['userProgressions' => function ($query) use ($userCourse) {
+                $query->whereHas('userCourse', function ($subQuery) use ($userCourse) {
+                    $subQuery->where('id', $userCourse->id)
+                            ->where('status', 1);
+                });
+            }]);
+        }])
+        ->where('course_id', $course->id)
+        ->where('status', 1)
+        ->orderByRaw('CASE WHEN order_index IS NULL THEN 1 ELSE 0 END, order_index ASC')
+        ->orderBy('id', 'ASC')
+        ->get();
+
+        $totalLessons = $lessons->count();
+        $totalResources = 0;
+        $totalChecked   = 0;
+        $totalComments  = 0;
+        $totalCompletedLessons = 0;
+
+        foreach ($lessons as $lesson) {
+            $lessonResourceCount = $lesson->resources->count();
+            $lessonCheckedCount  = $lesson->resources->sum(
+                fn($resource) => $resource->userProgressions->where('status', 1)->count()
+            );
+
+            $totalResources += $lessonResourceCount;
+            $totalChecked   += $lessonCheckedCount;
+            $totalComments  += $lesson->resources->sum(fn($resource) => $resource->comments->count());
+
+            if ($lessonResourceCount > 0 && $lessonCheckedCount === $lessonResourceCount) {
+                $totalCompletedLessons++;
+            }
+        }
+
+        $totalCompletedResources = $totalChecked;
+
+        $courseProgress = $totalResources > 0
+            ? round(($totalChecked / $totalResources) * 100, 1)
+            : 0;
+
+        return view('course.certificate', compact('course', 'userCourse', 'certificate', 'courseProgress'));
     }
 
     // ADMIN SIDE

@@ -56,8 +56,8 @@
                         <div class="product-details-contentbox">
                             <div class="course-image mb-3">
                                 <img src="{{ asset($course->image ? 'storage/uploads/course_picture/' . $course->image : '../assets/images/ecommerce/1280x720.png') }}" 
-                                     alt="Course Image"
-                                     style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 1.5rem 1.5rem 1.5rem 1.5rem;">
+                                    alt="Course Image"
+                                    style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 1.5rem 1.5rem 1.5rem 1.5rem;">
                             </div>
                             <h4>{{ $course->name ?? 'N/A' }}</h4>
 
@@ -439,7 +439,11 @@
                                         <h6 class="mb-0">Certificate</h6>
                                         <p id="resource-status"
                                         class="text-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} mb-0">
-                                            {{ $totalCompletedResources == $totalResources ? 'Claimable' : 'Unclaimable' }}
+                                            @if($claimedCertificate && $certificate)
+                                                {{ $totalCompletedResources == $totalResources ? 'Claimed' : 'Outdated' }}
+                                            @else
+                                                {{ $totalCompletedResources == $totalResources ? 'Claimable' : 'Unclaimable' }}
+                                            @endif
                                         </p>
                                     </div>
                                     <p id="resource-count" class="text-secondary f-w-500 mb-0">
@@ -452,9 +456,15 @@
                                             data-bs-toggle="modal" data-bs-target="#claim_certificate_modal" data-id="{{ $course->id }}" 
                                             data-bs-placement="top" data-bs-toggle="tooltip" title="{{ $totalCompletedResources == $totalResources ? 'Claim Certificate' : 'You need 100% completion to claim certificate.' }}">Claim</button> --}}
                                             
-                                            <a href="{{ route('course.certificate', ['course_id' => encrypt($course->id)]) }}" class="btn btn-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} rounded {{ $totalCompletedResources == $totalResources ? '' : 'disabled' }}">
-                                                View
-                                            </a>
+                                            @if($claimedCertificate && $certificate)
+                                                <a href="{{ route('course.show_certificate', ['certificate_id' => encrypt($certificate->id)]) }}" class="btn btn-warning rounded">
+                                                    View
+                                                </a>
+                                            @else
+                                                <a href="{{ route('course.certificate', ['course_id' => encrypt($course->id)]) }}" class="btn btn-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} rounded {{ $totalCompletedResources == $totalResources ? '' : 'disabled' }}">
+                                                    View
+                                                </a>
+                                            @endif
                                         </div>
                                     </p>
                                 </div>
