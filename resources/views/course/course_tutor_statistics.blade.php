@@ -91,10 +91,10 @@
 
             <!-- Course Info -->
             <div class="card shadow-sm">
+                <div class="card-header bg-primary">
+                    <h5 class="text-white mb-3">Course Information</h5>
+                </div>
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Course Information</h5>
-                    </div>
                     <table class="table table-borderless">
                         <tr>
                             <th>Course Name:</th>
@@ -118,6 +118,64 @@
                         </tr>
                     </table>
                 </div>                
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="fw-semibold mb-3">Status Definitions</h6>
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="ps-0" style="width: 120px;">
+                                            <span class="badge bg-success">Completed</span>
+                                        </td>
+                                        <td class="ps-2">Students who have finished all lessons.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-0">
+                                            <span class="badge bg-warning text-dark">In Progress</span>
+                                        </td>
+                                        <td class="ps-2">Students who are still working through the course.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="fw-semibold mb-3">Certificate Definitions</h6>
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="ps-0" style="width: 150px;">
+                                            <span class="badge bg-secondary">Not Eligible</span>
+                                        </td>
+                                        <td class="ps-2">Students who have not completed the course and are not eligible for a certificate.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-0">
+                                            <span class="badge bg-light-success">Not Yet Claimed</span>
+                                        </td>
+                                        <td class="ps-2">Students who have completed the course but haven't claimed their certificate yet.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-0">
+                                            <span class="badge bg-success">Claimed</span>
+                                        </td>
+                                        <td class="ps-2">Students who have claimed their certificate after completing the course.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-0">
+                                            <span class="badge bg-success">Claimed (Outdated)</span>
+                                        </td>
+                                        <td class="ps-2">Students who claimed their certificate before course updates.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Students Table -->
@@ -198,7 +256,7 @@
                                             @elseif ($student->progress_percentage == 100)
                                                 <span class="badge bg-light-success">Not Yet Claimed</span>
                                             @else
-                                                <span class="badge bg-warning">Not Eligible</span>
+                                                <span class="badge bg-secondary">Not Eligible</span>
                                             @endif
                                         </td>
                                         <td>
