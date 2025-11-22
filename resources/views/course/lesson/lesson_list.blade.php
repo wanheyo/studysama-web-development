@@ -2024,7 +2024,9 @@
 
                 // Set report button
                 const reportBtn = document.getElementById('resourceDetailModalReportBtn');
-                reportBtn.setAttribute('data-resource-id', resourceData.idEncrypted);
+                if (reportBtn) {
+                    reportBtn.setAttribute('data-resource-id', resourceData.idEncrypted);
+                }
 
                 // Set mcq button
                 const mcqBtn = document.getElementById('generateMCQBtn');

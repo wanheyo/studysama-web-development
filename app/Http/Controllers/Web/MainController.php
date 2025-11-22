@@ -270,6 +270,30 @@ class MainController extends Controller
                 return redirect()->back()->with('error', 'Invalid report ID.');
             }
 
+            // Check if user already submitted report for this content
+            $alreadyReported = Report::where('user_id', auth()->id())
+                ->where('reported_id', $reported_id)
+                ->where('reported_type', $validated['reported_type'])
+                ->exists();
+
+            if ($alreadyReported) {
+                return redirect()->back()->with('error', 'You have already reported this content.');
+            }
+
+            $activeReports = 0;
+
+            $activeReports = Report::where('reported_type', $validated['reported_type'])
+                ->where('reported_id', $reported_id)
+                ->where('status', 1)
+                ->count();
+
+            if ($activeReports >= 5) {
+                return redirect()->back()->with('error',
+                    "This content already has $activeReports active report(s). " .
+                    "Please avoid submitting duplicate reports for the same content."
+                );
+            }
+
             $report = Report::create([
                 'user_id' => auth()->id(),
                 'reported_id' => $reported_id,
@@ -290,36 +314,91 @@ class MainController extends Controller
                     return redirect()->back()->with('error', 'Forum reply not found.');
                 }
                 $forum_reply->update(['status' => 2]);
-            } else if ($validated['reported_type'] === 'resource') {
+            } 
+            // else if ($validated['reported_type'] === 'resource') {
+            //     $resource = Resource::find($reported_id);
+            //     if (!$resource) {
+            //         return redirect()->back()->with('error', 'Resource not found.');
+            //     }
+            //     $resource->update(['status' => 2]);
+            // } else if ($validated['reported_type'] === 'lesson') {
+            //     $lesson = Lesson::find($reported_id);
+            //     if (!$lesson) {
+            //         return redirect()->back()->with('error', 'Lesson not found.');
+            //     }
+            //     $lesson->update(['status' => 2]);
+            // } else if ($validated['reported_type'] === 'course') {
+            //     $course = Course::find($reported_id);
+            //     if (!$course) {
+            //         return redirect()->back()->with('error', 'Course not found.');
+            //     }
+            //     $course->update(['status' => 2]);
+            // }
+            else if ($validated['reported_type'] === 'resource') {
                 $resource = Resource::find($reported_id);
                 if (!$resource) {
                     return redirect()->back()->with('error', 'Resource not found.');
                 }
-                $resource->update(['status' => 2]);
+
+                if ($activeReports >= 4) {
+                    $resource->update(['status' => 2]);
+                }
+
+                // $resource->update(['status' => 2]); // Optional: keep if you still want to hide on first report
             } else if ($validated['reported_type'] === 'lesson') {
                 $lesson = Lesson::find($reported_id);
                 if (!$lesson) {
                     return redirect()->back()->with('error', 'Lesson not found.');
                 }
-                $lesson->update(['status' => 2]);
+
+                if ($activeReports >= 4) {
+                    $lesson->update(['status' => 2]);
+                }
+
+                // $lesson->update(['status' => 2]);
             } else if ($validated['reported_type'] === 'course') {
                 $course = Course::find($reported_id);
                 if (!$course) {
                     return redirect()->back()->with('error', 'Course not found.');
                 }
-                $course->update(['status' => 2]);
-            } else {
+
+                if ($activeReports >= 4) {
+                    $course->update(['status' => 2]);
+                }
+
+                // $course->update(['status' => 2]);
+            }
+            else {
                 return redirect()->back()->with('error', 'Invalid report type.');
             }
 
-            // $this->create_notification(
-            $this->notificationService->create(
-                'report',
-                $report->reported_type,
-                'Report Received',
-                'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type,
-                $reported_id
-            );
+            if ($activeReports >= 4) {
+                if($validated['reported_type'] === 'resource' || $validated['reported_type'] === 'lesson' || $validated['reported_type'] === 'course') {
+                    $this->notificationService->create(
+                        'report',
+                        $report->reported_type,
+                        'Report Received',
+                        'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type . '. This content has reached 5 reports and has been hidden automatically.',
+                        $reported_id
+                    );
+                } else {
+                    $this->notificationService->create(
+                        'report',
+                        $report->reported_type,
+                        'Report Received',
+                        'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type,
+                        $reported_id
+                    );
+                }
+            } else {
+                $this->notificationService->create(
+                    'report',
+                    $report->reported_type,
+                    'Report Received',
+                    'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type,
+                    $reported_id
+                );
+            }
 
             return redirect()->back()->with('success', 'Report submitted successfully.');
 
