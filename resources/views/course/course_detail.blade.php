@@ -200,13 +200,8 @@
                                 </div>
                                 @if($course->status == 2)
                                     <div class="col-12 mt-3">
-                                        <div class="alert alert-light-border-warning d-flex align-items-center justify-content-between"
-                                            role="alert">
-                                            <p class="mb-0">
-                                                <i class="ti ti-alert-triangle f-s-18 me-2"></i> 
-                                                Your course is <span class="badge bg-danger" data-bs-placement="top" data-bs-toggle="tooltip"title="This course is under review by the admin, user cannot view or join it.">
-                                                    Under Review</span> by our team. It will be unavailable to public until it is approved. Please refer to our <a href="" class="text-decoration-underline fw-semibold text-primary">guidelines</a>. 
-                                            </p>
+                                        <div class="alert alert-light-border-warning" role="alert">
+                                            <i class="ti ti-alert-triangle f-s-18 me-2"></i> Your course is <span class="badge bg-danger" data-bs-placement="top" data-bs-toggle="tooltip"title="This course is under review by the admin, user cannot view or join it.">Under Review</span> by our team. It will be unavailable to public until it is approved. Please refer to our <a href="" class="text-decoration-underline fw-semibold text-primary">guidelines</a>.
                                         </div>
                                         {{-- <div class="form-check d-flex">
                                             <input class="form-check-input mg-2" type="checkbox" id="flexCheck">
@@ -711,7 +706,7 @@
                 e.preventDefault();
                 Swal.fire({
                     title: 'Leave Course?',
-                    text: "Are you sure you want to leave this course?",
+                    text: "Are you sure you want to leave this course? If you leave, your progress will be lost and achieved certificates will be voided.",
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',

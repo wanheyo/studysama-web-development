@@ -16,7 +16,7 @@ class NotificationService
     /**
      * Create a system notification dynamically for various parent types.
      */
-    public function create($noti_type, $parent_type, $title, $content, $parent_id = null)
+    public function create($noti_type, $parent_type, $title, $content, $parent_id = null, $report_id = null)
     {
         $user_id = null;
 
@@ -74,6 +74,7 @@ class NotificationService
         return SystemNotification::create([
             'user_id'     => $user_id,
             'noti_type'   => $noti_type,
+            'report_id'   => $report_id,
             'parent_type' => $parent_type,
             'title'       => $title,
             'content'     => $content,

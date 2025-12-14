@@ -19,6 +19,7 @@ class SystemNotification extends Model
         'content',
         'is_read',
         'noti_type', // e.g., 'report', 'message', 'course', 'system', etc.
+        'report_id',
         'parent_type', // e.g., 'forum_post', 'forum_replies', 'course', etc.
         'read_at',
         'status',
@@ -62,5 +63,10 @@ class SystemNotification extends Model
     public function parentable()
     {
         return $this->morphTo(__FUNCTION__, 'parent_type', 'parent_id');
+    }
+
+    public function report()
+    {
+        return $this->belongsTo(Report::class, 'report_id');
     }
 }

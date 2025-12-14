@@ -581,22 +581,24 @@
                                                             <h3 class="f-s-15 text-danger mb-0">{{ $noti->title }}</h3>
                                                             <p class="text-muted">{{ $noti->content }}
                                                                 @if($noti->parent_type === 'forum_reply' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->content, 100) }}"
-                                                                    , with a reason of "{{ $noti->parentable->reports->first()->reason ?? 'No reason' }}".
+                                                                    of "{{ Str::limit($noti->parentable->content, 100) }}", 
+                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
                                                                     Your reply will be hidden until it being resolved.
                                                                 @elseif($noti->parent_type === 'forum_post' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->title, 100) }}"
-                                                                    , with a reason of "{{ $noti->parentable->reports->first()->reason ?? 'No reason' }}".
+                                                                    of "{{ Str::limit($noti->parentable->title, 100) }}",
+                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
                                                                     Your post will be hidden until it being resolved.
                                                                 @elseif($noti->parent_type === 'resource' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->name, 100) }}"
-                                                                    , with a reason of "{{ $noti->parentable->reports->first()->reason ?? 'No reason' }}".
+                                                                    of "{{ Str::limit($noti->parentable->name, 100) }}",
+                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
                                                                 @elseif($noti->parent_type === 'lesson' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->name, 100) }}"
-                                                                    , with a reason of "{{ $noti->parentable->reports->first()->reason ?? 'No reason' }}".
+                                                                    of "{{ Str::limit($noti->parentable->name, 100) }}",
+                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
                                                                 @elseif($noti->parent_type === 'course' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->title, 100) }}"
-                                                                    , with a reason of "{{ $noti->parentable->reports->first()->reason ?? 'No reason' }}".
+                                                                    of "{{ Str::limit($noti->parentable->title, 100) }}",
+                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
+                                                                @elseif($noti->parent_type === 'user' && $noti->parentable)
+                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
                                                                 @endif
                                                             </p>
                                                             <small class="d-block text-muted mb-1">

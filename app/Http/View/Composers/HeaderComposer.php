@@ -25,12 +25,21 @@ class HeaderComposer
                 ->take(5)
                 ->with(['parentable' => function ($morphTo) {
                     $morphTo->morphWith([
-                        Report::class => ['user'],
-                        ForumPost::class => ['userCourse.user'],
-                        ForumReply::class => ['userCourse.user'],
-                        Resource::class => ['lesson.course.userCourses.user'],
-                        Lesson::class => ['course.userCourses.user'],
-                        Course::class => ['userCourses.user'],
+                        ForumPost::class => ['userCourse.user', 'reports'],
+                        ForumReply::class => ['userCourse.user', 'reports'],
+                        Resource::class => ['lesson.course.userCourses.user', 'reports'],
+                        Lesson::class => ['course.userCourses.user', 'reports'],
+                        Course::class => ['userCourses.user', 'reports'],
+                        User::class => ['reports'],
+                    ]);
+
+                    $morphTo->morphWithCount([
+                        ForumPost::class => ['reports'],
+                        ForumReply::class => ['reports'],
+                        Resource::class => ['reports'],
+                        Lesson::class => ['reports'],
+                        Course::class => ['reports'],
+                        User::class => ['reports'],
                     ]);
                 }])
                 ->get();

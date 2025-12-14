@@ -297,7 +297,7 @@ class AIController extends Controller
                 }
 
             } elseif (Str::startsWith($path, [url('/').'/storage/uploads/resource_file'])) {
-                // ✅ Treat local storage links as files
+                // Treat local storage links as files
                 $relativePath = str_replace(url('/').'/storage', 'storage', $path);
                 $localPath = public_path($relativePath);
 
@@ -349,7 +349,8 @@ class AIController extends Controller
                     ],
                     [
                         'role' => 'user',
-                        'content' => "Content Source: {$sourceName}\n\n{$promptContent}\n\nGenerate exactly 5 unique questions with 4 options each, return JSON only."
+                        'content' => "Content Source: {$sourceName}\n\n{$promptContent}\n\n
+                        Generate exactly 5 unique questions with 4 options each, return JSON only."
                     ]
                 ],
                 'max_tokens' => 1500,
@@ -360,6 +361,7 @@ class AIController extends Controller
                 throw new \Exception("OpenAI API error: " . $response->body());
             }
 
+            Log::info('AI MCQ Response:', ['response' => $response->body()]);
             $message = $response->json('choices.0.message.content');
             $token_used = $response->json('usage.total_tokens') ?? 0;
 

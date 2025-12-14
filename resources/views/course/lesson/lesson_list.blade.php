@@ -54,7 +54,7 @@
                         {{-- <h5>Lesson List</h5> --}}
                         <div class="d-flex align-items-center justify-content-between">
                         <h5>Lessons</h5>
-                            @if ($isTutor)
+                            @if ($isTutor && $lessons->isNotEmpty())
                                 <div id="reorder-actions">
                                     <button id="reorder-btn" class="btn btn-light-primary b-r-22" type="button">
                                     <i class="ti ti-edit"></i> Reorder
@@ -96,7 +96,7 @@
                                 @else
                                     <div class="text-center text-muted my-4">
                                         <i class="ti ti-folder-off fs-2"></i>
-                                        <p class="mt-2">No lesson have been added to this course yet.</p>
+                                        <p class="mt-2">No lesson added to this course yet</p>
                                     </div>
                                 @endif
                                 
@@ -114,7 +114,7 @@
 
                                 <li class="app-divider-v dashed p-0 m-2"></li>
                                 @if ($isTutor)
-                                    <li data-bs-target="#lessonAddModal" data-bs-toggle="modal" class="my-3 border border-dashed rounded-pill hover-effect d-flex align-items-center gap-2">
+                                    <li data-bs-target="#lessonAddModal" data-bs-toggle="modal" class="btn my-3 border border-dashed rounded-pill hover-effect d-flex align-items-center gap-2">
                                         <i class="ti ti-folder-plus fs-5 pe-2"></i>
                                         <span class="flex-grow-1">Create New Lesson</span>
                                     </li>
@@ -132,6 +132,7 @@
                 </div>
 
                 @if(!$isTutor)
+                    {{-- ================= STUDENT VIEW ================= --}}
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-3">Course Overview</h5>
@@ -139,13 +140,25 @@
 
                         <div class="card-body">
                             <div class="mb-3">
-                                <div id="course-progress-chart"
-                                    data-total-resources="{{ $totalResources }}"
-                                    data-checked-resources="{{ $totalChecked }}"
-                                    data-progress="{{ $courseProgress }}"
-                                    data-bs-placement="top" data-bs-toggle="tooltip" title="Course Progress Percentage">
-                                </div>
+                                {{-- CHECK IF RESOURCES EXIST --}}
+                                @if(($totalResources ?? 0) > 0)
+                                    <div id="course-progress-chart"
+                                        data-total-resources="{{ $totalResources }}"
+                                        data-checked-resources="{{ $totalChecked }}"
+                                        data-progress="{{ $courseProgress }}"
+                                        data-bs-placement="top" data-bs-toggle="tooltip" title="Course Progress Percentage">
+                                    </div>
+                                @else
+                                    {{-- EMPTY STATE FOR STUDENT --}}
+                                    <div class="text-center text-muted my-4">
+                                        <i class="ti ti-chart-pie-off fs-2"></i>
+                                        <p class="mt-2">No course content yet</p>
+                                    </div>
+                                    <br>
+                                @endif
                             </div>
+
+                            {{-- Lesson Stats --}}
                             <div class="file-manager-sidebar mb-4"> 
                                 <div class="d-flex align-items-center position-relative">
                                     <span class="text-light-primary h-40 w-40 d-flex-center b-r-10 position-absolute">
@@ -154,8 +167,8 @@
                                     <div class="flex-grow-1 ms-5">
                                         <h6 class="mb-0">Lesson</h6>
                                         <p id="lesson-status"
-                                        class="text-{{ $totalCompletedLessons == $totalLessons ? 'success' : 'secondary' }} mb-0">
-                                            {{ $totalCompletedLessons == $totalLessons ? 'Completed' : 'Uncompleted' }}
+                                        class="text-{{ $totalCompletedLessons == $totalLessons && $totalLessons > 0 ? 'success' : 'secondary' }} mb-0">
+                                            {{ $totalCompletedLessons == $totalLessons && $totalLessons > 0 ? 'Completed' : 'Uncompleted' }}
                                         </p>
                                     </div>
                                     <p id="lesson-count" class="text-secondary f-w-500 mb-0">
@@ -164,6 +177,7 @@
                                 </div>
                             </div>
 
+                            {{-- Resource Stats --}}
                             <div class="file-manager-sidebar mb-4">
                                 <div class="d-flex align-items-center position-relative">
                                     <span class="text-light-success h-40 w-40 d-flex-center b-r-10 position-absolute">
@@ -172,8 +186,8 @@
                                     <div class="flex-grow-1 ms-5">
                                         <h6 class="mb-0">Resource</h6>
                                         <p id="resource-status"
-                                        class="text-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} mb-0">
-                                            {{ $totalCompletedResources == $totalResources ? 'Completed' : 'Uncompleted' }}
+                                        class="text-{{ $totalCompletedResources == $totalResources && $totalResources > 0 ? 'success' : 'secondary' }} mb-0">
+                                            {{ $totalCompletedResources == $totalResources && $totalResources > 0 ? 'Completed' : 'Uncompleted' }}
                                         </p>
                                     </div>
                                     <p id="resource-count" class="text-secondary f-w-500 mb-0">
@@ -184,6 +198,7 @@
                         </div>
                     </div>
                 @else
+                    {{-- ================= TUTOR VIEW ================= --}}
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">Course Overview</h5>
@@ -191,10 +206,29 @@
 
                         <div class="card-body">
                             <div class="mb-3">
-                                <div style="max-width: 250px; margin: 0 auto;">
-                                    <canvas id="progressChart"></canvas>
-                                </div>
+                                {{-- CHECK IF STUDENTS EXIST --}}
+                                @if(($totalStudents ?? 0) > 0)
+                                    <div style="max-width: 250px; margin: 0 auto;">
+                                        <canvas id="progressChart"></canvas>
+                                    </div>
+                                @else
+                                    {{-- EMPTY STATE FOR TUTOR --}}
+                                    {{-- <div class="text-center py-4">
+                                        <span class="text-light-secondary h-40 w-40 d-flex-center b-r-10 mx-auto mb-2">
+                                            <i class="ph-bold ph-users-three f-s-20"></i>
+                                        </span>
+                                        <p class="text-secondary f-w-500 mb-0">No students enrolled yet</p>
+                                    </div> --}}
+
+                                    <div class="text-center text-muted my-4">
+                                        <i class="ti ti-chart-pie-off fs-2"></i>
+                                        <p class="mt-2">No students enrolled yet</p>
+                                    </div>
+                                    <br>
+                                @endif
                             </div>
+
+                            {{-- Completed Stats --}}
                             <div class="file-manager-sidebar mt-4 mb-4"> 
                                 <div class="d-flex align-items-center position-relative">
                                     <span class="text-light-success h-40 w-40 d-flex-center b-r-10 position-absolute">
@@ -202,9 +236,6 @@
                                     </span>
                                     <div class="flex-grow-1 ms-5">
                                         <h6 class="mb-0">Completed</h6>
-                                        {{-- <p class="text-{{ $totalCompletedLessons == $totalLessons ? 'success' : 'secondary' }} mb-0">
-                                            {{ $totalCompletedLessons == $totalLessons ? 'Completed' : 'Uncompleted' }}
-                                        </p> --}}
                                     </div>
                                     <p class="text-secondary f-w-500 mb-0">
                                         <a class="" href="{{ route('course.course_tutor_statistics', ['course_id' => encrypt($course->id)]) }}">
@@ -214,6 +245,7 @@
                                 </div>
                             </div>
 
+                            {{-- In Progress Stats --}}
                             <div class="file-manager-sidebar mb-4">
                                 <div class="d-flex align-items-center position-relative">
                                     <span class="text-light-warning h-40 w-40 d-flex-center b-r-10 position-absolute">
@@ -221,9 +253,6 @@
                                     </span>
                                     <div class="flex-grow-1 ms-5">
                                         <h6 class="mb-0">In Progress</h6>
-                                        {{-- <p class="text-{{ $totalCompletedResources == $totalResources ? 'success' : 'secondary' }} mb-0">
-                                            {{ $totalCompletedResources == $totalResources ? 'Completed' : 'Uncompleted' }}
-                                        </p> --}}
                                     </div>
                                     <p class="text-secondary f-w-500 mb-0">
                                         <a class="" href="{{ route('course.course_tutor_statistics', ['course_id' => encrypt($course->id)]) }}">
@@ -524,8 +553,8 @@
                                                 @endforeach
                                             @else
                                                 <div class="text-center text-muted my-4">
-                                                    <i class="ti ti-folder-off fs-2"></i>
-                                                    <p class="mt-2">No resources have been added to this lesson yet.</p>
+                                                    <i class="ti ti-notebook-off fs-2"></i>
+                                                    <p class="mt-2">No resources added to this lesson yet</p>
                                                 </div>
                                             @endif
                                         </div>
@@ -534,10 +563,17 @@
                             </div>
                         @endforeach
                     @else
-                        <div class="d-flex justify-content-center align-items-center" style="min-height: 300px;">
-                            <div class="text-center text-muted">
-                                <i class="ti ti-folder-off fs-2"></i>
-                                <p class="mt-2">No lesson have been added to this course yet.</p>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5>Resources</h5> 
+                                </div>
+                                <div class="d-flex justify-content-center align-items-center" style="min-height: 500px;">
+                                    <div class="text-center text-muted">
+                                        <i class="ti ti-notebook-off fs-2"></i>
+                                        <p class="mt-2">No resource added to this course yet</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @endif
@@ -2633,7 +2669,7 @@
 
                     document.getElementById('reportResourceId').value = resourceId;
                     document.getElementById('reportResourceType').value = reportedType;
-                })
+                });
 
                 // Set resource ID for comment form
                 // document.getElementById('commentResourceId').value = resourceData.id;

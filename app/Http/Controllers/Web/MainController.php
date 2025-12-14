@@ -274,10 +274,13 @@ class MainController extends Controller
             $alreadyReported = Report::where('user_id', auth()->id())
                 ->where('reported_id', $reported_id)
                 ->where('reported_type', $validated['reported_type'])
+                ->where('status', 1)
                 ->exists();
 
+            $report_type = $validated['reported_type'] === 'user' ? 'user' : 'content';
+
             if ($alreadyReported) {
-                return redirect()->back()->with('error', 'You have already reported this content.');
+                return redirect()->back()->with('error', 'You have already reported this ' . $report_type . '.');
             }
 
             $activeReports = 0;
@@ -290,7 +293,7 @@ class MainController extends Controller
             if ($activeReports >= 5) {
                 return redirect()->back()->with('error',
                     "This content already has $activeReports active report(s). " .
-                    "Please avoid submitting duplicate reports for the same content."
+                    "Please avoid submitting duplicate reports for the same ' . $report_type . '.'"
                 );
             }
 
@@ -367,6 +370,17 @@ class MainController extends Controller
                 }
 
                 // $course->update(['status' => 2]);
+            } else if ($validated['reported_type'] === 'user') {
+                $user = User::find($reported_id);
+                if (!$user) {
+                    return redirect()->back()->with('error', 'User not found.');
+                }
+
+                if ($activeReports >= 4) {
+                    $user->update(['status' => 2]);
+                }
+
+                // $user->update(['status' => 2]);
             }
             else {
                 return redirect()->back()->with('error', 'Invalid report type.');
@@ -378,8 +392,18 @@ class MainController extends Controller
                         'report',
                         $report->reported_type,
                         'Report Received',
-                        'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type . '. This content has reached 5 reports and has been hidden automatically.',
-                        $reported_id
+                        'This content was automatically hidden after reaching 5 reports. It was reported by ' . auth()->user()->username . ' for your ' . $report->reported_type,
+                        $reported_id,
+                        $report->id
+                    );
+                } else if($validated['reported_type'] === 'user') {
+                    $this->notificationService->create(
+                        'report',
+                        $report->reported_type,
+                        'Report Received',
+                        'Your account was automatically hidden after reaching 5 reports. It was reported by ' . auth()->user()->username,
+                        $reported_id,
+                        $report->id
                     );
                 } else {
                     $this->notificationService->create(
@@ -387,17 +411,30 @@ class MainController extends Controller
                         $report->reported_type,
                         'Report Received',
                         'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type,
-                        $reported_id
+                        $reported_id,
+                        $report->id
                     );
                 }
             } else {
-                $this->notificationService->create(
-                    'report',
-                    $report->reported_type,
-                    'Report Received',
-                    'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type,
-                    $reported_id
-                );
+                if($validated['reported_type'] === 'user') {
+                    $this->notificationService->create(
+                        'report',
+                        $report->reported_type,
+                        'Report Received',
+                        'Reported by ' . auth()->user()->username . ' for your account',
+                        $reported_id,
+                        $report->id
+                    );
+                } else {
+                    $this->notificationService->create(
+                        'report',
+                        $report->reported_type,
+                        'Report Received',
+                        'Reported by ' . auth()->user()->username . ' for your ' . $report->reported_type,
+                        $reported_id,
+                        $report->id
+                    );
+                }
             }
 
             return redirect()->back()->with('success', 'Report submitted successfully.');

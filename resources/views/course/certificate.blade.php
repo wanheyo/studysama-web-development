@@ -216,9 +216,10 @@
         <div class="alert alert-label alert-label-warning justify-content-between mx-4 no-print" role="alert">
             <p class="mb-0">
                 <i class="ti ti-certificate label-icon label-icon-warning text-black"></i>
-                Your current certificate is <span class="badge bg-warning" data-bs-placement="top" data-bs-toggle="tooltip" title="Your certificate is still valid but no longer reflects the latest course content">Outdated</span>. 
-                This is because new resources or updates have been added to your course, which caused your course progression to adjust to {{ $courseProgress }}%.
-                You may complete the newly added materials to reach 100% again and claim your updated certificate.
+                This certificate is <span class="badge bg-warning" data-bs-placement="top" data-bs-toggle="tooltip" title="This certificate is still valid but no longer reflects the latest course content">Outdated</span>
+                but still valid.
+                This is because new resources or updates have been added to this course.
+                {{-- , which caused the course progression to reach {{ $courseProgress }}%. --}}
             </p>
             {{-- <a href="{{ route('course.certificate', ['course_id' => encrypt($course->id)]) }}" class="btn btn-sm btn-success rounded">
                 Claim Updated Certificate

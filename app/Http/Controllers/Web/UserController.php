@@ -183,7 +183,7 @@ class UserController extends Controller
             ->join('user_courses as uc', function ($join) use ($user) {
                 $join->on('uc.course_id', '=', 'c.id')
                     ->where('uc.user_id', '=', $user->id)
-                    ->where('uc.status', '!=', 0); // ✅ filter out inactive user-course entries
+                    ->where('uc.status', '!=', 0); // filter out inactive user-course entries
             })
             ->join('user_courses as tutor_uc', function ($join) {
                 $join->on('tutor_uc.course_id', '=', 'c.id')
@@ -259,9 +259,15 @@ class UserController extends Controller
             ->selectRaw('SUM(user_activity_logs.xp_earned) as total_xp, SUM(user_activity_logs.points_earned) as total_points')
             ->first();
 
+        $certificates = Certificate::whereHas('userCourse', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+        ->with(['userCourse.course'])
+        ->where('status', 1)
+        ->get();
 
         // dd($user_follow);
-        return view('user.my_profile', compact('user', 'user_follow', 'courses', 'following', 'followers', 'user_points', 'mcq', 'flashcard', 'wsp'));
+        return view('user.my_profile', compact('user', 'user_follow', 'courses', 'following', 'followers', 'user_points', 'mcq', 'flashcard', 'wsp', 'certificates'));
     }
 
     public function show_edit_profile(Request $request)
@@ -439,8 +445,15 @@ class UserController extends Controller
             ->selectRaw('SUM(user_activity_logs.xp_earned) as total_xp, SUM(user_activity_logs.points_earned) as total_points')
             ->first();
 
+        $certificates = Certificate::whereHas('userCourse', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+        ->with(['userCourse.course'])
+        ->where('status', 1)
+        ->get();
+
         // dd($user_follow);
-        return view('user.profile', compact('user', 'user_follow', 'courses', 'following', 'followers', 'user_points', 'mcq', 'flashcard', 'wsp'));
+        return view('user.profile', compact('user', 'user_follow', 'courses', 'following', 'followers', 'user_points', 'mcq', 'flashcard', 'wsp', 'certificates'));
     }
 
     public function update_follow(Request $request, $user_followed_id)

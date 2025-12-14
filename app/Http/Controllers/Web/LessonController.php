@@ -22,7 +22,7 @@ class LessonController extends Controller
         $course_id = Crypt::decrypt($course_id);
 
         $course = Course::where('id', $course_id)
-            ->where('status', 1)
+            // ->where('status', 1)
             ->firstOrFail();
 
         $lessons = Lesson::with(['resources' => function ($query) {
@@ -91,19 +91,19 @@ class LessonController extends Controller
             ->get();
 
         // Total resources in course
-        $totalResources = $course
-            ->where('status', 1)
-            ->where('id', $course_id)
-            ->first()
-            ->lessons()
-            ->where('status', 1)
-            ->withCount([
-                'resources as resources_count' => function ($query) {
-                    $query->where('status', 1);
-                }
-            ])
-            ->get()
-            ->sum('resources_count');
+        // $totalResources = $course
+        //     ->where('status', 1)
+        //     ->where('id', $course_id)
+        //     ->first()
+        //     ->lessons()
+        //     ->where('status', 1)
+        //     ->withCount([
+        //         'resources as resources_count' => function ($query) {
+        //             $query->where('status', 1);
+        //         }
+        //     ])
+        //     ->get()
+        //     ->sum('resources_count');
 
         // dd($students);
 

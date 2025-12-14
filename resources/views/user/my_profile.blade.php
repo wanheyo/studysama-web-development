@@ -65,6 +65,8 @@
                                     Following</li>
                                 <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="6"><i class="ti ti-chart-radar fw-bold"></i>
                                     Level Progression</li>
+                                <li class="tab-link fw-medium f-s-16  f-w-600" data-tab="7"><i class="ti ti-certificate fw-bold"></i>
+                                    Certificate</li>
                                 <li class="app-divider-v dashed p-0 m-2"></li>
                                 <li data-bs-toggle="modal" data-bs-target="#helpModal" style="cursor: pointer;" class="d-flex align-items-center gap-2">
                                     <i class="ti ti-help fs-5"></i>
@@ -792,6 +794,44 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- tab 7 -->
+                    <div id="tab-7" class="tabs-content ">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <h5>Certificates</h5>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    @forelse ($certificates as $certificate)
+                                        <div class="col-xxl-4 col-md-6 col-sm-6 mb-4">
+                                            <div class="card h-100 border border-secondary rounded">
+                                                <div class="card-body d-flex flex-column">
+                                                    <h5 class="card-title">
+                                                        <a href="{{ route('course.course_detail', ['course_id' => encrypt($certificate->userCourse->course_id)]) }}">
+                                                            {{ $certificate->userCourse->course->name ?? 'Course Deleted' }}
+                                                        </a>
+                                                    </h5>
+                                                    <p class="card-text text-secondary flex-grow-1">
+                                                        Awarded on: {{ $certificate->created_at ? \Carbon\Carbon::parse($certificate->created_at)->format('d M Y') : 'N/A' }}
+                                                    </p>
+                                                    <a href="{{ route('course.show_certificate', ['certificate_id' => encrypt($certificate->id)]) }}" class="btn btn-primary rounded">View</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="col-12 text-center h-50">
+                                            <p class="text-secondary">No certificates found.</p>
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
                 </div>
             </div>
         </div>
