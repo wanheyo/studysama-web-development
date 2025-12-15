@@ -50,6 +50,7 @@ Route::middleware(['auth:web'])->group(function () {
         // Admin
         Route::group(['prefix' => 'admin'], function () {
             Route::get('admin_homepage', [MainController::class, 'admin_homepage'])->name('main.admin.homepage');
+            Route::get('report_pending', [MainController::class, 'report_pending'])->name('main.admin.report_pending');
         });
     });
     

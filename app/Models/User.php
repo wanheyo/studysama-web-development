@@ -139,8 +139,13 @@ class User extends Authenticatable implements CanResetPassword
         return $this->role === 'User';
     }
 
-    public function reports()
+    public function submittedReports()
     {
         return $this->hasMany(Report::class);
+    }
+
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reported');
     }
 }

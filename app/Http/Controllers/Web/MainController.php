@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Services\NotificationService;
-
 use App\Models\User;
 use App\Models\Course;
 use App\Models\Lesson;
@@ -18,11 +16,14 @@ use App\Models\UserActivityLog;
 use App\Models\UserProgression;
 use App\Models\SystemNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 use function PHPUnit\Framework\isNull;
+use Illuminate\Validation\ValidationException;
 
 class MainController extends Controller
 {
@@ -444,6 +445,33 @@ class MainController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Something went wrong while submitting the report.');
         }
+    }
+
+    public function report_pending(Request $request)
+    {
+        $user = auth()->user();
+
+        // Use 'with' to eager load the 'reported' relationship
+        $pending_reports = Report::with([
+            'user', // reporter
+            'admin', // admin who handled the report
+            'reported' => function (MorphTo $morphTo) { // reported entity
+                $morphTo->morphWith([
+                    Lesson::class     => ['course', 'reports'], 
+                    ForumReply::class => ['forumPost', 'reports'],
+                    ForumPost::class  => ['userCourse.user', 'reports'],
+                    Resource::class   => ['lesson.course', 'reports'],
+                    User::class       => ['reports'],
+                    Course::class     => ['reports'],
+                ]);
+            }])
+            ->where('status', 1) // Assuming 1 = Pending
+            ->latest()
+            ->get();
+        
+        // dd($pending_reports);
+
+        return view('admin.reports.pending', compact('user', 'pending_reports'));
     }
 
 }

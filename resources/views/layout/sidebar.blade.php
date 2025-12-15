@@ -51,6 +51,19 @@
                         {{-- <li><a href="{{route('course.add_course')}}">Add New Course</a></li> --}}
                     </ul>
                 </li>
+                <li>
+                    <a aria-expanded="false" class="" data-bs-toggle="collapse" href="#admin_report">
+                        <i class="iconoir-triangle-flag"></i>
+                        Reports
+                        {{-- <span class="badge text-primary-dark bg-primary-300  badge-notification ms-2">4</span> --}}
+                    </a>
+                    <ul class="collapse" id="admin_report">
+                        <li><a href="{{route('main.admin.report_pending')}}">Pending</a></li>
+                        <li><a href="{{route('main.admin.report_pending')}}">Resolved</a></li>
+                        <li><a href="{{route('main.admin.report_pending')}}">Dismissed</a></li>
+                        {{-- <li><a href="{{route('course.add_course')}}">Add New Course</a></li> --}}
+                    </ul>
+                </li>
             @endif
             
             
