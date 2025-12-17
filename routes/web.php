@@ -43,7 +43,7 @@ Route::middleware(['auth:web'])->group(function () {
 
     // Main
     Route::group(['prefix' => 'main'], function () {
-        Route::get('homepage', [MainController::class, 'homepage'])->name('main.homepage');
+        Route::get('homepage', [MainController::class, 'homepage'])->name('main.homepage'); 
         Route::get('search', [MainController::class, 'search'])->name('main.search');
         Route::post('submit_report', [MainController::class, 'submit_report'])->name('main.submit_report');
 
@@ -51,6 +51,9 @@ Route::middleware(['auth:web'])->group(function () {
         Route::group(['prefix' => 'admin'], function () {
             Route::get('admin_homepage', [MainController::class, 'admin_homepage'])->name('main.admin.homepage');
             Route::get('report_pending', [MainController::class, 'report_pending'])->name('main.admin.report_pending');
+            Route::get('report_resolved', [MainController::class, 'report_resolved'])->name('main.admin.report_resolved');
+            Route::get('report_dismissed', [MainController::class, 'report_dismissed'])->name('main.admin.report_dismissed');
+            Route::post('update_report_status', [MainController::class, 'update_report_status'])->name('main.admin.update_report_status');
         });
     });
     

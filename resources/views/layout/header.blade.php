@@ -578,36 +578,48 @@
                                                 </div>
                                                     <div class="message-content-box flex-grow-1 ps-2">
                                                         @if($noti->noti_type === 'report')
-                                                            <h3 class="f-s-15 text-danger mb-0">{{ $noti->title }}</h3>
-                                                            <p class="text-muted">{{ $noti->content }}
-                                                                @if($noti->parent_type === 'forum_reply' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->content, 100) }}", 
-                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
-                                                                    Your reply will be hidden until it being resolved.
-                                                                @elseif($noti->parent_type === 'forum_post' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->title, 100) }}",
-                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
-                                                                    Your post will be hidden until it being resolved.
-                                                                @elseif($noti->parent_type === 'resource' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->name, 100) }}",
-                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
-                                                                @elseif($noti->parent_type === 'lesson' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->name, 100) }}",
-                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
-                                                                @elseif($noti->parent_type === 'course' && $noti->parentable)
-                                                                    of "{{ Str::limit($noti->parentable->title, 100) }}",
-                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
-                                                                @elseif($noti->parent_type === 'user' && $noti->parentable)
-                                                                    with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
-                                                                @endif
-                                                            </p>
-                                                            <small class="d-block text-muted mb-1">
-                                                                <i class="ph ph-clock me-1"></i>{{ $noti->created_at->diffForHumans() }}
-                                                            </small>
-                                                            <div class="d-block">
-                                                                <span class="badge text-light-danger mt-2">{{ $noti->noti_type }}</span>
-                                                                <span class="badge text-light-primary mt-2">{{ $noti->parent_type }}</span>
-                                                            </div>
+                                                            @if($noti->title === 'Report Received')
+                                                                <h3 class="f-s-15 text-danger mb-0">{{ $noti->title }}</h3>
+                                                                <p class="text-muted">{{ $noti->content }}
+                                                                    @if($noti->parent_type === 'forum_reply' && $noti->parentable)
+                                                                        of "{{ Str::limit($noti->parentable->content, 100) }}", 
+                                                                        with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
+                                                                        Your reply will be hidden until it being resolved.
+                                                                    @elseif($noti->parent_type === 'forum_post' && $noti->parentable)
+                                                                        of "{{ Str::limit($noti->parentable->title, 100) }}",
+                                                                        with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
+                                                                        Your post will be hidden until it being resolved.
+                                                                    @elseif($noti->parent_type === 'resource' && $noti->parentable)
+                                                                        of "{{ Str::limit($noti->parentable->name, 100) }}",
+                                                                        with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
+                                                                    @elseif($noti->parent_type === 'lesson' && $noti->parentable)
+                                                                        of "{{ Str::limit($noti->parentable->name, 100) }}",
+                                                                        with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
+                                                                    @elseif($noti->parent_type === 'course' && $noti->parentable)
+                                                                        of "{{ Str::limit($noti->parentable->title, 100) }}",
+                                                                        with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
+                                                                    @elseif($noti->parent_type === 'user' && $noti->parentable)
+                                                                        with a reason of "{{ $noti->report->reason ?? 'No reason' }}".
+                                                                    @endif
+                                                                </p>
+                                                                <small class="d-block text-muted mb-1">
+                                                                    <i class="ph ph-clock me-1"></i>{{ $noti->created_at->diffForHumans() }}
+                                                                </small>
+                                                                <div class="d-block">
+                                                                    <span class="badge text-light-danger mt-2">{{ $noti->noti_type }}</span>
+                                                                    <span class="badge text-light-primary mt-2">{{ $noti->parent_type }}</span>
+                                                                </div>
+                                                            @else
+                                                                <h3 class="f-s-15 text-danger mb-0">{{ $noti->title }}</h3>
+                                                                <p class="text-muted">{{ $noti->content }}
+                                                                <small class="d-block text-muted mb-1">
+                                                                    <i class="ph ph-clock me-1"></i>{{ $noti->created_at->diffForHumans() }}
+                                                                </small>
+                                                                <div class="d-block">
+                                                                    <span class="badge text-light-danger mt-2">{{ $noti->noti_type }}</span>
+                                                                    <span class="badge text-light-primary mt-2">{{ $noti->parent_type }}</span>
+                                                                </div>
+                                                            @endif
                                                         @elseif($noti->noti_type === 'reply')
                                                             <h3 class="f-s-15 text-secondary mb-0">{{ $noti->title }}</h3>
                                                             <p class="text-muted">{{ $noti->content }}.

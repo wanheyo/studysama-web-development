@@ -91,7 +91,7 @@ class MainController extends Controller
             ->join('user_courses as uc', function ($join) use ($user) {
                 $join->on('uc.course_id', '=', 'c.id')
                     ->where('uc.user_id', '=', $user->id)
-                    ->where('uc.status', '!=', 0); // ✅ filter out inactive user-course entries
+                    ->where('uc.status', '!=', 0); // filter out inactive user-course entries
             })
             ->join('user_courses as tutor_uc', function ($join) {
                 $join->on('tutor_uc.course_id', '=', 'c.id')
@@ -143,7 +143,10 @@ class MainController extends Controller
 
         $users = User::all();
 
-        $user_activity_logs = UserActivityLog::all();
+        $user_activity_logs = UserActivityLog::with('user')
+            // ->latest()
+            // ->take(10)
+            ->get();
 
         $courses = Course::from('courses as c')
         ->join('user_courses as uc', function($join) {
@@ -159,6 +162,23 @@ class MainController extends Controller
             'u.image as tutor_image'
         ])
         ->get();
+
+        $pending_reports = Report::with([
+            'user', // reporter
+            'admin', // admin who handled the report
+            'reported' => function (MorphTo $morphTo) { // reported entity
+                $morphTo->morphWith([
+                    Lesson::class     => ['course', 'reports'], 
+                    ForumReply::class => ['forumPost', 'reports'],
+                    ForumPost::class  => ['userCourse.user', 'reports'],
+                    Resource::class   => ['lesson.course', 'reports'],
+                    User::class       => ['reports'],
+                    Course::class     => ['reports'],
+                ]);
+            }])
+            ->where('status', 1) // Assuming 1 = Pending
+            ->latest()
+            ->get();
 
 
         // $coursesQuery = DB::table('courses as c')
@@ -192,7 +212,7 @@ class MainController extends Controller
         // }
         
         // Logic to show the homepage
-        return view('admin.main.homepage', compact('user', 'users', 'user_activity_logs', 'courses'));
+        return view('admin.main.homepage', compact('user', 'users', 'user_activity_logs', 'courses', 'pending_reports'));
     }
 
     // public function create_notification($noti_type, $parent_type, $title, $content, $parent_id = null)
@@ -305,6 +325,9 @@ class MainController extends Controller
                 'reason' => $validated['reason'] ?? null,
                 'status' => 1,
             ]);
+
+            // IF 1 ACTIVE REPORT FOR forum_post, forum_reply, SET STATUS TO 2 (pending review, hidden from public)
+            // IF 5 OR MORE ACTIVE REPORTS FOR resource, lesson, course, user, SET STATUS TO 2 (pending review, hidden from public)
 
             if ($validated['reported_type'] === 'forum_post') {
                 $forum_post = ForumPost::find($reported_id);
@@ -474,4 +497,201 @@ class MainController extends Controller
         return view('admin.reports.pending', compact('user', 'pending_reports'));
     }
 
+    public function report_resolved(Request $request)
+    {
+        $user = auth()->user();
+
+        // Use 'with' to eager load the 'reported' relationship
+        $resolved_reports = Report::with([
+            'user', // reporter
+            'admin', // admin who handled the report
+            'reported' => function (MorphTo $morphTo) { // reported entity
+                $morphTo->morphWith([
+                    Lesson::class     => ['course', 'reports'], 
+                    ForumReply::class => ['forumPost', 'reports'],
+                    ForumPost::class  => ['userCourse.user', 'reports'],
+                    Resource::class   => ['lesson.course', 'reports'],
+                    User::class       => ['reports'],
+                    Course::class     => ['reports'],
+                ]);
+            }])
+            ->where('status', 2) // Assuming 2 = Resolved
+            ->latest()
+            ->get();
+        
+        // dd($resolved_reports);
+
+        return view('admin.reports.resolved', compact('user', 'resolved_reports'));
+    }
+
+    public function report_dismissed(Request $request)
+    {
+        $user = auth()->user();
+
+        // Use 'with' to eager load the 'reported' relationship
+        $dismissed_reports = Report::with([
+            'user', // reporter
+            'admin', // admin who handled the report
+            'reported' => function (MorphTo $morphTo) { // reported entity
+                $morphTo->morphWith([
+                    Lesson::class     => ['course', 'reports'], 
+                    ForumReply::class => ['forumPost', 'reports'],
+                    ForumPost::class  => ['userCourse.user', 'reports'],
+                    Resource::class   => ['lesson.course', 'reports'],
+                    User::class       => ['reports'],
+                    Course::class     => ['reports'],
+                ]);
+            }])
+            ->where('status', 0) // Assuming 0 = Dismissed
+            ->latest()
+            ->get();
+        
+        // dd($dismissed_reports);
+
+        return view('admin.reports.dismissed', compact('user', 'dismissed_reports'));
+    }
+
+    // public function update_report_status(Request $request)
+    // {
+    //     // Report Status: 1 = Pending, 2 = Resolved (Content Hidden), 0 = Dismissed (Content Active)
+    //     // Content Status: 1 = Active, 0 = Inactive/Banned
+
+    //     try {
+    //         $validated = $request->validate([
+    //             'report_id' => 'required|integer|exists:reports,id',
+    //             'status'    => 'required|in:0,1,2', // Added 1 incase you want to revert to pending
+    //             'remark'    => 'nullable|string',
+    //         ]);
+
+    //         $report = Report::findOrFail($validated['report_id']);
+    //         $content = $report->reported; // The actual User, Course, Lesson, etc.
+
+    //         // 1. Handle Content Visibility (Polymorphic Magic)
+    //         if ($content) {
+    //             if ($validated['status'] == 2) {
+    //                 // Resolved -> Ban/Hide the content
+    //                 // Checks if the model actually has a 'status' column before updating
+    //                 $content->update(['status' => 0]); 
+    //             } elseif ($validated['status'] == 0) {
+    //                 // Dismissed -> Restore/Activate the content
+    //                 $content->update(['status' => 1]); 
+    //             }
+    //         }
+
+    //         // 2. Prepare Notification Message
+    //         $noti_content = null;
+    //         if ($validated['status'] == 2) {
+    //             $noti_content = $report->reported_type === 'user' 
+    //                 ? 'Your account has been deactivated due to a violation report. Remark by admin: "' . $validated['remark'] . '". If you believe this was a mistake, please contact support.' 
+    //                 : 'Your ' . class_basename($report->reported_type) . ' has been removed due to a violation report. Remark by admin: "' . $validated['remark'] . '". If you believe this was a mistake, please contact support.';
+    //         } elseif ($validated['status'] == 0) {
+    //             $noti_content = $report->reported_type === 'user'
+    //                 ? 'Your account has been reviewed and reactivated. Remark by admin: "' . $validated['remark'] . '".'
+    //                 : 'Your ' . class_basename($report->reported_type) . ' was reviewed and the content has been restored. Remark by admin: "' . $validated['remark'] . '".';
+    //         }
+
+    //         // 3. Send Notification (Only if status changed to Resolved or Dismissed)
+    //         if ($noti_content && $validated['status'] != 1) {
+    //             $this->notificationService->create(
+    //                 'report',
+    //                 $report->reported_type,
+    //                 'Report Update',
+    //                 $noti_content,
+    //                 $report->reported_id,
+    //                 $report->id
+    //             );
+    //         }
+
+    //         // 4. Update the Report Record
+    //         $report->update([
+    //             'status'       => $validated['status'],
+    //             'admin_id'     => auth()->id(),
+    //             'remark'       => $validated['remark'] ?? null,
+    //             'updated_at'   => now(),
+    //         ]);
+
+    //         return redirect()->back()->with('success', 'Report processed successfully.');
+
+    //     } catch (ValidationException $e) {
+    //         return redirect()->back()->withErrors($e->validator)->withInput();
+    //     } catch (Exception $e) {
+    //         // Log::error($e); // Good practice to log the error
+    //         return redirect()->back()->with('error', 'Error updating report: ' . $e->getMessage());
+    //     }
+    // }
+
+    public function update_report_status(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'report_id' => 'required|integer|exists:reports,id',
+                'status'    => 'required|in:0,1,2',
+                'remark'    => 'nullable|string',
+            ]);
+
+            // 1. Fetch the primary report to identify the target content
+            $primaryReport = Report::findOrFail($validated['report_id']);
+            $content = $primaryReport->reported; 
+
+            // 2. Handle Content Visibility (Polymorphic)
+            // We do this ONCE for the content item.
+            if ($content) {
+                if ($validated['status'] == 2) {
+                    // Resolved -> Ban/Hide the content
+                    $content->update(['status' => 0]); 
+                } elseif ($validated['status'] == 0) {
+                    // Dismissed -> Restore/Activate the content
+                    $content->update(['status' => 1]); 
+                }
+            }
+
+            // 3. Prepare Notification Message (Send ONCE)
+            // We send this based on the action taken on the CONTENT, not the number of reports.
+            $noti_content = null;
+            if ($validated['status'] == 2) {
+                $noti_content = $primaryReport->reported_type === 'user' 
+                    ? 'Your account has been deactivated due to a violation report. Remark: "' . $validated['remark'] . '". Contact support if this is an error.' 
+                    : 'Your ' . class_basename($primaryReport->reported_type) . ' has been removed due to a violation report. Remark: "' . $validated['remark'] . '".';
+            } elseif ($validated['status'] == 0) {
+                $noti_content = $primaryReport->reported_type === 'user'
+                    ? 'Your account has been reviewed and reactivated. Remark: "' . $validated['remark'] . '".'
+                    : 'Your ' . class_basename($primaryReport->reported_type) . ' was reviewed and restored. Remark: "' . $validated['remark'] . '".';
+            }
+
+            // Send notification only if status is Resolved(2) or Dismissed(0)
+            // We use $primaryReport to get the ID/Type, ensuring we only send 1 notification.
+            if ($noti_content && $validated['status'] != 1) {
+                $this->notificationService->create(
+                    'report',
+                    $primaryReport->reported_type,
+                    'Report Update',
+                    $noti_content,
+                    $primaryReport->reported_id,
+                    $primaryReport->id
+                );
+            }
+
+            // 4. Batch Update ALL Pending Reports for this Content
+            // This is the magic part. We find all reports for this content that are currently Pending (1)
+            // and update them all to the new status.
+            
+            $affectedRows = Report::where('reported_type', $primaryReport->reported_type)
+                ->where('reported_id', $primaryReport->reported_id)
+                ->where('status', 1) // Only update Pending ones. Don't touch previously resolved ones.
+                ->update([
+                    'status'       => $validated['status'],
+                    'admin_id'     => auth()->id(),
+                    'remark'       => $validated['remark'] ?? null, // Apply same remark to all
+                    'updated_at'   => now(),
+                ]);
+
+            $msg = $validated['status'] == 2 ? 'Content hidden.' : 'Content restored.';
+            return redirect()->back()->with('success', $msg . ' ' . $affectedRows . ' pending report(s) were updated.');
+
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Error updating report: ' . $e->getMessage());
+        }
+    }
 }

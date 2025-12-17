@@ -1,5 +1,5 @@
 @extends('layout.master')
-@section('title', 'Pending Report')
+@section('title', 'Dismissed Report')
 @section('css')
     <!-- slick css -->
     <link rel="stylesheet" href="{{asset('assets/vendor/slick/slick.css')}}">
@@ -22,7 +22,7 @@
         <!-- Breadcrumb start -->
         <div class="row m-1">
             <div class="col-12 ">
-                <h4 class="main-title">Pending Report</h4>
+                <h4 class="main-title">Dismissed Report</h4>
                 <ul class="app-line-breadcrumbs mb-3">
                     <li class="">
                         <a href="#" class="f-s-14 f-w-500">
@@ -35,7 +35,7 @@
                         <a href="#" class="f-s-14 f-w-500">Ticket</a>
                     </li> --}}
                     <li class="active">
-                        <a href="#" class="f-s-14 f-w-500">Pending</a>
+                        <a href="#" class="f-s-14 f-w-500">Dismissed</a>
                     </li>
                 </ul>
             </div>
@@ -53,9 +53,9 @@
                                 <div class="h-50 w-50 d-flex-center b-r-15 bg-white mb-3">
                                     <i class="ph-bold  ph-flag f-s-25 text-primary"></i>
                                 </div>
-                                <p class="f-s-16">All Pending Report</p>
+                                <p class="f-s-16">All Dismissed Report</p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h3 class="text-primary-dark">{{ $pending_reports->count() }}</h3>
+                                    <h3 class="text-primary-dark">{{ $dismissed_reports->count() }}</h3>
                                 </div>
                             </div>
                         </div>
@@ -69,7 +69,7 @@
                                 </div>
                                 <p class="f-s-16">User Report</p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h3 class="text-info-dark">{{ $pending_reports->where('reported_type', 'user')->count() }}</h3>
+                                    <h3 class="text-info-dark">{{ $dismissed_reports->where('reported_type', 'user')->count() }}</h3>
                                 </div>
                             </div>
                         </div>
@@ -83,7 +83,7 @@
                                 </div>
                                 <p class="f-s-16">Course, Lessons and Resources Report</p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h3 class="text-success-dark">{{ $pending_reports->where('reported_type', 'course')->count() + $pending_reports->where('reported_type', 'lesson')->count() + $pending_reports->where('reported_type', 'resource')->count()}}</h3>
+                                    <h3 class="text-success-dark">{{ $dismissed_reports->where('reported_type', 'course')->count() + $dismissed_reports->where('reported_type', 'lesson')->count() + $dismissed_reports->where('reported_type', 'resource')->count()}}</h3>
                                 </div>
                             </div>
                         </div>
@@ -97,7 +97,7 @@
                                 </div>
                                 <p class="f-s-16">Forum (Posts, Replies) Report</p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h3 class="text-warning-dark">{{ $pending_reports->where('reported_type', 'forum_post')->count() + $pending_reports->where('reported_type', 'forum_reply')->count() }}</h3>
+                                    <h3 class="text-warning-dark">{{ $dismissed_reports->where('reported_type', 'forum_post')->count() + $dismissed_reports->where('reported_type', 'forum_reply')->count() }}</h3>
                                 </div>
                             </div>
                         </div>
@@ -302,11 +302,12 @@
                                         {{-- <th>Report Status</th> --}}
                                         <th>Created Date</th>
                                         <th>Updated Date</th>
+                                        <th>Remark</th>
                                         <th class="sorting_disabled">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($pending_reports as $report)
+                                    @forelse($dismissed_reports as $report)
                                     <tr>
                                         {{-- <td>
                                             <div class="checkbox-wrapper">
@@ -489,7 +490,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            {{ Str::limit($report->reason, 20) }}
+                                            {{ Str::limit($report->reason, 60) }}
                                         </td>
                                         {{-- <td>
                                             @if($report->status == 0)
@@ -508,6 +509,7 @@
                                         </td> --}}
                                         <td>{{ $report->created_at->format('d M Y') }}</td>
                                         <td>{{ $report->updated_at->format('d M Y') }}</td>
+                                        <td>{{ $report->remark ?? '-' }}</td>
                                         <td>
                                             <button class="btn btn-primary btn-sm px-3 review-btn" 
                                                 data-bs-toggle="modal" 
@@ -520,7 +522,8 @@
                                                 data-reason="{{ $report->reason }}"
                                                 data-content="{{ $report->reported->title ?? $report->reported->content ?? $report->reported->name ?? 'Content Deleted' }}"
                                                 data-link="#"
-                                                data-status="{{ $report->status }}">
+                                                data-status="{{ $report->status }}"
+                                                data-remark="{{ $report->remark }}">
                                                 Review
                                             </button>
                                         </td>
@@ -678,7 +681,7 @@
                                     <select id="modal_status" class="form-select" name="status" required>
                                         <option value="" selected disabled>Choose action...</option>
                                         <option value="2">✅ Resolve (Action Taken / Hide Content)</option>
-                                        <option value="0">❌ Dismiss (Reject Report / Keep Content)</option>
+                                        {{-- <option value="0">❌ Dismiss (Reject Report / Keep Content)</option> --}}
                                         {{-- <option value="1">⏳ Keep Pending</option> --}}
                                     </select>
                                     <div class="form-text">
@@ -793,6 +796,7 @@
             let reason = $(this).data('reason');
             let link = $(this).data('link');
             let status = $(this).data('status');
+            let remark = $(this).data('remark');
 
             // Populate Modal Fields
             $('#modal_report_id_display').text(id);
@@ -802,6 +806,7 @@
             $('#modal_reason').text(reason);
             $('#modal_link').attr('href', link);
             // $('#modal_status').val(status); // Reset status selection
+            $('textarea[name="remark"]').val(remark);
         });
 
         /* -------------------------------------------------------------------------- */

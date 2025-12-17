@@ -21,6 +21,7 @@ class Report extends Model
         'reason',
         'action',
         'status',
+        'remark',
         'admin_id',
         'completed_at',
     ];

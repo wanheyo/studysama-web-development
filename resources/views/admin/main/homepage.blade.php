@@ -1,634 +1,321 @@
 @extends('layout.master')
-@section('title', 'Admin - Homepage')
+@section('title', 'Admin - Dashboard')
 @section('css')
-
-    <!-- apexcharts css -->
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/vendor/apexcharts/apexcharts.css') }}">
-
-    <!-- slick css -->
-    <link rel="stylesheet" href="{{asset('assets/vendor/slick/slick.css')}}">
-    <link rel="stylesheet" href="{{asset('assets/vendor/slick/slick-theme.css')}}">
-
-    <!-- filepond css -->
-    <link href="{{asset('assets/vendor/filepond/filepond.css')}}" rel="stylesheet">
-    <link href="{{asset('assets/vendor/filepond/image-preview.min.css')}}" rel="stylesheet">
-
 @endsection
+
 @section('main-content')
-    <div class="container-fluid mt-3">
-        <div class="row">
-            <div class="col-12 mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Hi, {{ $user->name }} 👋</h4>
-                    {{-- <div>
-                        <a href="" class="btn btn-primary">View Profile</a>
-                    </div> --}}
+    <div class="container-fluid py-4">
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center bg-white p-4 rounded shadow-sm">
+                    <div>
+                        <h4 class="mb-1 text-dark fw-bold">Welcome back, {{ $user->name }} 👋</h4>
+                        <p class="mb-0 text-muted">Here is what's happening in your system today.</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-white text-primary border border-primary px-4 py-3 rounded-pill">
+                            {{ \Carbon\Carbon::now()->format('l, d M Y') }}
+                        </span>
+                    </div>
                 </div>
-                <p class="f-m-light">We have jobs to be done, let's get started</p>
             </div>
         </div>
-        <div class="row">
+
+        <div class="row g-3 mb-4">
             
-            <div class="col-sm-6 col-lg-6 col-xxl-2 order--1-lg">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card orders-provided-card">
-                            <div class="card-body">
-                                <i class="ph-bold ph-circle circle-bg-img"></i>
-                                <div>
-                                    <p class="f-s-18 f-w-600 text-dark txt-ellipsis-1">Total Users</p>
-                                    <h2 class="text-secondary-dark mb-0">{{ $users->count() }}</h2>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="card bg-primary-300 product-sold-card">
-                            <div class="card-body">
-                                <div>
-                                    <h5 class="text-primary-dark f-w-600">Tokens Used</h5>
-                                    <div class="d-flex justify-content-center my-2">
-                                        <i class="ti ti-coin f-s-60 text-primary-dark"></i>
-                                    </div>
-                                    {{-- <p class="text-dark f-w-600 mb-0 mt-2 txt-ellipsis-1"><i
-                                            class="iconoir-calendar f-s-16 align-text-top me-2"></i>Oct 1 -
-                                        Oct 15, 2024</p> --}}
-                                </div>
-                                <div>
-                                    <h4 class="text-primary-dark">{{ $user_activity_logs->sum('token_used') ?? '0' }}</h4>
-                                    <p class="mb-0 text-dark f-w-500 txt-ellipsis-1">Today<span
-                                            class="badge bg-white-300 text-danger-dark ms-2">{{ $user_activity_logs->where('created_at', '>=', \Carbon\Carbon::today())->sum('token_used') }}</span>
-                                    </p>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-lg-6 col-xxl-2 order--1-lg">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card bg-danger-300 product-sold-card">
-                            <div class="card-body">
-                                <div>
-                                    <h5 class="text-danger-dark f-w-600 ">Total AI Used</h5>
-                                    {{-- <div id="productSold"></div> --}}
-                                    <div class="d-flex justify-content-center my-2">
-                                        <i class="ti ti-flare f-s-60 text-danger-dark"></i>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4>{{ $user_activity_logs->count() ?? '0' }} Times</h4>
-                                    <p class="mb-0 text-dark f-w-500 txt-ellipsis-1">Today<span
-                                            class="badge bg-white-300 text-danger-dark ms-2">{{ $user_activity_logs->where('created_at', '>=', \Carbon\Carbon::today())->count() }} Times</span>
-                                    </p>
-                                </div>
-                                {{-- <a class="bg-danger h-35 w-35 d-flex-center b-r-50 product-sold-icon"
-                                   href="{{route('order_details')}}">
-                                    <i class="iconoir-arrow-right f-w-600 f-s-18 animate__pulse animate__fadeOutRight  animate__infinite animate__slower"></i>
-                                </a> --}}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="card product-store-card">
-                            <div class="card-body">
-                                <i class="ph-bold  ph-circle circle-bg-img"></i>
-                                <div>
-                                    <p class="text-success f-s-18 f-w-600 txt-ellipsis-1">Total Courses</p>
-                                    <h2 class="text-success-dark mb-0">{{ $courses->where('course_status', '!=', 0)->count() ?? '0' }}</h2>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- <div class="col-md-7 col-lg-5">
-                <div class="card">
-                    <div class="card-body p-0">
-                        <div>
-                            <div id="productOverview"></div>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
-
-            <div class="col-md-12 col-lg-12 col-xxl-8 order--1-lg">
-                <div class="card order-detail-card p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Courses Approval Request</h5>
-                        <a href="{{ route('course.admin.find_course') }}" class="btn btn-primary rounded">
-                            View More
-                        </a>
-                    </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body">
-                        <ul class="order-content-list">
-                            @forelse ($courses->where('status', 2) as $course)
-                                <li class="bg-success-subtle">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <h5 class="text-success-dark f-w-600 mb-2"> Course waiting approval</h5>
-                                        <span class="badge text-light-success me-2">Not Yet Reviewed</span>
-                                    </div>
-                                    <div>
-                                        <p class="text-success mb-0 txt-ellipsis-2">Course named <strong>{{ $course->name }}</strong>, created by <strong>{{ $course->tutor_username }}</strong>, is waiting for approval.</p>
-                                    </div>
-                                </li>
-                            @empty
-                                <div class="col-12 text-center h-50">
-                                            <p class="text-secondary">No courses approval request.</p>
-                                        </div>
-                            @endforelse
-                            
-                            {{-- <li class="bg-info-300">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h6 class="text-info-dark f-w-600 mb-0"> 📦#5Qi4586781</h6>
-                                    <span class="badge text-light-info me-2">Shipped</span>
-                                </div>
-                                <div>
-                                    <p class="text-info mb-0 txt-ellipsis-2">Your order has been shipped and
-                                        will be
-                                        delivered by October 15, 2024.
-                                    </p>
-                                </div>
-                            </li>
-                            <li class="bg-danger-300">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h6 class="text-danger-dark f-w-600 mb-0"> 📦#84O5L6715</h6>
-                                    <span class="badge text-light-danger me-2"> Canceled</span>
-                                </div>
-                                <div>
-                                    <p class="text-danger-dark f-w-600 mb-0 txt-ellipsis-1">Your order was
-                                        canceled.</p>
-                                    <p class="text-danger mb-0 txt-ellipsis-1"><span class="f-w-600">Date Ordered</span>:
-                                        October 14, 2024</p>
-                                </div>
-                            </li>
-                            <li class="bg-success-300">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h6 class="text-success-dark f-w-600 mb-0"> 📦#H54367890</h6>
-                                    <span class="badge text-light-success me-2">Delivered</span>
-                                </div>
-                                <div>
-                                    <p class="text-success mb-0 txt-ellipsis-2">Your order was delivered on
-                                        November 30, 2024.</p>
-                                </div>
-                            </li>
-                            <li class="bg-info-300">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h6 class="text-info-dark f-w-600 mb-0"> 📦#78JY45672</h6>
-                                    <span class="badge text-light-info me-2">Shipped</span>
-                                </div>
-                                <div>
-                                    <p class="text-info mb-0 txt-ellipsis-2">Your order has been shipped and
-                                        will be delivered by December 3, 2024.</p>
-                                </div>
-                            </li>
-                            <li class="bg-danger-300">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h6 class="text-danger-dark f-w-600 mb-0"> 📦#45QRT9823</h6>
-                                    <span class="badge text-light-danger me-2">Canceled</span>
-                                </div>
-                                <div>
-                                    <p class="text-danger-dark f-w-600 mb-0 txt-ellipsis-1">Your order was
-                                        canceled.</p>
-                                    <p class="text-danger mb-0 txt-ellipsis-1"><span class="f-w-600">Date Ordered</span>:
-                                        November 28, 2024</p>
-                                </div>
-                            </li> --}}
-                        </ul>
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="text-muted fw-medium">Total Users</span>
+                            <div class="bg-primary-subtle text-primary rounded p-2">
+                                <i class="ti ti-users fs-4"></i>
+                            </div>
+                        </div>
+                        <h2 class="mb-1 fw-bold">{{ $users->count() }}</h2>
+                        <span class="badge bg-success-subtle text-success">
+                            <i class="ti ti-arrow-up"></i> Active
+                        </span>
                     </div>
-                    
                 </div>
             </div>
 
-            {{-- <div class="col-lg-7 col-xxl-4">
-                <div class="p-3">
-                    <h5>Top List Products</h5>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="text-muted fw-medium">AI Tokens Used</span>
+                            <div class="bg-danger-subtle text-danger rounded p-2">
+                                <i class="ti ti-cpu fs-4"></i>
+                            </div>
+                        </div>
+                        @php
+                            $todayTokens = $user_activity_logs->where('created_at', '>=', \Carbon\Carbon::today())->sum('token_used');
+                            $totalTokens = $user_activity_logs->sum('token_used');
+                        @endphp
+                        <h2 class="mb-1 fw-bold">{{ number_format($totalTokens) }}</h2>
+                        <small class="text-muted">
+                            <span class="text-danger fw-bold">+{{ number_format($todayTokens) }}</span> used today
+                        </small>
+                    </div>
                 </div>
-                <div class="card">
-                    <div class="card-body px-0">
-                        <div class="table-responsive app-scroll">
-                            <table class="table align-middle top-products-table mb-0">
-                                <thead>
-                                <tr>
-                                    <th scope="col">Product</th>
-                                    <th scope="col">Units Sold</th>
-                                    <th scope="col">Sales</th>
-                                    <th scope="col">Rating</th>
-                                </tr>
+            </div>
+
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="text-muted fw-medium">Total Courses</span>
+                            <div class="bg-success-subtle text-success rounded p-2">
+                                <i class="ti ti-book fs-4"></i>
+                            </div>
+                        </div>
+                        <h2 class="mb-1 fw-bold">{{ $courses->count() }}</h2>
+                        <div class="d-flex gap-2 mt-2">
+                            <span class="badge bg-warning text-dark border">
+                                {{ $courses->where('status', 2)->count() }} Pending
+                            </span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                {{ $courses->where('status', 1)->count() }} Active
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="text-muted fw-medium">Pending Reports</span>
+                            <div class="bg-warning-subtle text-warning rounded p-2">
+                                <i class="ti ti-flag fs-4"></i>
+                            </div>
+                        </div>
+                        @php
+                            $pendingReportCount = $pending_reports->count();
+                        @endphp
+                        <h2 class="mb-1 fw-bold">{{ $pendingReportCount }}</h2>
+                        @if($pendingReportCount > 0)
+                            <small class="text-danger fw-medium">Requires Attention</small>
+                        @else
+                            <small class="text-success fw-medium">All caught up!</small>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            <div class="col-lg-8">
+                
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 fw-bold text-dark">📚 Courses Awaiting Approval</h5>
+                        <a href="{{ route('course.admin.find_course') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light-primary">
+                                    <tr>
+                                        <th class="ps-4">Course Name</th>
+                                        <th>Tutor</th>
+                                        <th>Date Submitted</th>
+                                        {{-- <th class="text-end pe-4">Action</th> --}}
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <h6 class="mb-0">Wireless Headphones</h6>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge text-light-success f-s-12 f-w-700">250</span>
-                                    </td>
-                                    <td class="f-w-600 text-dark">$5,000</td>
-                                    <td class="text-warning-dark f-w-600"><i
-                                            class="iconoir-star-solid text-warning me-1"></i>4.8
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <h6 class="mb-0">Smartwatch</h6>
-                                    </td>
-                                    <td><span class="badge text-light-success f-s-12 f-w-700">210</span>
-                                    </td>
-                                    <td class="f-w-600 text-dark">$5,000</td>
-                                    <td class="text-warning-dark f-w-600"><i
-                                            class="iconoir-star-solid text-warning me-1"></i>4
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <h6 class="mb-0">Bluetooth Speaker</h6>
-                                    </td>
-                                    <td><span class="badge text-light-primary f-s-12 f-w-700">190</span>
-                                    </td>
-                                    <td class="f-w-600 text-dark">$4,200</td>
-                                    <td class="text-warning-dark f-w-600"><i
-                                            class="iconoir-star-solid text-warning me-1"></i>4.5
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <h6 class="mb-0">4K Ultra HD TV</h6>
-                                    </td>
-                                    <td><span class="badge text-light-danger f-s-12 f-w-700">175</span></td>
-                                    <td class="f-w-600 text-dark">$3,800</td>
-                                    <td class="text-warning-dark f-w-600"><i
-                                            class="iconoir-star-solid text-warning me-1"></i>4.9
-                                    </td>
-                                </tr>
+                                    @forelse ($courses->where('status', 2)->take(5) as $course)
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="fw-bold text-dark">{{ $course->name }}</div>
+                                                <small class="text-muted">{{ Str::limit($course->desc ?? 'No description', 40) }}</small>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {{-- @if($course->tutor_image)
+                                                        <img src="{{ asset('storage/'.$course->tutor_image) }}" class="rounded-circle me-2" width="30" height="30" alt="avatar">
+                                                    @else
+                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width:30px; height:30px; font-size:12px;">
+                                                            {{ strtoupper(substr($course->tutor_username, 0, 1)) }}
+                                                        </div>
+                                                    @endif
+                                                    <span>{{ $course->tutor_username }}</span> --}}
+
+                                                    <a href="{{ route('user.profile', ['user_id' => encrypt($course->tutor_id), 'shared' => 0]) }}" 
+                                                            style="cursor: pointer; text-decoration: none; color: inherit;" 
+                                                            class="d-flex align-items-center gap-2">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="h-35 w-35 d-flex-center b-r-22 overflow-hidden me-2">
+                                                                    <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/woman.jpg') }}" 
+                                                                        alt="Tutor Avatar" class="img-fluid">
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0">{{ "@" . $course->tutor_username ?? 'User Deleted' }}</h6>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                            <td>{{ \Carbon\Carbon::parse($course->created_at)->format('d M, Y') }}</td>
+                                            {{-- <td class="text-end pe-4">
+                                                <a href="#" class="btn btn-primary btn-sm px-3 rounded-pill">Review</a>
+                                            </td> --}}
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center py-5">
+                                                <div class="text-muted">
+                                                    <i class="ti ti-check-circle fs-1 mb-2 d-block text-success"></i>
+                                                    No courses currently waiting for approval.
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 fw-bold text-dark">🚩 Recent Reports</h5>
+                        <a href="{{ route('main.admin.report_pending') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light-primary">
+                                    <tr>
+                                        <th class="ps-4">Type</th>
+                                        <th>Reported By</th>
+                                        <th>Reason</th>
+                                        {{-- <th class="text-end pe-4">Status</th> --}}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($pending_reports->take(5) as $report)
+                                        <tr>
+                                            <td class="ps-4">
+                                                <span class="badge bg-primary" style="font-size: 0.7rem;">
+                                                    {{ str_replace('_', ' ', $report->reported_type) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{-- {{ $report->user->username ?? 'Unknown' }} --}}
+
+                                                <a href="{{ route('user.profile', ['user_id' => encrypt($report->user->id), 'shared' => 0]) }}" 
+                                                        style="cursor: pointer; text-decoration: none; color: inherit;" 
+                                                        class="d-flex align-items-center gap-2">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="h-35 w-35 d-flex-center b-r-22 overflow-hidden me-2">
+                                                                <img src="{{ $report->user->image ? asset('storage/uploads/profile_picture/' . $report->user->image) : asset('assets/images/avtar/woman.jpg') }}" 
+                                                                    alt="Tutor Avatar" class="img-fluid">
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <h6 class="mb-0">{{ "@" . $report->user->username ?? 'User Deleted' }}</h6>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <span class="d-inline-block text-truncate" style="max-width: 200px;">
+                                                    {{ $report->reason ?? 'No reason provided' }}
+                                                </span>
+                                            </td>
+                                            {{-- <td class="text-end pe-4">
+                                                <a href="{{ route('main.admin.report_pending') }}" class="btn btn-sm btn-primary fw-bold border rounded-pill">Resolve</a>
+                                            </td> --}}
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center py-5">
+                                                <div class="text-muted">
+                                                    <i class="ti ti-shield-check fs-1 mb-2 d-block text-success"></i>
+                                                    No pending reports. Great job!
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="col-md-7 col-xxl-5">
-                <div class="p-3">
-                    <h5>Sales by Country</h5>
-                </div>
-                <div class="row">
-                    <div class="col-6 col-sm-4">
-                        <div class="card country-card-warning">
-                            <div class="card-body">
-                                <i class="flag-icon flag-icon-deu f-s-28 b-r-20"></i>
-                                <div class="mt-3">
-                                    <h6 class="mb-0">Germany</h6>
-                                    <p class="mb-0">3.8k</p>
-                                </div>
-                                <i class="iconoir-language icon-bg text-white"></i>
-                            </div>
-                        </div>
+            <div class="col-lg-4">
+                
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="mb-0 fw-bold text-dark">🤖 Recent AI Activity</h5>
                     </div>
-                    <div class="col-6 col-sm-4">
-                        <div class="card bg-primary-300 ">
-                            <div class="card-body ">
-                                <i class="flag-icon flag-icon-aia f-s-28 b-r-20"></i>
-                                <div class="mt-3">
-                                    <h6 class="mb-0">Australia</h6>
-                                    <p class="text-primary f-w-600 mb-0">3.8k</p>
-                                </div>
-                            </div>
-                            <i class="iconoir-language icon-bg text-primary top-space-0"></i>
-                            <span class="position-absolute top-0 end-0 pa-6 bg-success b-2-white border-light rounded-circle animate__animated animate__heartBeat animate__infinite animate__fast"></span>
-                        </div>
-                    </div>
-                    <div class="col-6 col-sm-4">
-                        <div class="card country-card-danger">
-                            <div class="card-body">
-                                <i class="flag-icon flag-icon-can f-s-28 b-r-20"></i>
-                                <div class="mt-3">
-                                    <h6 class="mb-0">Germany</h6>
-                                    <p class="f-w-600 mb-0">3.8k</p>
-                                </div>
-                                <i class="iconoir-language icon-bg text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-6 col-sm-4">
-                        <div class="card country-card-info">
-                            <div class="card-body">
-                                <i class="flag-icon flag-icon-fra f-s-28 b-r-20"></i>
-                                <div class="mt-3">
-                                    <h6 class="mb-0">France</h6>
-                                    <p class="f-w-600 mb-0">3.8k</p>
-                                </div>
-                                <i class="iconoir-language icon-bg text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-sm-4">
-                        <div class="card country-card-danger">
-                            <div class="card-body">
-                                <i class="flag-icon flag-icon-usa f-s-28 b-r-20"></i>
-                                <div class="mt-3">
-                                    <h6 class="mb-0">USA</h6>
-                                    <p class="f-w-600 mb-0">3.8k</p>
-                                </div>
-                                <i class="iconoir-language icon-bg text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-sm-4">
-                        <div class="card country-card-warning">
-                            <div class="card-body">
-                                <i class="flag-icon flag-icon-esp f-s-28 b-r-20"></i>
-                                <div class="mt-3">
-                                    <h6 class="mb-0">Spain</h6>
-                                    <p class="f-w-500 mb-0">3.8k</p>
-                                </div>
-                                <i class="iconoir-language icon-bg text-white"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-5 col-xxl-3">
-                <div class="p-3">
-                    <h5>Customer</h5>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <ul class="customer-list">
-                            <li class="customer-list-item">
-                                            <span class="text-light-primary f-w-600 h-35 w-35 d-flex-center b-r-50 customer-list-avtar">
-                                                D
-                                            </span>
-                                <div class="customer-list-content">
-                                    <h6 class="mb-0">Emily Johnson</h6>
-                                </div>
-                                <div>
-                                                <span class="toggleCustomerButton text-light-primary h-35 w-35 d-flex-center b-r-50"
-                                                      data-bs-title="Added" data-bs-toggle="tooltip">
-                                                    <i class="iconoir-plus f-s-20"></i>
-                                                </span>
-                                </div>
-                            </li>
-                            <li class="customer-list-item">
-                                            <span class="text-light-danger f-w-600 h-35 w-35 d-flex-center b-r-50 customer-list-avtar">
-                                                AD
-                                            </span>
-                                <div class="customer-list-content">
-                                    <h6 class="mb-0">Emily Johnson</h6>
-                                </div>
-                                <div>
-                                                <span class="toggleCustomerButton text-light-danger h-35 w-35 d-flex-center b-r-50"
-                                                      data-bs-title="Removed" data-bs-toggle="tooltip">
-                                                    <i class="iconoir-minus f-s-20"></i>
-                                                </span>
-                                </div>
-                            </li>
-                            <li class="customer-list-item">
-                                             <span class="text-light-warning f-w-600 h-35 w-35 d-flex-center b-r-50 customer-list-avtar">
-                                                AD
-                                            </span>
-                                <div class="customer-list-content">
-                                    <h6 class="mb-0">Emily Johnson</h6>
-                                </div>
-                                <div>
-                                                <span class="toggleCustomerButton text-light-primary h-35 w-35 d-flex-center b-r-50"
-                                                      data-bs-title="Added" data-bs-toggle="tooltip">
-                                                    <i class="iconoir-plus f-s-20"></i>
-                                                </span>
-                                </div>
-                            </li>
-                            <li class="customer-list-item">
-                                            <span class="text-light-info f-w-600 h-35 w-35 d-flex-center b-r-50 customer-list-avtar">
-                                                AD
-                                            </span>
-                                <div class="customer-list-content">
-                                    <h6 class="mb-0">Emily Johnson</h6>
-                                </div>
-                                <div>
-                                                <span class="toggleCustomerButton text-light-primary h-35 w-35 d-flex-center b-r-50"
-                                                      data-bs-title="Added" data-bs-toggle="tooltip">
-                                                    <i class="iconoir-plus f-s-20"></i>
-                                                </span>
-                                </div>
-                            </li>
-                            <li class="customer-list-item">
-                                            <span class="text-light-danger f-w-600 h-35 w-35 d-flex-center b-r-50 customer-list-avtar">
-                                                AD
-                                            </span>
-                                <div class="customer-list-content">
-                                    <h6 class="mb-0">Emily Johnson</h6>
-                                </div>
-                                <div>
-                                              <span class="toggleCustomerButton text-light-danger h-35 w-35 d-flex-center b-r-50"
-                                                    data-bs-title="Removed" data-bs-toggle="tooltip">
-                                                    <i class="iconoir-minus f-s-20"></i>
-                                                </span>
-                                </div>
-                            </li>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            @forelse($user_activity_logs->sortByDesc('created_at')->take(5) as $log)
+                                <li class="list-group-item border-bottom-0 py-3">
+                                    <div class="d-flex align-items-start">
+                                        <a href="{{ route('user.profile', ['user_id' => encrypt($log->user->id), 'shared' => 0]) }}" 
+                                                style="cursor: pointer; text-decoration: none; color: inherit;" 
+                                                class="d-flex align-items-center gap-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="h-35 w-35 d-flex-center b-r-22 overflow-hidden me-2">
+                                                        <img src="{{ $log->user->image ? asset('storage/uploads/profile_picture/' . $log->user->image) : asset('assets/images/avtar/woman.jpg') }}" 
+                                                            alt="Tutor Avatar" class="img-fluid">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between">
+                                                <h6 class="mb-0 text-dark" style="font-size: 0.9rem;">
+                                                    <a href="{{ route('user.profile', ['user_id' => encrypt($log->user->id), 'shared' => 0]) }}" 
+                                                            style="cursor: pointer; text-decoration: none; color: inherit;" 
+                                                            class="d-flex align-items-center gap-2">
+                                                        {{ '@' . $log->user->username ?? 'Unknown User' }}
+                                                    </a>
+                                                    {{-- User ID: {{ $log->user_id }} --}}
+                                                    
+                                                </h6>
+                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                    {{ \Carbon\Carbon::parse($log->created_at)->diffForHumans() }}
+                                                </small>
+                                            </div>
+                                            <small class="text-muted d-block mt-1">
+                                                Used <strong>{{ $log->token_used }}</strong> tokens
+                                            </small>
+                                        </div>
+                                    </div>
+                                </li>
+                            @empty
+                                <li class="list-group-item text-center py-4 text-muted">
+                                    No recent activity logs found.
+                                </li>
+                            @endforelse
                         </ul>
                     </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xxl-3">
-                <div class="p-3">
-                    <h5>Sale Report</h5>
-                </div>
-
-                <div class="card">
-                    <div class="card-body">
-                        <div>
-                            <div id="totalSales"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xxl-3">
-                <div class="p-3">
-                    <h5>Product Category</h5>
-                </div>
-                <div class="card product-category-card">
-
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="dropdown">
-                                <a aria-expanded="false" class="text-dark" data-bs-toggle="dropdown"
-                                   href="#"
-                                   role="button">
-                                    <i class="iconoir-align-left f-s-20 f-w-600 text-dark-dark"></i>
-                                    <i class="ti ti-chevron-down ms-1 f-s-18 align-top"></i>
-                                </a>
-                                <ul class="dropdown-menu  dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#">Last Month</a></li>
-                                    <li><a class="dropdown-item" href="#">Last Week</a></li>
-                                    <li><a class="dropdown-item" href="#">Last Year</a></li>
-                                </ul>
-                            </div>
-
-                            <form class="app-form">
-                                <select aria-label="Default select example"
-                                        class="form-select custom-form-select">
-                                    <option selected="">Filter</option>
-                                    <option value="1">Fashion</option>
-                                    <option value="2">Books</option>
-                                    <option value="3">Sports</option>
-                                    <option value="4">Fitness</option>
-                                </select>
-                            </form>
-                        </div>
-                        <ul class="product-category-list mt-3">
-                            <li class="bg-info-300">
-                                <div>
-                                    <h6 class="text-info-dark mb-0">Clothing & Accessories</h6>
-                                </div>
-                                <div class="text-dark f-w-600 ms-2 flex-shrink-0">
-                                    $5,000
-                                    <span class="badge bg-white-300 text-info-dark f-w-700">5641</span>
-                                </div>
-                            </li>
-                            <li class="bg-primary-300">
-                                <div>
-                                    <h6 class="text-primary-dark mb-0">Home & Kitchen</h6>
-                                </div>
-                                <div class="text-dark f-w-600 ms-2 flex-shrink-0">
-                                    $5,000
-                                    <span class="badge bg-white-300 text-primary-dark f-w-700">10k</span>
-                                </div>
-                            </li>
-                            <li class="bg-danger-300">
-                                <div>
-                                    <h6 class="text-danger-dark mb-0">Electronics</h6>
-                                </div>
-                                <div class="text-dark f-w-600 ms-2 flex-shrink-0">
-                                    $5,000
-                                    <span class="badge bg-white-300 text-danger-dark f-w-700">6897</span>
-                                </div>
-                            </li>
-                            <li class="bg-warning-300">
-                                <div>
-                                    <h6 class="text-warning-dark mb-0">Jewellery</h6>
-                                </div>
-                                <div class="text-dark f-w-600 ms-2 flex-shrink-0">
-                                    $5,000
-                                    <span class="badge bg-white-300 text-warning-dark f-w-700">4548</span>
-                                </div>
-                            </li>
-
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xxl-3">
-                <div class="p-3">
-                    <h5>Overview</h5>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <div>
-                            <div id="salesChart"></div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="dropdown">
-                                <a aria-expanded="false" class="text-dark" data-bs-toggle="dropdown"
-                                   href="#"
-                                   role="button">
-                                    <i class="iconoir-align-left f-s-20 f-w-600 text-dark-dark"></i>
-                                    <i class="ti ti-chevron-down ms-1 f-s-18 align-top"></i>
-                                </a>
-                                <ul class="dropdown-menu  dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#">Last Month</a></li>
-                                    <li><a class="dropdown-item" href="#">Last Week</a></li>
-                                    <li><a class="dropdown-item" href="#">Last Year</a></li>
-                                </ul>
-                            </div>
-
-                            <form class="app-form">
-                                <select aria-label="Default select example"
-                                        class="form-select custom-form-select">
-                                    <option selected="">Jan</option>
-                                    <option value="1">Feb</option>
-                                    <option value="2">Mar</option>
-                                    <option value="3">..</option>
-                                    <option value="4">Dec</option>
-                                </select>
-                            </form>
-                        </div>
+                    <div class="card-footer bg-white border-top text-center py-3">
+                        <a href="#" class="text-decoration-none fw-bold text-primary">View Full Logs</a>
                     </div>
                 </div>
 
             </div>
-
-            <div class="col-md-6 col-xxl-3">
-                <div class="p-3">
-                    <h5>Transaction</h5>
-                </div>
-                <div class="card transaction-card">
-
-                    <div class="card-body">
-
-                        <div class="text-center">
-                            <img alt="logo-img" src="{{asset('../assets/images/form/done.png')}}">
-                            <h6 class="text-success-dark mb-0">Thank You!</h6>
-                            <p class="mb-0 f-w-600 text-success d-inline transaction-txt">Your transaction
-                                was
-                                successful </p>
-                            <img alt="gif"
-                                 class="w-30 d-inline align-text-bottom"
-                                 src="{{asset('../assets/images/dashboard/ecommerce-dashboard/celebration.gif')}}">
-                        </div>
-
-                        <div class="custom-divider"></div>
-
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <p class="text-dark f-w-500 mb-0"><i
-                                        class="iconoir-credit-cards f-s-16 align-text-top me-2"></i>Transaction
-                                    ID</p>
-                                <h6 class="text-success-dark">568368657681</h6>
-                            </div>
-                            <div>
-                                <p class="text-dark f-w-500 mb-0"><i
-                                        class="iconoir-dollar-circle f-s-16 align-text-top me-2"></i>Amount
-                                </p>
-                                <h6 class="text-success-dark">$68.00</h6>
-                            </div>
-                        </div>
-
-                        <div class="mt-3">
-                            <p class="text-dark f-w-500 mb-0"><i
-                                    class="iconoir-calendar f-s-16 align-text-top me-2"></i>Date & Time</p>
-                            <h6 class="mb-0 text-success-dark">15 Jun 2024 • 6:90PM</h6>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
-
         </div>
     </div>
 @endsection
 
 @section('script')
-
-    <!-- slick-file -->
-    <script src="{{asset('assets/vendor/slick/slick.min.js')}}"></script>
-
-    <!-- apexcharts js-->
     <script src="{{asset('assets/vendor/apexcharts/apexcharts.min.js')}}"></script>
-
-     <!-- Tooltips_popovers. Js -->
     <script src="{{asset('assets/js/tooltips_popovers.js')}}"></script>
-
-    <!-- Ecommerce Dashboard js-->
-    <script src="{{asset('assets/js/ecommerce_dashboard.js')}}"></script>
-
 @endsection

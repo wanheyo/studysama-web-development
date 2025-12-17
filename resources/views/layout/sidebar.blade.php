@@ -59,8 +59,8 @@
                     </a>
                     <ul class="collapse" id="admin_report">
                         <li><a href="{{route('main.admin.report_pending')}}">Pending</a></li>
-                        <li><a href="{{route('main.admin.report_pending')}}">Resolved</a></li>
-                        <li><a href="{{route('main.admin.report_pending')}}">Dismissed</a></li>
+                        <li><a href="{{route('main.admin.report_resolved')}}">Resolved</a></li>
+                        <li><a href="{{route('main.admin.report_dismissed')}}">Dismissed</a></li>
                         {{-- <li><a href="{{route('course.add_course')}}">Add New Course</a></li> --}}
                     </ul>
                 </li>

@@ -198,7 +198,7 @@
                                     <th>Joined Date</th>
                                     <th>Certificate</th>
                                     <th>Certificate Date</th>
-                                    <th>Action</th>
+                                    {{-- <th>Action</th> --}}
                                 </tr>
                             </thead>
                             <tbody>
@@ -262,7 +262,7 @@
                                         <td>
                                             {{ $student->certificates->where('status', 1)->first() ? $student->certificates->where('status', 1)->first()->created_at->format('d M Y') : '-' }}
                                         </td>
-                                        <td>
+                                        {{-- <td>
                                             <form method="POST" action="{{ route('course.tutor_remove_student') }}" class="remove-student-form d-inline">
                                                 @csrf
                                                 <input type="hidden" name="user_course_id" value="{{ $student->id }}">
@@ -270,7 +270,7 @@
                                                     <i class="ti ti-trash"></i> Remove
                                                 </button>
                                             </form>
-                                        </td>
+                                        </td> --}}
                                     </tr>
                                 @endforeach
                             </tbody>
