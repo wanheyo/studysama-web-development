@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Course;
 use App\Models\Lesson;
@@ -12,12 +13,13 @@ use App\Models\Certificate;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class CourseController extends Controller
 {
@@ -688,7 +690,7 @@ class CourseController extends Controller
 
         $course = Course::with(['lessons.resources'])
             ->where('id', $course_id)
-            ->where('status', 1)
+            // ->where('status', 1)
             ->firstOrFail();
 
         $students = UserCourse::with(['user', 'userProgressions', 'certificates'])
@@ -699,7 +701,7 @@ class CourseController extends Controller
 
         // Total resources in course
         $totalResources = $course
-            ->where('status', 1)
+            // ->where('status', 1)
             ->where('id', $course_id)
             ->first()
             ->lessons()
@@ -1276,24 +1278,45 @@ class CourseController extends Controller
         return view('admin.course.find_course', compact('courses', 'topics'));
     }
 
-    public function admin_edit_course(Request $request, $course_id)
+    public function admin_edit_course(Request $request, $course_id, NotificationService $notificationService)
     {
+        // 1. Update validation to include comment
         $validated = $request->validate([
-            // 'name' => 'required|string|max:128',
-            // 'desc' => 'nullable|string',
-            // 'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            // 'topic' => 'nullable|exists:topics,id',
             'status' => 'required|in:0,1,2',
+            // Comment is required unless we are strictly deleting (status 0)
+            'comment' => 'required_if:status,1,2|string|max:1000', 
         ]);
 
         $course_id = Crypt::decrypt($course_id);
         $course = Course::find($course_id);
 
+        if (!$course) {
+            return response()->json(['message' => 'Course not found'], 404);
+        }
+
+        $oldStatus = $course->status;
         $course->status = $validated['status'];
-        // $course->updated_at = now();
         $course->save();
 
-            return response()->json([
+        // 2. Trigger Notification Service
+        // Only send notification if status is not 0 (Delete) - Adjust strictly if you want noti on delete too
+        if ($validated['status'] != 0) {
+            
+            $statusText = $validated['status'] == 1 ? 'Approved/Active' : 'In Review';
+            $title = "Course Status Update";
+            $content = "Your course \"{$course->name}\" status has been updated. Status: {$statusText}. Admin Comment: {$validated['comment']}.";
+            
+            // The service logic for 'course' automatically finds the tutor (user with role_id 1)
+            $notificationService->create(
+                'system',              // noti_type (You can change this to 'course_update' if you have that type)
+                'course',              // parent_type
+                $title,                // title
+                $content,              // content (The admin comment)
+                $course->id            // parent_id
+            );
+        }
+
+        return response()->json([
             'success' => true,
             'message' => 'Course status updated successfully',
             'status' => $course->status

@@ -82,10 +82,26 @@
             <div class="card mb-4 shadow-sm">
                 <div class="card-body text-center">
                     <h5 class="mb-3">Course Progress Overview</h5>
-                    
-                    <div style="max-width: 250px; margin: 0 auto;">
-                        <canvas id="progressChart"></canvas>
-                    </div>
+
+                    @if(($totalStudents ?? 0) > 0)
+                        <div style="max-width: 250px; margin: 0 auto;">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    @else
+                        {{-- EMPTY STATE FOR TUTOR --}}
+                        {{-- <div class="text-center py-4">
+                            <span class="text-light-secondary h-40 w-40 d-flex-center b-r-10 mx-auto mb-2">
+                                <i class="ph-bold ph-users-three f-s-20"></i>
+                            </span>
+                            <p class="text-secondary f-w-500 mb-0">No students enrolled yet</p>
+                        </div> --}}
+
+                        <div class="text-center text-muted my-4">
+                            <i class="ti ti-chart-pie-off fs-2"></i>
+                            <p class="mt-2">No students enrolled yet</p>
+                        </div>
+                        <br>
+                    @endif
                 </div>
             </div>
 

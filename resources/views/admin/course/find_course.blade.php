@@ -266,6 +266,15 @@
                                 <input type="text" class="form-control" id="modalTotalResource" disabled>
                             </div>
                         </div>
+
+                        <!-- Admin Comment -->
+                        <div class="mb-3">
+                            <label class="form-label">Admin Comment <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="modalAdminComment" name="comment" rows="3" placeholder="Enter reason for status change or feedback..." required></textarea>
+                            <div class="invalid-feedback">
+                                Please provide a comment for the tutor.
+                            </div>
+                        </div>
                         
                         <!-- Status -->
                         <div class="mb-3">
@@ -471,6 +480,10 @@
                         currentStatus = '2';
                     }
                     document.getElementById('modalCourseStatus').value = currentStatus;
+
+                    const adminCommentField = document.getElementById('modalAdminComment');
+                    // Clear admin comment field
+                    if(adminCommentField) adminCommentField.value = '';
                     
                     // Show modal
                     new bootstrap.Modal(document.getElementById('courseDetailModal')).show();
@@ -479,6 +492,15 @@
             
             // Function to update course status via AJAX
             function updateCourseStatus(courseId, status, successMessage) {
+                const commentField = document.getElementById('modalAdminComment');
+                const comment = commentField ? commentField.value.trim() : '';
+
+                if (status !== '0' && comment === '') {
+                    alert('Please enter an admin comment before updating the status.');
+                    commentField.focus(); // Focus the field for the user
+                    return; // Stop execution
+                }
+
                 // Show loading state
                 const updateBtn = document.getElementById('updateCourseBtn');
                 const deleteBtn = document.getElementById('deleteCourseBtn');
@@ -501,7 +523,8 @@
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        status: status
+                        status: status,
+                        comment: comment
                     })
                 })
                 .then(response => {
@@ -520,6 +543,8 @@
                     
                     if (courseModal) courseModal.hide();
                     if (deleteModal) deleteModal.hide();
+                    // Clear the comment field after success
+                    if(commentField) commentField.value = '';
                     
                     // Show success message
                     showAlert('success', successMessage);
