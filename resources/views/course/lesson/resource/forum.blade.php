@@ -94,69 +94,82 @@
 
 
         /* Thumbnail container styles */
-            .thumbnail-container {
-                width: 100%;
-                height: 200px; /* Fixed height */
-                /* margin: 15px 0; */
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-                overflow: hidden;
-                /* border-radius: 8px; */
-                background-color: #f8f9fa;
-            }
-            
-            /* Image thumbnail wrapper */
-            .thumbnail-image-wrapper {
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            /* Actual image styling */
-            .thumbnail-image {
-                max-width: 100%;
-                max-height: 100%;
-                object-fit: contain;
-            }
-            
-            /* Default thumbnail style (for non-images) */
-            .thumbnail-default {
-                width: 100%;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                /* border-radius: 8px; */
-            }
-            
-            .thumbnail-default i {
-                font-size: 3rem;
-                margin-bottom: 8px;
-            }
-            
-            .thumbnail-label {
-                font-size: 0.8rem;
-                font-weight: 600;
-                text-transform: uppercase;
-            }
-            
-            /* Badge for YouTube thumbnails */
-            .thumbnail-badge {
-                position: absolute;
-                bottom: 8px;
-                right: 8px;
-                background: rgba(0,0,0,0.7);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 0.7rem;
-            }
+        .thumbnail-container {
+            width: 100%;
+            height: 200px; /* Fixed height */
+            /* margin: 15px 0; */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            /* border-radius: 8px; */
+            background-color: #f8f9fa;
+        }
+        
+        /* Image thumbnail wrapper */
+        .thumbnail-image-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Actual image styling */
+        .thumbnail-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        /* Default thumbnail style (for non-images) */
+        .thumbnail-default {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            /* border-radius: 8px; */
+        }
+        
+        .thumbnail-default i {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+        
+        .thumbnail-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        /* Badge for YouTube thumbnails */
+        .thumbnail-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+
+        .page-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent white */
+            z-index: 9999; /* High z-index to sit on top of everything */
+            cursor: wait; /* Show wait cursor */
+            display: none; /* Hidden by default */
+            backdrop-filter: blur(2px); /* Optional: slight blur effect */
+        }
     </style>
 @endsection
 
@@ -490,7 +503,7 @@
                                 <p class="text-muted d-block mt-1">
                                     <div class="row align-items-center">
                                         <div class="col-6 d-flex align-items-center">
-                                            <img src="{{ $post->userCourse?->user?->image ? asset('storage/uploads/profile_picture/' . $post->userCourse?->user?->image) : asset('assets/images/avtar/4.png') }}"
+                                            <img src="{{ $post->userCourse?->user?->image ? asset('storage/uploads/profile_picture/' . $post->userCourse?->user?->image) : asset('assets/images/avtar/143x145.png') }}"
                                                 class="rounded-circle avatar-md me-2" alt="avatar">
                                             <strong>{{ '@' . $post->userCourse?->user?->username ?? '@Unknown' }}</strong>
 
@@ -551,55 +564,38 @@
                                     <h6 class="mb-3 fw-bold">
                                         <i class="ph ph-pencil-simple me-2 text-primary"></i>Post Your Reply
                                     </h6>
-                                    <form id="forumReplyForm" method="POST" action="{{ route('resource.add_reply') }}" enctype="multipart/form-data">
+                                    
+                                    {{-- Ensure the class is 'ajax-reply-form' to match our new JS selector --}}
+                                    <form action="{{ route('resource.add_reply') }}" 
+                                        method="POST" 
+                                        enctype="multipart/form-data" 
+                                        class="ajax-reply-form"> 
                                         @csrf
-                                        <input type="hidden" name="course_id" id="course_id" value="{{ $resource->lesson->course->id }}">
-                                        <input type="hidden" name="forum_post_id" id="forum_post_id" value="{{ $post->id }}">
+                                        <input type="hidden" name="course_id" value="{{ $resource->lesson->course->id }}">
+                                        <input type="hidden" name="forum_post_id" value="{{ $post->id }}">
+                                        
                                         <div class="mb-3">
-                                            <textarea class="form-control" id="content" name="content" rows="3" placeholder="Share your thoughts..." required></textarea>
+                                            <textarea class="form-control" name="content" rows="3" placeholder="Share your thoughts..." required></textarea>
                                         </div>
-                                        <div class="mb-3" id="file_upload_section">
-                                            {{-- fw-semibold --}}
+
+                                        <div class="mb-3">
                                             <label class="form-label text-secondary"> 
                                                 <i class="ph ph-paperclip me-2 text-primary"></i>Attachments <span class="text-muted">(Optional)</span>
                                             </label>
-                                            {{-- <input class="form-control" type="file" multiple> --}}
-                                            <input type="file" name="file" id="file" class="form-control">
-                                            <input type="hidden" name="file_name" id="file_name">
-                                            <input type="hidden" name="file_type" id="file_type">
+                                            <input type="file" name="file" class="form-control file-input">
                                             <small class="text-muted d-block mt-2">
-                                                <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, PPTX, JPG, PNG (Max 10MB per file)
+                                                <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, JPG, PNG (Max 5MB)
                                             </small>
                                         </div>
-                                        <div class="upload-progress mt-3" id="uploadProgress" style="display: none;">
-                                            <div class="progress-box bg-light-success w-100 p-3 rounded">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <div class="left d-flex align-items-center">
-                                                        <b class="me-1 ms-1" id="uploadPercent">0%</b> Submitting...
-                                                    </div>
-                                                    <div class="right">
-                                                        <span class="badge text-bg-success" id="uploadTimeRemaining">Estimating...</span>
-                                                    </div>
-                                                </div>
-                                                <div class="progress w-100" style="height: 6px;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                                                    <div class="progress-bar bg-success" id="uploadProgressBar" style="width: 0%"></div>
-                                                </div>
-                                            </div>
 
-                                            <div class="alert alert-info mt-2 mb-0 d-flex align-items-center" role="alert">
-                                                <i class="ph ph-info me-2"></i>
-                                                <div>
-                                                    Upload in progress — <strong>do not close</strong> this window or modal until the upload is complete.
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex gap-2">
-                                            <button type="submit" class="btn btn-primary" id="replyadd">
+                                        {{-- REMOVED THE .upload-progress DIV HERE --}}
+
+                                        <div class="d-flex gap-2 mt-3">
+                                            {{-- Added type="submit" explicitly --}}
+                                            <button type="submit" class="btn btn-primary btn-submit">
                                                 <i class="ph ph-paper-plane-tilt me-2"></i>Submit Reply
                                             </button>
-                                            <button type="button" class="btn btn-danger" id="cancelReplyBtn">
-                                                Cancel
-                                            </button>
+                                            <button type="button" class="btn btn-danger btn-cancel" data-bs-toggle="collapse" data-bs-target="#replyForm{{ $post->id ?? '' }}">Cancel</button>
                                         </div>
                                     </form>
                                 </div>
@@ -645,7 +641,7 @@
                             data-bs-dismiss="modal"
                             type="button"></button>
                 </div>
-                <form id="forumPostForm" method="POST" action="{{ route('resource.add_post') }}" enctype="multipart/form-data">
+                <form id="forumPostForm" method="POST" action="{{ route('resource.add_post') }}" enctype="multipart/form-data" class="ajax-reply-form">
                     @csrf
                     <div class="modal-body">
                         <div class="resent-form">
@@ -915,6 +911,7 @@
                 </div>
             </div>
         </div>
+        <div id="uiBlocker" class="page-overlay"></div>
     </div>
 
     <!-- Delete Post Form -->
@@ -927,6 +924,14 @@
         @csrf
         @method('POST')
     </form>
+
+    <div id="page-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 9999; backdrop-filter: blur(2px);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+            <h5 class="mt-3 text-dark fw-bold" id="overlay-text">Uploading...</h5>
+            <small class="text-muted">Please do not close this window</small>
+        </div>
+    </div>
 
     <style>
         .swal2-toast {
@@ -972,97 +977,41 @@
                 }, 100);
             @endif
 
-            // Upload progress handling for Reply Form (non-modal)
-            // Select both main and collapsible reply forms
-            const allReplyForms = document.querySelectorAll('form[id^="forumReplyForm"]');
+            const replyForms = document.querySelectorAll('.ajax-reply-form');
+            const overlay = document.getElementById('page-overlay');
 
-            allReplyForms.forEach(form => {
-                const uploadProgress = form.querySelector('.upload-progress');
-                const progressBar = form.querySelector('#uploadProgressBar');
-                const percentLabel = form.querySelector('#uploadPercent');
-                const timeRemaining = form.querySelector('#uploadTimeRemaining');
-                const submitBtn = form.querySelector('button[type="submit"]');
-                const cancelBtn = form.querySelector('.cancel-reply-btn');
-                let uploadStartTime = null;
-
-                form.addEventListener('submit', function (e) {
-                    e.preventDefault();
-
-                    const formData = new FormData(form);
-                    const actionUrl = form.action;
-
-                    if (!uploadProgress || !progressBar || !percentLabel || !timeRemaining) {
-                        console.warn('Upload progress elements not found for', form.id);
+            replyForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // Check if form is valid (HTML5 validation)
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.classList.add('was-validated');
                         return;
                     }
 
-                    // Show progress UI
-                    uploadProgress.style.display = 'block';
-                    progressBar.style.width = '0%';
-                    percentLabel.textContent = '0%';
-                    timeRemaining.textContent = 'Estimating...';
-                    uploadStartTime = Date.now();
+                    // Get UI elements
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const cancelBtn = this.querySelector('.btn-cancel');
+                    
+                    // Disable buttons to prevent double-click
+                    if(submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+                    }
+                    
+                    if(cancelBtn) {
+                        cancelBtn.disabled = true;
+                    }
 
-                    // Disable buttons
-                    submitBtn.disabled = true;
-                    if (cancelBtn) cancelBtn.disabled = true;
+                    // Show the global overlay
+                    if(overlay) {
+                        overlay.style.display = 'block';
+                    }
 
-                    // Warn user not to leave during upload
-                    window.onbeforeunload = function () {
-                        return 'Upload in progress. Are you sure you want to leave?';
-                    };
-
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', actionUrl, true);
-                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-
-                    // Progress tracking
-                    xhr.upload.addEventListener('progress', function (event) {
-                        if (event.lengthComputable) {
-                            const percent = Math.round((event.loaded / event.total) * 100);
-                            progressBar.style.width = percent + '%';
-                            percentLabel.textContent = percent + '%';
-
-                            const elapsed = (Date.now() - uploadStartTime) / 1000;
-                            const speed = event.loaded / elapsed;
-                            const remainingBytes = event.total - event.loaded;
-                            const remainingSeconds = remainingBytes / speed;
-
-                            if (remainingSeconds > 0 && remainingSeconds < 3600) {
-                                const mins = Math.ceil(remainingSeconds / 60);
-                                timeRemaining.textContent = `${mins} min${mins > 1 ? 's' : ''}`;
-                            } else {
-                                timeRemaining.textContent = 'Almost done...';
-                            }
-                        }
-                    });
-
-                    xhr.onload = function () {
-                        uploadProgress.style.display = 'none';
-                        progressBar.style.width = '0%';
-                        window.onbeforeunload = null;
-
-                        submitBtn.disabled = false;
-                        if (cancelBtn) cancelBtn.disabled = false;
-
-                        if (xhr.status === 200) {
-                            window.location.reload(); // reload on success
-                        } else {
-                            alert('Upload failed. Please try again.');
-                        }
-                    };
-
-                    xhr.onerror = function () {
-                        uploadProgress.style.display = 'none';
-                        window.onbeforeunload = null;
-
-                        submitBtn.disabled = false;
-                        if (cancelBtn) cancelBtn.disabled = false;
-
-                        alert('An error occurred during upload.');
-                    };
-
-                    xhr.send(formData);
+                    // WE DO NOT PREVENT DEFAULT HERE. 
+                    // We let the browser submit the form naturally.
+                    // This ensures the Controller's redirect() works and Session Flash is sent.
                 });
             });
 

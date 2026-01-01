@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\CourseController;
 use App\Http\Controllers\Web\LessonController;
 use App\Http\Controllers\Web\ResourceController;
+use App\Http\Controllers\Web\Auth\WebPasswordResetController;
 
 // Test routes
 Route::get('/test-auth', function () {
@@ -30,6 +31,24 @@ Route::get('/sign_up', function () {
 })->name('register');
 Route::post('/sign_up', [UserController::class, 'sign_up'])->name('register.post');
 Route::get('/check_username', [UserController::class, 'check_username'])->name('register.check_username');
+
+Route::middleware('guest')->group(function () {
+    // 1. Show the "Enter Email" form
+    Route::get('/forgot-password', [WebPasswordResetController::class, 'showLinkRequestForm'])
+        ->name('password.request');
+
+    // 2. Handle the "Send Email" submission
+    Route::post('/forgot-password', [WebPasswordResetController::class, 'sendResetLinkEmail'])
+        ->name('password.email');
+
+    // 3. Show the "Enter New Password" form (Clicked from Email)
+    Route::get('/reset-password/{token}', [WebPasswordResetController::class, 'showResetForm'])
+        ->name('password.reset');
+
+    // 4. Handle the "Save New Password" submission
+    Route::post('/reset-password', [WebPasswordResetController::class, 'reset'])
+        ->name('password.update');
+});
 
 // Protected routes
 Route::middleware(['auth:web'])->group(function () {

@@ -119,10 +119,10 @@ class User extends Authenticatable implements CanResetPassword
         return $this->hasMany(UserChallenge::class);
     }
 
-    public function sendPasswordResetNotification($token)
-    {
-        $this->notify(new \App\Notifications\CustomResetPasswordNotification($token));
-    }
+    // public function sendPasswordResetNotification($token)
+    // {
+    //     $this->notify(new \App\Notifications\CustomResetPasswordNotification($token));
+    // }
 
     public function isSuperadmin()
     {

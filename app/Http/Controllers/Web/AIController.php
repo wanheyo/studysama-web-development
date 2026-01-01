@@ -23,6 +23,46 @@ use Illuminate\Support\Str;
 
 class AIController extends Controller
 {
+    private function checkToxicity($text)
+    {
+        $apiKey = config('services.perspective.key');
+        $endpoint = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=' . $apiKey;
+
+        // DEBUG: Check if key is actually being read
+        // if (empty($apiKey)) {
+        //     dd('API Key is missing from config');
+        // }
+
+        try {
+            $response = Http::post($endpoint, [
+                'comment' => [
+                    'text' => $text,
+                ],
+                'languages' => ['en', 'id'], // Optional: Specify language or let it auto-detect
+                'requestedAttributes' => [
+                    'TOXICITY' => (object) [],
+                ],
+            ]);
+
+            // dd($response->json(), $response->status());
+
+            if ($response->successful()) {
+                $result = $response->json();
+                $score = $result['attributeScores']['TOXICITY']['summaryScore']['value'] ?? 0;
+
+                // Threshold: 0.7 (70%) is a common baseline. Adjust as needed.
+                return $score > 0.7;
+            }
+
+        } catch (\Exception $e) {
+            // Log API failure but don't block the user if the API is down
+            \Log::error('Perspective API Check Failed: ' . $e->getMessage());
+            return false;
+        }
+
+        return false;
+    }
+
     public function store_user_activity_log($activity_type, $token_used, $topic, $file_name) {
         $user = Auth::user();
 
@@ -246,7 +286,7 @@ class AIController extends Controller
         //     'data' => $request->all(),
         // ]);
 
-        $request->validate([
+        $validatedData = $request->validate([
             'text' => 'nullable|string|max:500',
             'path' => 'nullable|string',
             'type' => 'nullable|string',
@@ -254,6 +294,16 @@ class AIController extends Controller
             'text.max' => 'Topic text should not exceed 500 characters.',
             'link.url' => 'The provided link must be a valid URL.',
         ]);
+
+        // --- START MODERATION CHECK ---
+        $textToCheck = $validatedData['text']?: '' . ' ' . $validatedData['path']?: '';
+
+        if ($this->checkToxicity($textToCheck)) {
+            return redirect()->back()
+                ->with('error', 'Your topic contains content that may be considered toxic or inappropriate. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
 
         // dd($request->all());
 
@@ -609,13 +659,23 @@ class AIController extends Controller
 
     public function show_ai_flashcard(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'text' => 'nullable|string|max:500',
             'path' => 'nullable|string',
             'type' => 'nullable|string',
         ], [
             'text.max' => 'Topic text should not exceed 500 characters.',
         ]);
+
+        // --- START MODERATION CHECK ---
+        $textToCheck = $validatedData['text']?: '' . ' ' . $validatedData['path']?: '';
+
+        if ($this->checkToxicity($textToCheck)) {
+            return redirect()->back()
+                ->with('error', 'Your topic contains content that may be considered toxic or inappropriate. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
 
         try {
             $type = strtolower(trim($request->input('type', '')));
@@ -690,7 +750,7 @@ class AIController extends Controller
 
             // ===== STEP 1: Make API Request =====
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . config('services.openai.key'),
+                'Authorization' => 'Bearer ' . 5 ,
                 'Content-Type' => 'application/json',
             ])->timeout(40)->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-4o-mini',
@@ -924,13 +984,23 @@ class AIController extends Controller
 
     public function show_ai_wsp(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'text' => 'nullable|string|max:500',
             'path' => 'nullable|string',
             'type' => 'nullable|string',
         ], [
             'text.max' => 'Topic text should not exceed 500 characters.',
         ]);
+
+        // --- START MODERATION CHECK ---
+        $textToCheck = $validatedData['text']?: '' . ' ' . $validatedData['path']?: '';
+
+        if ($this->checkToxicity($textToCheck)) {
+            return redirect()->back()
+                ->with('error', 'Your topic contains content that may be considered toxic or inappropriate. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
 
         try {
             $type = strtolower(trim($request->input('type', '')));

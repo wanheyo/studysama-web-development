@@ -819,7 +819,7 @@
                                             data-bs-dismiss="modal"
                                             type="button"></button>
                                 </div>
-                                <form id="lessonForm" method="POST" action="{{ route('course.lesson.add_lesson.post', $course->id) }}">
+                                <form id="lessonForm" method="POST" action="{{ route('course.lesson.add_lesson.post', $course->id) }}" class="ajax-upload-form">
                                     @csrf
                                     <div class="modal-body">
                                         <div class="resent-form">
@@ -863,7 +863,7 @@
                                             data-bs-dismiss="modal"
                                             type="button"></button>
                                 </div>
-                                <form id="updateLessonForm" method="POST">
+                                <form id="updateLessonForm" method="POST" class="ajax-upload-form">
                                     @csrf
                                     <div class="modal-body">
                                         <div class="resent-form">
@@ -919,7 +919,7 @@
                                     <h1 class="modal-title fs-5 text-white" id="resourceAddModalLabel">New Resource</h1>
                                     <button aria-label="Close" class="btn-close m-0" data-bs-dismiss="modal" type="button"></button>
                                 </div>
-                                <form id="resourceForm" method="POST" action="{{ route('resource.add_resource') }}" enctype="multipart/form-data">
+                                <form id="resourceForm" method="POST" action="{{ route('resource.add_resource') }}" enctype="multipart/form-data" class="ajax-upload-form">
                                     @csrf
                                     <div class="modal-body">
                                         <div class="resent-form">
@@ -1023,7 +1023,7 @@
                                     <h1 class="modal-title fs-5 text-white" id="resourceEditModalLabel">Edit Resource</h1>
                                     <button aria-label="Close" class="btn-close m-0" data-bs-dismiss="modal" type="button"></button>
                                 </div>
-                                <form id="updateResourceForm" method="POST" enctype="multipart/form-data">
+                                <form id="updateResourceForm" method="POST" enctype="multipart/form-data" class="ajax-upload-form">
                                     @csrf
                                     @method('POST')
                                     <div class="modal-body">
@@ -1391,6 +1391,14 @@
             </div>
         </div>
 
+        <div id="page-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 9999; backdrop-filter: blur(2px);">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                <h5 class="mt-3 text-dark fw-bold" id="overlay-text">Uploading...</h5>
+                <small class="text-muted">Please do not close this window</small>
+            </div>
+        </div>
+
         <!-- Resource card thumbnail style -->
         <style>
             /* Thumbnail container styles */
@@ -1549,6 +1557,19 @@
             #lesson-list.reorder-active .drag-handle { display: inline-block; cursor: grab; }
 
             .sortable-ghost { opacity: 0.6; background: #f8f9fa; }
+
+            .page-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent white */
+                z-index: 9999; /* High z-index to sit on top of everything */
+                cursor: wait; /* Show wait cursor */
+                display: none; /* Hidden by default */
+                backdrop-filter: blur(2px); /* Optional: slight blur effect */
+            }
         </style>
 
     </div>
@@ -1582,6 +1603,44 @@
                     $('#file_name').val(file.name);
                     $('#file_type').val(file.type);
                 }
+            });
+
+            const uploadForms = document.querySelectorAll('.ajax-upload-form');
+            const overlay = document.getElementById('page-overlay');
+
+            uploadForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // Check if form is valid (HTML5 validation)
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.classList.add('was-validated');
+                        return;
+                    }
+
+                    // Get UI elements
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const cancelBtn = this.querySelector('.btn-cancel');
+                    
+                    // Disable buttons to prevent double-click
+                    if(submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+                    }
+                    
+                    if(cancelBtn) {
+                        cancelBtn.disabled = true;
+                    }
+
+                    // Show the global overlay
+                    if(overlay) {
+                        overlay.style.display = 'block';
+                    }
+
+                    // WE DO NOT PREVENT DEFAULT HERE. 
+                    // We let the browser submit the form naturally.
+                    // This ensures the Controller's redirect() works and Session Flash is sent.
+                });
             });
 
             // Make the dropzone area support drag and drop
@@ -1696,109 +1755,109 @@
             }
 
             // Upload progress handling
-            const resourceForm = document.getElementById('resourceForm');
-            const uploadProgress = document.getElementById('uploadProgress');
-            const progressBar = document.getElementById('uploadProgressBar');
-            const percentLabel = document.getElementById('uploadPercent');
-            const timeRemaining = document.getElementById('uploadTimeRemaining');
-            const modal = document.getElementById('resourceAddModal');
+            // const resourceForm = document.getElementById('resourceForm');
+            // const uploadProgress = document.getElementById('uploadProgress');
+            // const progressBar = document.getElementById('uploadProgressBar');
+            // const percentLabel = document.getElementById('uploadPercent');
+            // const timeRemaining = document.getElementById('uploadTimeRemaining');
+            // const modal = document.getElementById('resourceAddModal');
 
-            let uploadStartTime = null;
+            // let uploadStartTime = null;
 
-            // Prevent closing modal during upload
-            modal.addEventListener('hide.bs.modal', function (e) {
-                if (uploadProgress.style.display === 'block') {
-                    e.preventDefault();
-                    alert('Upload in progress. Please wait until it completes.');
-                }
-            });
+            // // Prevent closing modal during upload
+            // modal.addEventListener('hide.bs.modal', function (e) {
+            //     if (uploadProgress.style.display === 'block') {
+            //         e.preventDefault();
+            //         alert('Upload in progress. Please wait until it completes.');
+            //     }
+            // });
 
-            resourceForm.addEventListener('submit', function (e) {
-                e.preventDefault();
+            // resourceForm.addEventListener('submit', function (e) {
+            //     e.preventDefault();
 
-                const formData = new FormData(resourceForm);
-                const actionUrl = resourceForm.action;
+            //     const formData = new FormData(resourceForm);
+            //     const actionUrl = resourceForm.action;
 
-                // Show progress UI
-                uploadProgress.style.display = 'block';
-                progressBar.style.width = '0%';
-                percentLabel.textContent = '0%';
-                timeRemaining.textContent = 'Estimating...';
-                uploadStartTime = Date.now();
+            //     // Show progress UI
+            //     uploadProgress.style.display = 'block';
+            //     progressBar.style.width = '0%';
+            //     percentLabel.textContent = '0%';
+            //     timeRemaining.textContent = 'Estimating...';
+            //     uploadStartTime = Date.now();
 
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', actionUrl, true);
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            //     const xhr = new XMLHttpRequest();
+            //     xhr.open('POST', actionUrl, true);
+            //     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
-                xhr.upload.addEventListener('progress', function (event) {
-                    if (event.lengthComputable) {
-                        const percent = Math.round((event.loaded / event.total) * 100);
-                        progressBar.style.width = percent + '%';
-                        percentLabel.textContent = percent + '%';
+            //     xhr.upload.addEventListener('progress', function (event) {
+            //         if (event.lengthComputable) {
+            //             const percent = Math.round((event.loaded / event.total) * 100);
+            //             progressBar.style.width = percent + '%';
+            //             percentLabel.textContent = percent + '%';
 
-                        const elapsed = (Date.now() - uploadStartTime) / 1000; // seconds
-                        const speed = event.loaded / elapsed; // bytes per second
-                        const remainingBytes = event.total - event.loaded;
-                        const remainingSeconds = remainingBytes / speed;
-                        if (remainingSeconds > 0 && remainingSeconds < 3600) {
-                            const mins = Math.ceil(remainingSeconds / 60);
-                            timeRemaining.textContent = `${mins} min${mins > 1 ? 's' : ''}`;
-                        } else {
-                            timeRemaining.textContent = 'Almost done...';
-                        }
-                    }
-                });
+            //             const elapsed = (Date.now() - uploadStartTime) / 1000; // seconds
+            //             const speed = event.loaded / elapsed; // bytes per second
+            //             const remainingBytes = event.total - event.loaded;
+            //             const remainingSeconds = remainingBytes / speed;
+            //             if (remainingSeconds > 0 && remainingSeconds < 3600) {
+            //                 const mins = Math.ceil(remainingSeconds / 60);
+            //                 timeRemaining.textContent = `${mins} min${mins > 1 ? 's' : ''}`;
+            //             } else {
+            //                 timeRemaining.textContent = 'Almost done...';
+            //             }
+            //         }
+            //     });
 
-                xhr.onload = function () {
-                    uploadProgress.style.display = 'none';
-                    progressBar.style.width = '0%';
+            //     xhr.onload = function () {
+            //         uploadProgress.style.display = 'none';
+            //         progressBar.style.width = '0%';
 
-                    if (xhr.status === 200) {
-                        const response = JSON.parse(xhr.responseText);
+            //         if (xhr.status === 200) {
+            //             const response = JSON.parse(xhr.responseText);
 
-                        if (response.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: response.message,
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: response.message,
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                            });
-                        }
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Upload failed. Please try again.',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                        });
-                    }
-                };
+            //             if (response.success) {
+            //                 Swal.fire({
+            //                     icon: 'success',
+            //                     title: response.message,
+            //                     toast: true,
+            //                     position: 'top-end',
+            //                     showConfirmButton: false,
+            //                     timer: 3000,
+            //                     timerProgressBar: true,
+            //                 }).then(() => {
+            //                     window.location.reload();
+            //                 });
+            //             } else {
+            //                 Swal.fire({
+            //                     icon: 'error',
+            //                     title: response.message,
+            //                     toast: true,
+            //                     position: 'top-end',
+            //                     showConfirmButton: false,
+            //                     timer: 3000,
+            //                     timerProgressBar: true,
+            //                 });
+            //             }
+            //         } else {
+            //             Swal.fire({
+            //                 icon: 'error',
+            //                 title: 'Upload failed. Please try again.',
+            //                 toast: true,
+            //                 position: 'top-end',
+            //                 showConfirmButton: false,
+            //                 timer: 3000,
+            //                 timerProgressBar: true,
+            //             });
+            //         }
+            //     };
 
-                xhr.onerror = function () {
-                    uploadProgress.style.display = 'none';
-                    alert('An error occurred during upload.');
-                };
+            //     xhr.onerror = function () {
+            //         uploadProgress.style.display = 'none';
+            //         alert('An error occurred during upload.');
+            //     };
 
-                xhr.send(formData);
-            });
+            //     xhr.send(formData);
+            // });
 
 
             // Edit lesson modal

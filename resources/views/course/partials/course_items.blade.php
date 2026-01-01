@@ -76,7 +76,7 @@
                     <div class="p-2 border-top bg-primary-light">
                         <div class="d-flex align-items-center gap-2">
                             <a href="{{ route('user.profile', ['user_id' => encrypt($course->tutor_id), 'shared' => 0]) }}" style="cursor: pointer; text-decoration: none; color: inherit;" class="d-flex align-items-center gap-2">
-                                <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/woman.jpg') }}"
+                                <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/143x145.png') }}"
                                     class="rounded-circle border"
                                     width="32"
                                     height="32"

@@ -25,12 +25,16 @@ $(document).ready(function () {
     const $suggestionBox = $('#course_suggestions');
     const $warning = $('#course_exists_warning');
 
-    // 🛠 Helper: Hide warning
+    const $submitBtn = $('form button[type="submit"]');
+
+    // Helper: Hide warning
     function hideWarning() {
         $warning.hide().text('');
+        // $submitBtn.prop('disabled', false);
+        $courseInput[0].setCustomValidity('');
     }
 
-    // 🛠 Helper: Render suggestions
+    // Helper: Render suggestions
     function renderSuggestions(data) {
         $suggestionBox.empty();
         data.forEach(course => {
@@ -44,7 +48,7 @@ $(document).ready(function () {
         }, 1500);
     }
 
-    // 🛠 Helper: Check exact match + show warning if exists
+    // Helper: Check exact match + show warning if exists
     function checkExactMatch(data, inputVal) {
         let exactMatch = data.find(c => c.name.toLowerCase() === inputVal.toLowerCase());
         if (exactMatch) {
@@ -52,12 +56,16 @@ $(document).ready(function () {
             $warning
                 .text(`⚠️ This course name already exists! Created by ${tutorNames}, You might want to choose a different name.`)
                 .show();
+            
+            // $submitBtn.prop('disabled', true);
+
+            $courseInput[0].setCustomValidity('Course name already exists');
         } else {
             hideWarning();
         }
     }
 
-    // 🔎 Search on typing
+    // Search on typing
     $courseInput.on('keyup', function () {
         let query = $(this).val().trim();
 
@@ -89,7 +97,7 @@ $(document).ready(function () {
         }
     });
 
-    // 🖱️ Click on suggestion
+    // Click on suggestion
     $(document).on('click', '#course_suggestions li', function () {
         let selectedName = $(this).text();
         $courseInput.val(selectedName);

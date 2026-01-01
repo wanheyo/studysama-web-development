@@ -135,7 +135,7 @@
                         </div>
                         <div class="d-flex align-items-center mt-3">
                             <div class="h-40 w-40 d-flex-center b-r-50 overflow-hidden bg-info">
-                                <img src="{{asset('../assets/images/avtar/1.png')}}" alt="image" class="img-fluid">
+                                <img src="{{asset('../assets/images/avtar/143x145.png')}}" alt="image" class="img-fluid">
                             </div>
                             <div class="flex-grow-1 ps-2">
                                 <div class="fw-medium"> Bette Hagenes</div>
@@ -221,7 +221,7 @@
                                                             <img alt="avatar" class="b-r-50 h-100 w-100 object-cover rounded-circle"
                                                                  src="{{ auth()->user()->image 
                                                                     ? asset('storage/uploads/profile_picture/' . auth()->user()->image) 
-                                                                    : asset('assets/images/avtar/woman.jpg') }}">
+                                                                    : asset('assets/images/avtar/143x145.png') }}">
                                                         </div>
                                                     </div>                                        
                                                 </div>
@@ -230,7 +230,7 @@
                                         <div class="person-details">
                                             <div class="d-flex justify-content-center align-items-center gap-2">
                                                 <h5 class="f-w-600">{{auth()->user()->username }}
-                                                    {{-- <img src="{{asset('../assets/images/profile-app/01.png')}}" class="w-20 h-20" alt="instagram-check-mark"> --}}
+                                                    {{-- <img src="{{asset('../assets/images/profile-app/0143x145.png')}}" class="w-20 h-20" alt="instagram-check-mark"> --}}
                                                     
                                                 </h5>
                                                 <span class="badge bg-primary">Level {{ auth()->user()->userPoints?->level ?? '1' }}</span>
@@ -454,7 +454,7 @@
                                                     <div class="p-2 border-top bg-primary-light">
                                                         <div class="d-flex align-items-center gap-2">
                                                             <a href="{{ route('user.profile', ['user_id' => encrypt($course->tutor_id), 'shared' => 0]) }}" style="cursor: pointer; text-decoration: none; color: inherit;" class="d-flex align-items-center gap-2">
-                                                                <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/woman.jpg') }}"
+                                                                <img src="{{ $course->tutor_image ? asset('storage/uploads/profile_picture/' . $course->tutor_image) : asset('assets/images/avtar/143x145.png') }}"
                                                                     class="rounded-circle border"
                                                                     width="32"
                                                                     height="32"
@@ -625,7 +625,7 @@
                                                             <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-relative bg-danger" style="width: 50px; height: 50px;">
                                                                 <img src="{{ $follower->image 
                                                                             ? asset('storage/uploads/profile_picture/' . $follower->image) 
-                                                                            : asset('assets/images/avtar/1.png') }}" alt="image" class="img-fluid">
+                                                                            : asset('assets/images/avtar/143x145.png') }}" alt="image" class="img-fluid">
                                                             </div>
                                                             <div class="flex-grow-1 ms-3">
                                                                 <h6 class="mb-0 fw-medium text-ellipsis">{{ '@' . $follower->username }}</h6>
@@ -673,7 +673,7 @@
                                                             <div class="h-50 w-50 d-flex-center b-r-50 overflow-hidden position-relative bg-danger" style="width: 50px; height: 50px;">
                                                                 <img src="{{ $following->image 
                                                                             ? asset('storage/uploads/profile_picture/' . $following->image) 
-                                                                            : asset('assets/images/avtar/1.png') }}" alt="image" class="img-fluid">
+                                                                            : asset('assets/images/avtar/143x145.png') }}" alt="image" class="img-fluid">
                                                             </div>
                                                             <div class="flex-grow-1 ms-3">
                                                                 <h6 class="mb-0 fw-medium text-ellipsis">{{ '@' . $following->username }}</h6>

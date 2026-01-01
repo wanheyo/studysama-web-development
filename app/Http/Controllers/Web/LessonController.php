@@ -4,19 +4,60 @@ namespace App\Http\Controllers\Web;
 
 use App\Models\User;
 use App\Models\Course;
-use App\Models\UserCourse;
 use App\Models\Lesson;
 use App\Models\Resource;
+use App\Models\UserCourse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 
 class LessonController extends Controller
 {
+    private function checkToxicity($text)
+    {
+        $apiKey = config('services.perspective.key');
+        $endpoint = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=' . $apiKey;
+
+        // DEBUG: Check if key is actually being read
+        // if (empty($apiKey)) {
+        //     dd('API Key is missing from config');
+        // }
+
+        try {
+            $response = Http::post($endpoint, [
+                'comment' => [
+                    'text' => $text,
+                ],
+                'languages' => ['en', 'id'], // Optional: Specify language or let it auto-detect
+                'requestedAttributes' => [
+                    'TOXICITY' => (object) [],
+                ],
+            ]);
+
+            // dd($response->json(), $response->status());
+
+            if ($response->successful()) {
+                $result = $response->json();
+                $score = $result['attributeScores']['TOXICITY']['summaryScore']['value'] ?? 0;
+
+                // Threshold: 0.7 (70%) is a common baseline. Adjust as needed.
+                return $score > 0.7;
+            }
+
+        } catch (\Exception $e) {
+            // Log API failure but don't block the user if the API is down
+            \Log::error('Perspective API Check Failed: ' . $e->getMessage());
+            return false;
+        }
+
+        return false;
+    }
+
     public function lesson_list(Request $request, $course_id)
     {
         $course_id = Crypt::decrypt($course_id);
@@ -153,6 +194,17 @@ class LessonController extends Controller
             'desc' => 'nullable|string',
             'learn_outcome' => 'nullable|string',
         ]);
+        
+        // --- START MODERATION CHECK ---
+        // Combine title and content for a full context check
+        $textToCheck = $validated['name'] . ' ' . $validated['desc'] . ' ' . $validated['learn_outcome'];
+
+        if ($this->checkToxicity($textToCheck)) {
+            return redirect()->back()
+                ->with('error', 'Your lesson contains content that may be considered toxic or inappropriate. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
 
         // Check if lesson name already exists in the same course
         $existingLesson = Lesson::where('course_id', $course_id)
@@ -201,6 +253,17 @@ class LessonController extends Controller
             'desc' => 'nullable|string',
             'learn_outcome' => 'nullable|string',
         ]);
+
+        // --- START MODERATION CHECK ---
+        // Combine title and content for a full context check
+        $textToCheck = $validated['name'] . ' ' . $validated['desc'] . ' ' . $validated['learn_outcome'];
+
+        if ($this->checkToxicity($textToCheck)) {
+            return redirect()->back()
+                ->with('error', 'Your lesson contains content that may be considered toxic or inappropriate. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
 
         // Check if another lesson in the same course already has this name
         $duplicate = Lesson::where('course_id', $lesson->course_id)

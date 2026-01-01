@@ -91,11 +91,12 @@
                                                     <td>
                                                         <div class="d-flex align-items-center">
                                                             <div class="user-avatar me-2">
-                                                                @if($user->image)
-                                                                    <img src="{{ $user->image ? asset('storage/uploads/profile_picture/' . $user->image) : asset('assets/images/avtar/woman.jpg') }}" alt="{{ $user->username }}" class="avatar rounded-circle">
+                                                                {{-- @if($user->image)
+                                                                    <img src="{{ $user->image ? asset('storage/uploads/profile_picture/' . $user->image) : asset('assets/images/avtar/143x145.png') }}" alt="{{ $user->username }}" class="avatar rounded-circle">
                                                                 @else
                                                                     <div class="avatar-placeholder rounded-circle">{{ substr($user->username, 0, 1) }}</div>
-                                                                @endif
+                                                                @endif --}}
+                                                                <img src="{{ $user->image ? asset('storage/uploads/profile_picture/' . $user->image) : asset('assets/images/avtar/143x145.png') }}" alt="{{ $user->username }}" class="avatar rounded-circle">
                                                             </div>
                                                             <div>
                                                                 <h6 class="mb-0">{{ $user->username }}</h6>
@@ -149,11 +150,12 @@
                                                     <td>
                                                         <div class="d-flex align-items-center">
                                                             <div class="user-avatar me-2">
-                                                                @if($user->image)
+                                                                {{-- @if($user->image)
                                                                     <img src="{{ $user->image ? asset('storage/uploads/profile_picture/' . $user->image) : asset('assets/images/avtar/woman.jpg') }}" alt="{{ $user->username }}" class="avatar rounded-circle">
                                                                 @else
                                                                     <div class="avatar-placeholder rounded-circle">{{ substr($user->username, 0, 1) }}</div>
-                                                                @endif
+                                                                @endif --}}
+                                                                <img src="{{ $user->image ? asset('storage/uploads/profile_picture/' . $user->image) : asset('assets/images/avtar/143x145.png') }}" alt="{{ $user->username }}" class="avatar rounded-circle">
                                                             </div>
                                                             <div>
                                                                 <h6 class="mb-0">{{ $user->username }}</h6>
@@ -204,11 +206,12 @@
                                                     <td>
                                                         <div class="d-flex align-items-center">
                                                             <div class="user-avatar me-2">
-                                                                @if($user->image)
+                                                                {{-- @if($user->image)
                                                                     <img src="{{ $user->image ? asset('storage/uploads/profile_picture/' . $user->image) : asset('assets/images/avtar/woman.jpg') }}" alt="{{ $user->username }}" class="avatar rounded-circle">
                                                                 @else
                                                                     <div class="avatar-placeholder rounded-circle">{{ substr($user->username, 0, 1) }}</div>
-                                                                @endif
+                                                                @endif --}}
+                                                                <img src="{{ $user->image ? asset('storage/uploads/profile_picture/' . $user->image) : asset('assets/images/avtar/143x145.png') }}" alt="{{ $user->username }}" class="avatar rounded-circle">
                                                             </div>
                                                             <div>
                                                                 <h6 class="mb-0">{{ $user->username }}</h6>
@@ -259,11 +262,12 @@
                                                     <td>
                                                         <div class="d-flex align-items-center">
                                                             <div class="user-avatar me-2">
-                                                                @if($user->image)
+                                                                {{-- @if($user->image)
                                                                     <img src="{{ $user->image ? asset('storage/uploads/profile_picture/' . $user->image) : asset('assets/images/avtar/woman.jpg') }}" alt="{{ $user->username }}" class="avatar rounded-circle">
                                                                 @else
                                                                     <div class="avatar-placeholder rounded-circle">{{ substr($user->username, 0, 1) }}</div>
-                                                                @endif
+                                                                @endif --}}
+                                                                <img src="{{ $user->image ? asset('storage/uploads/profile_picture/' . $user->image) : asset('assets/images/avtar/143x145.png') }}" alt="{{ $user->username }}" class="avatar rounded-circle">
                                                             </div>
                                                             <div>
                                                                 <h6 class="mb-0">{{ $user->username }}</h6>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use App\Models\User;
 use App\Models\UserPoint;
 use App\Models\UserFollow;
@@ -28,6 +29,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
+
 class UserController extends Controller
 {
     public function sign_in(Request $request)
@@ -42,7 +44,7 @@ class UserController extends Controller
         $credentials = [
             $login_type => $request->login,
             'password' => $request->password,
-            'status' => 1 // ✅ Only allow active users
+            'status' => 1 // Only allow active users
         ];
 
         if (Auth::attempt($credentials, $request->remember)) {
@@ -63,7 +65,7 @@ class UserController extends Controller
             }
         }
 
-        // 🔍 Additional check if account exists but status is not active
+        // Additional check if account exists but status is not active
         $userModel = \App\Models\User::where($login_type, $request->login)->first();
         if ($userModel) {
             if ($userModel->status == 0) {
@@ -88,7 +90,16 @@ class UserController extends Controller
         $validated = $request->validate([
             'username' => 'required|string|min:4|max:16|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'confirmed',
+                PasswordRule::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised() // Optional: checks if password was leaked in data breaches
+            ],
         ]);
 
         $user = User::create([

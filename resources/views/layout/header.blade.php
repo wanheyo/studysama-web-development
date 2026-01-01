@@ -803,7 +803,7 @@
                             data-bs-target="#profilecanvasRight" data-bs-toggle="offcanvas"
                             href="#" role="button">
                                 <img alt="avtar" class="b-r-50 h-35 w-35 bg-dark"
-                                    src="{{ asset(auth()->user()->image ? 'storage/uploads/profile_picture/' . auth()->user()->image : '../assets/images/avtar/woman.jpg') }}">
+                                    src="{{ asset(auth()->user()->image ? 'storage/uploads/profile_picture/' . auth()->user()->image : '../assets/images/avtar/143x145.png') }}">
                             </a>
 
                             <div aria-labelledby="profilecanvasRight"
@@ -816,7 +816,7 @@
                                             <div class="d-flex-center">
                                                 <span class="h-45 w-45 d-flex-center b-r-10 position-relative">
                                                     <img alt="" class="img-fluid b-r-10"
-                                                        src="{{ asset(auth()->user()->image ? 'storage/uploads/profile_picture/' . auth()->user()->image : '../assets/images/avtar/woman.jpg') }}">
+                                                        src="{{ asset(auth()->user()->image ? 'storage/uploads/profile_picture/' . auth()->user()->image : '../assets/images/avtar/143x145.png') }}">
                                                 </span>
                                             </div>
                                             <div class="text-center mt-2">

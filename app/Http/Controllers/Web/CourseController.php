@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
@@ -23,6 +24,46 @@ use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
+    private function checkToxicity($text)
+    {
+        $apiKey = config('services.perspective.key');
+        $endpoint = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=' . $apiKey;
+
+        // DEBUG: Check if key is actually being read
+        // if (empty($apiKey)) {
+        //     dd('API Key is missing from config');
+        // }
+
+        try {
+            $response = Http::post($endpoint, [
+                'comment' => [
+                    'text' => $text,
+                ],
+                'languages' => ['en', 'id'], // Optional: Specify language or let it auto-detect
+                'requestedAttributes' => [
+                    'TOXICITY' => (object) [],
+                ],
+            ]);
+
+            // dd($response->json(), $response->status());
+
+            if ($response->successful()) {
+                $result = $response->json();
+                $score = $result['attributeScores']['TOXICITY']['summaryScore']['value'] ?? 0;
+
+                // Threshold: 0.7 (70%) is a common baseline. Adjust as needed.
+                return $score > 0.7;
+            }
+
+        } catch (\Exception $e) {
+            // Log API failure but don't block the user if the API is down
+            \Log::error('Perspective API Check Failed: ' . $e->getMessage());
+            return false;
+        }
+
+        return false;
+    }
+
     public function find_course(Request $request)
     {
         // Get all active topics
@@ -350,7 +391,19 @@ class CourseController extends Controller
             // 'topic.*' => 'exists:topics,id',
             'topic' => 'nullable|exists:topics,id',
             // 'availability' => 'nullable|in:1,2',
+        ], [
+            'name.unique' => 'A course with this name already exists. Please choose a different title.'
         ]);
+
+        // --- START MODERATION CHECK ---
+        $textToCheck = $validated['name'] . ' ' . $validated['desc'];
+
+        if ($this->checkToxicity($textToCheck)) {
+            return redirect()->back()
+                ->with('error', 'Your course contains content that may be considered toxic or inappropriate. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
 
         $course = new Course();
         $course->name = $validated['name'];
@@ -420,7 +473,20 @@ class CourseController extends Controller
             'topic' => 'nullable|exists:topics,id',
             'delete' => 'nullable|boolean',
             // 'availability' => 'nullable|in:1,2',
+        ], [
+            'name.unique' => 'A course with this name already exists. Please choose a different title.'
         ]);
+
+        // --- START MODERATION CHECK ---
+        $textToCheck = $validated['name'] . ' ' . $validated['desc'];
+
+        if ($this->checkToxicity($textToCheck)) {
+            return redirect()->back()
+                ->with('error', 'Your course contains content that may be considered toxic or inappropriate. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
+
 
         $course_id = Crypt::decrypt($course_id);
         $course = Course::find($course_id);
@@ -927,6 +993,16 @@ class CourseController extends Controller
             'comment_review' => 'nullable|string|max:500',
             'action' => 'required|string|in:update,delete',
         ]);
+
+        // --- START MODERATION CHECK ---
+        $textToCheck = $validatedData['comment_review'];
+
+        if ($this->checkToxicity($textToCheck)) {
+            return redirect()->back()
+                ->with('error', 'Your review contains content that may be considered toxic or inappropriate. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
 
         // dd($validatedData);
 

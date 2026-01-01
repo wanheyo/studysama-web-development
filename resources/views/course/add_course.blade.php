@@ -63,6 +63,7 @@
                                     <div class="mb-3 position-relative">
                                         <label class="form-label">Course Title</label>
                                         <input type="text" class="form-control" name="name" id="course_title" required autocomplete="off">
+                                        
                                         <div class="invalid-feedback">
                                             Please enter a course title.
                                         </div>

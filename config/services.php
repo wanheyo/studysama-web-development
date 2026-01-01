@@ -38,4 +38,8 @@ return [
     'openai' => [
         'key' => env('OPENAI_API_KEY'),
     ],
+
+    'perspective' => [
+        'key' => env('PERSPECTIVE_API_KEY'),
+    ]
 ];

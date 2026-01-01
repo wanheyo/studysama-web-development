@@ -81,10 +81,18 @@
                             
                                     <div class="mb-3">
                                         <label class="form-label">Course Title</label>
-                                        <input type="text" class="form-control" name="name" placeholder="Course title" required value="{{ $course->name }}">
+                                        <input type="text" class="form-control" name="name" id="course_title" placeholder="Course title" required value="{{ $course->name }}">
                                         <div class="invalid-feedback">
                                             Please enter a course title.
                                         </div>
+
+                                        <!-- Suggestions dropdown -->
+                                        <ul id="course_suggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></ul>
+
+                                        <!-- Inline duplicate warning -->
+                                        <small id="course_exists_warning" class="text-danger mt-1" style="display:none;">
+                                            ⚠️ This course already exists!
+                                        </small>
                                     </div>
                             
                                     <div class="mb-3">
@@ -180,6 +188,43 @@
 @endsection
 
 @section('script')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Toast notifications
+            @if(session('success'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: "{{ session('success') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
+        
+            @if(session('error'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: "{{ session('error') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
+        });
+
+        const courseSearchUrl = "{{ route('course.ajax_search_course') }}";
+    </script>
+
     <!--customizer-->
     <div id="customizer"></div>
 

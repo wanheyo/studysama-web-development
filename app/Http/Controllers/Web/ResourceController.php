@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
@@ -33,6 +34,46 @@ class ResourceController extends Controller
     public function __construct(NotificationService $notificationService)
     {
         $this->notificationService = $notificationService;
+    }
+
+    private function checkToxicity($text)
+    {
+        $apiKey = config('services.perspective.key');
+        $endpoint = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=' . $apiKey;
+
+        // DEBUG: Check if key is actually being read
+        // if (empty($apiKey)) {
+        //     dd('API Key is missing from config');
+        // }
+
+        try {
+            $response = Http::post($endpoint, [
+                'comment' => [
+                    'text' => $text,
+                ],
+                'languages' => ['en', 'id'], // Optional: Specify language or let it auto-detect
+                'requestedAttributes' => [
+                    'TOXICITY' => (object) [],
+                ],
+            ]);
+
+            // dd($response->json(), $response->status());
+
+            if ($response->successful()) {
+                $result = $response->json();
+                $score = $result['attributeScores']['TOXICITY']['summaryScore']['value'] ?? 0;
+
+                // Threshold: 0.7 (70%) is a common baseline. Adjust as needed.
+                return $score > 0.7;
+            }
+
+        } catch (\Exception $e) {
+            // Log API failure but don't block the user if the API is down
+            \Log::error('Perspective API Check Failed: ' . $e->getMessage());
+            return false;
+        }
+
+        return false;
     }
 
     // Web API
@@ -220,25 +261,27 @@ class ResourceController extends Controller
                 
                 // Check file type
                 if (!in_array($fileExtension, $allowedExtensions)) {
-                    // return redirect()->back()
-                    //     ->with('error', "The file type '.{$fileExtension}' is not supported.")
-                    //     ->withInput();
+                    return redirect()->back()
+                        ->with('error', "The file type '.{$fileExtension}' is not supported.")
+                        ->withInput();
 
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'The file type .' . $fileExtension . ' is not supported.'
-                    ]);
+                    // return response()->json([
+                    //     'success' => false,
+                    //     'message' => 'The file type .' . $fileExtension . ' is not supported.'
+                    // ]);
+
+                    
                 }
                 
                 // Check file size
                 if ($fileSizeInMB > $maxSizeInMB) {
-                    // return redirect()->back()
-                    //     ->with('error', "The uploaded file is too large ({$fileSizeInMB}MB). Maximum file size allowed is {$maxSizeInMB}MB.")
-                    //     ->withInput();
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'The uploaded file is too large (' . $fileSizeInMB . 'MB). Maximum file size allowed is {$maxSizeInMB}MB.'
-                    ]);
+                    return redirect()->back()
+                        ->with('error', "The uploaded file is too large ({$fileSizeInMB}MB). Maximum file size allowed is {$maxSizeInMB}MB.")
+                        ->withInput();
+                    // return response()->json([
+                    //     'success' => false,
+                    //     'message' => 'The uploaded file is too large (' . $fileSizeInMB . 'MB). Maximum file size allowed is {$maxSizeInMB}MB.'
+                    // ]);
                 }
             }
             
@@ -262,16 +305,26 @@ class ResourceController extends Controller
                 'name.required' => 'Resource name is required.',
             ]);
 
+            // --- START MODERATION CHECK ---
+            $textToCheck = $validatedData['name'] . ' ' . $validatedData['desc'] . ' ' . $validatedData['link'];
+
+            if ($this->checkToxicity($textToCheck)) {
+                return redirect()->back()
+                    ->with('error', 'Your resource contains content that may be considered toxic or inappropriate. Please revise it.')
+                    ->withInput();
+            }
+            // --- END MODERATION CHECK ---
+
             // Get authenticated user
             $user = Auth::user();
             
             // Check if the user exists
             if (!$user) {
-                // return redirect()->back()->with('error', 'User not authenticated');
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not authenticated.'
-                ]);
+                return redirect()->back()->with('error', 'User not authenticated');
+                // return response()->json([
+                //     'success' => false,
+                //     'message' => 'User not authenticated.'
+                // ]);
             }
 
             // Duplicate check — resource name must be unique per lesson
@@ -281,11 +334,11 @@ class ResourceController extends Controller
                 ->first();
 
             if ($existingResource) {
-                // return redirect()->back()->with('error', 'A resource with this name already exists in this lesson.')->withInput();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'A resource with this name already exists in this lesson.'
-                ]);
+                return redirect()->back()->with('error', 'A resource with this name already exists in this lesson.')->withInput();
+                // return response()->json([
+                //     'success' => false,
+                //     'message' => 'A resource with this name already exists in this lesson.'
+                // ]);
             }
 
             DB::beginTransaction();
@@ -328,10 +381,15 @@ class ResourceController extends Controller
                 DB::commit();
                 
                 // return redirect()->back()->with('success', 'Resource added successfully');
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Resource added successfully!'
-                ]);
+                // Flash success message to the session
+                session()->flash('success', 'Resource added successfully');
+                
+                // Redirect back to the lesson page
+                return redirect()->back();
+                // return response()->json([
+                //     'success' => true,
+                //     'message' => 'Resource added successfully!'
+                // ]);
 
                 
             } catch (\Exception $e) {
@@ -343,11 +401,11 @@ class ResourceController extends Controller
                     'trace' => $e->getTraceAsString(),
                 ]);
                 
-                // return redirect()->back()->with('error', 'Failed to add resource. ' . $e->getMessage())->withInput();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to add resource.'
-                ]);
+                return redirect()->back()->with('error', 'Failed to add resource. ' . $e->getMessage())->withInput();
+                // return response()->json([
+                //     'success' => false,
+                //     'message' => 'Failed to add resource.'
+                // ]);
             }
         } catch (ValidationException $e) {
             // Handle validation errors
@@ -359,11 +417,11 @@ class ResourceController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
             
-            // return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.')->withInput();
-            return response()->json([
-                    'success' => false,
-                    'message' => 'An unexpected error occurred. Please try again.'
-                ]);
+            return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.')->withInput();
+            // return response()->json([
+            //         'success' => false,
+            //         'message' => 'An unexpected error occurred. Please try again.'
+            //     ]);
         }
     }
 
@@ -385,6 +443,16 @@ class ResourceController extends Controller
                 'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,tiff,doc,docx,pdf,txt,rtf,odt,zip,rar,7z|max:5120',
                 'lesson_id' => 'required|integer|exists:lessons,id',
             ]);
+
+            // --- START MODERATION CHECK ---
+            $textToCheck = $validatedData['name'] . ' ' . $validatedData['desc'] . ' ' . $validatedData['link'];
+
+            if ($this->checkToxicity($textToCheck)) {
+                return redirect()->back()
+                    ->with('error', 'Your resource contains content that may be considered toxic or inappropriate. Please revise it.')
+                    ->withInput();
+            }
+            // --- END MODERATION CHECK ---
 
             $user = Auth::user();
 
@@ -930,6 +998,17 @@ class ResourceController extends Controller
                 'content.required' => 'Post content is required.',
             ]);
 
+            // --- START MODERATION CHECK ---
+            // Combine title and content for a full context check
+            $textToCheck = $validatedData['title'] . ' ' . $validatedData['content'];
+
+            if ($this->checkToxicity($textToCheck)) {
+                return redirect()->back()
+                    ->with('error', 'Your post contains content that may be considered toxic or inappropriate. Please revise it.')
+                    ->withInput();
+            }
+            // --- END MODERATION CHECK ---
+
             // Get authenticated user
             $user = Auth::user();
             
@@ -1039,6 +1118,16 @@ class ResourceController extends Controller
             'content' => 'required|string',
         ]);
 
+        // --- START MODERATION CHECK ---
+        $textToCheck = $validated['title'] . ' ' . $validated['content'];
+            
+        if ($this->checkToxicity($textToCheck)) {
+            return redirect()->back()
+                ->with('error', 'Your post contains content that may be considered toxic. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
+
         $post->title = $validated['title'];
         $post->content = $validated['content'];
         $post->updated_at = now();
@@ -1113,6 +1202,14 @@ class ResourceController extends Controller
                 'forum_reply_id.exists' => 'The selected reply does not exist.',
                 'content.required' => 'Post content is required.',
             ]);
+
+            // --- START MODERATION CHECK ---
+            if ($this->checkToxicity($validatedData['content'])) {
+                return redirect()->back()
+                    ->with('error', 'Your reply contains content that may be considered toxic or inappropriate. Please revise it.')
+                    ->withInput();
+            }
+            // --- END MODERATION CHECK ---
 
             // Get authenticated user
             $user = Auth::user();
@@ -1239,6 +1336,19 @@ class ResourceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Validate content is present
+        $request->validate([
+            'content' => 'required|string'
+        ]);
+
+        // --- START MODERATION CHECK ---
+        if ($this->checkToxicity($request->input('content'))) {
+            return redirect()->back()
+                ->with('error', 'Your reply contains content that may be considered toxic. Please revise it.')
+                ->withInput();
+        }
+        // --- END MODERATION CHECK ---
+
         $reply->content = $request->input('content');
         $reply->save();
 
@@ -1264,7 +1374,4 @@ class ResourceController extends Controller
 
         return back()->with('success', 'Reply deleted successfully.');
     }
-
-
-
 }

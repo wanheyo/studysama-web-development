@@ -1,6 +1,6 @@
 <div class="reply-box mb-3 p-3 border">
     <div class="d-flex">
-        <img src="{{ $reply->userCourse?->user?->image ? asset('storage/uploads/profile_picture/' . $reply->userCourse?->user?->image) : asset('assets/images/avtar/4.png') }}"
+        <img src="{{ $reply->userCourse?->user?->image ? asset('storage/uploads/profile_picture/' . $reply->userCourse?->user?->image) : asset('assets/images/avtar/143x145.png') }}"
             class="rounded-circle avatar-md me-3" alt="avatar">
 
         <div class="flex-grow-1">
@@ -130,7 +130,7 @@
             {{-- Collapsible Reply Form --}}
             <div class="collapse mt-3" id="replyForm{{ $reply->id }}">
                 <div class="card card-body text-secondary border">
-                    <form id="forumReplyFormCollapse{{ $reply->id }}" method="POST" action="{{ route('resource.add_reply') }}" enctype="multipart/form-data">
+                    <form id="forumReplyFormCollapse{{ $reply->id }}" method="POST" action="{{ route('resource.add_reply') }}" enctype="multipart/form-data" class="ajax-reply-form">
                         @csrf
                         <input type="hidden" name="course_id" value="{{ $resource->lesson->course->id }}">
                         <input type="hidden" name="forum_post_id" value="{{ $post->id }}">
@@ -160,7 +160,7 @@
                             </small>   
                         </div>
 
-                        <div class="upload-progress mb-3" id="uploadProgress" style="display: none;">
+                        {{-- <div class="upload-progress mb-3" id="uploadProgress" style="display: none;">
                             <div class="progress-box bg-light-success w-100 p-3 rounded">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <div class="left d-flex align-items-center">
@@ -181,7 +181,7 @@
                                     Upload in progress — <strong>do not close</strong> this window or modal until the upload is complete.
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
 
                         <div class="d-flex gap-2">  
                             <button type="submit" class="btn btn-primary btn-sm">
