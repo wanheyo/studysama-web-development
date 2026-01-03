@@ -58,9 +58,9 @@
                             <h4 class="text-warning">{{ number_format($avgStats->avg_rating ?? 0, 1) }}/5</h4>
                         </div> --}}
                     </div>
-                    {{-- <div class="card-body px-0">
+                    <div class="card-body px-0">
                         <div id="role-pie-chart" class="mt-3 mb-5"></div>
-                    </div> --}}
+                    </div>
                 </div>
             </div>
         </div>

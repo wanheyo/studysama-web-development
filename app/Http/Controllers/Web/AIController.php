@@ -750,7 +750,7 @@ class AIController extends Controller
 
             // ===== STEP 1: Make API Request =====
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . 5 ,
+                'Authorization' => 'Bearer ' . config('services.openai.key'),
                 'Content-Type' => 'application/json',
             ])->timeout(40)->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-4o-mini',

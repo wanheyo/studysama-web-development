@@ -306,11 +306,12 @@
                 <div class="modal-body">
                     <p>Are you sure you want to delete this course? This action cannot be undone.</p>
                     <p class="text-muted"><strong>Course:</strong> <span id="deleteCourseName"></span></p>
+                    <p class="text-muted"><strong>Admin Comment:</strong> <span id="deleteAdminComment"></span></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-                </div>
+                </div> 
             </div>
         </div>
     </div>
@@ -495,7 +496,7 @@
                 const commentField = document.getElementById('modalAdminComment');
                 const comment = commentField ? commentField.value.trim() : '';
 
-                if (status !== '0' && comment === '') {
+                if (comment === '') {
                     alert('Please enter an admin comment before updating the status.');
                     commentField.focus(); // Focus the field for the user
                     return; // Stop execution
@@ -666,6 +667,15 @@
             document.getElementById('deleteCourseBtn').addEventListener('click', function() {
                 const courseName = document.getElementById('modalCourseTitle').value;
                 document.getElementById('deleteCourseName').textContent = courseName;
+                const commentField = document.getElementById('modalAdminComment');
+                const comment = commentField ? commentField.value.trim() : '';
+                document.getElementById('deleteAdminComment').textContent = comment;
+
+                if (comment === '') {
+                    alert('Please enter an admin comment before updating the status.');
+                    commentField.focus(); // Focus the field for the user
+                    return; // Stop execution
+                }
                 
                 // Hide course detail modal and show delete confirmation
                 bootstrap.Modal.getInstance(document.getElementById('courseDetailModal')).hide();

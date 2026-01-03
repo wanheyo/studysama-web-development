@@ -3155,6 +3155,45 @@
             // Debug helpers (optional):
             // console.log('lesson-list exists?', !!list, 'reorder-actions exists?', !!actions);
 
+            document.getElementById('file').addEventListener('change', function() {
+                const file = this.files[0];
+                const maxSize = 100 * 1024 * 1024; // 100MB
+                
+                // List of allowed extensions based on your requirements
+                const allowedExtensions = [
+                    'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 
+                    'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 
+                    'zip', 'rar', '7z', 
+                    'ppt', 'pptx', 'xls', 'xlsx', 'csv', 
+                    'mp4', 'mov', 'avi', 'mkv', 'wmv', 'webm', 
+                    'mp3', 'wav', 'm4a', 'aac', 'flac'
+                ];
+
+                if (file) {
+                    // 1. Get the file extension
+                    const fileName = file.name;
+                    const fileExtension = fileName.split('.').pop().toLowerCase();
+
+                    // 2. Validate Extension
+                    if (!allowedExtensions.includes(fileExtension)) {
+                        alert("Invalid file format! Supported formats: " + allowedExtensions.join(', '));
+                        this.value = ""; // Reset input
+                        return; // Stop further checks
+                    }
+
+                    // 3. Validate Size
+                    if (file.size > maxSize) {
+                        alert("File is too large! Maximum size allowed is 100MB.");
+                        this.value = ""; // Reset input
+                        return;
+                    }
+
+                    // Success: Populate hidden fields
+                    document.getElementById('file_name').value = fileName;
+                    document.getElementById('file_type').value = file.type;
+                }
+            });
+
             document.querySelectorAll('.toggle-progression').forEach(icon => {
                 icon.addEventListener('click', function () {
                     let resourceId = this.dataset.resource;

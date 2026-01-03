@@ -306,7 +306,7 @@ class ResourceController extends Controller
             ]);
 
             // --- START MODERATION CHECK ---
-            $textToCheck = $validatedData['name'] . ' ' . $validatedData['desc'] . ' ' . $validatedData['link'];
+            $textToCheck = $validatedData['name']?: '' . ' ' . $validatedData['desc']?: '' . ' ' . $validatedData['link']?: '';
 
             if ($this->checkToxicity($textToCheck)) {
                 return redirect()->back()
@@ -445,7 +445,7 @@ class ResourceController extends Controller
             ]);
 
             // --- START MODERATION CHECK ---
-            $textToCheck = $validatedData['name'] . ' ' . $validatedData['desc'] . ' ' . $validatedData['link'];
+            $textToCheck = $validatedData['name']?: '' . ' ' . $validatedData['desc']?: '' . ' ' . $validatedData['link']?: '';
 
             if ($this->checkToxicity($textToCheck)) {
                 return redirect()->back()
@@ -952,16 +952,16 @@ class ResourceController extends Controller
     {
         try {
             // Define supported file types for better error messages
-            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z';
+            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, ppt, pptx, xls, xlsx, csv';
             
             // Manual file checks BEFORE validation to provide custom error messages
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $fileExtension = strtolower($file->getClientOriginalExtension());
                 $fileSizeInMB = round($file->getSize() / 1024 / 1024, 2); // Convert bytes to MB
-                $maxSizeInMB = 5;
+                $maxSizeInMB = 10;
                 
-                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 'zip', 'rar', '7z'];
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 'zip', 'rar', '7z', 'ppt', 'pptx', 'xls', 'xlsx', 'csv'];
                 
                 // Check file type
                 if (!in_array($fileExtension, $allowedExtensions)) {
@@ -1015,6 +1015,16 @@ class ResourceController extends Controller
             // Check if the user exists
             if (!$user) {
                 return redirect()->back()->with('error', 'User not authenticated');
+            }
+
+            // Duplicate check — post title must be unique per resource
+            $existingPost = ForumPost::where('resource_id', $validatedData['resource_id'])
+                ->where('title', $validatedData['title'])
+                ->where('status', 1)
+                ->first();
+
+            if ($existingPost) {
+                return redirect()->back()->with('error', 'A post with this title already exists in this resource.');
             }
 
             $user_course = $user->userCourses()
@@ -1128,6 +1138,17 @@ class ResourceController extends Controller
         }
         // --- END MODERATION CHECK ---
 
+        // Duplicate check — post title must be unique per resource
+        $existingPost = ForumPost::where('resource_id', $post->resource_id)
+            ->where('title', $validated['title'])
+            ->where('id', '!=', $post_id) // exclude the same record
+            ->where('status', 1)
+            ->first();
+
+        if ($existingPost) {
+            return redirect()->back()->with('error', 'A post with this title already exists in this resource.');
+        }
+
         $post->title = $validated['title'];
         $post->content = $validated['content'];
         $post->updated_at = now();
@@ -1157,16 +1178,16 @@ class ResourceController extends Controller
     {
         try {
             // Define supported file types for better error messages
-            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z';
+            $supportedTypes = 'jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, ppt, pptx, xls, xlsx, csv';
             
             // Manual file checks BEFORE validation to provide custom error messages
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $fileExtension = strtolower($file->getClientOriginalExtension());
                 $fileSizeInMB = round($file->getSize() / 1024 / 1024, 2); // Convert bytes to MB
-                $maxSizeInMB = 5;
+                $maxSizeInMB = 10;
                 
-                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 'zip', 'rar', '7z'];
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 'zip', 'rar', '7z', 'ppt', 'pptx', 'xls', 'xlsx', 'csv'];
                 
                 // Check file type
                 if (!in_array($fileExtension, $allowedExtensions)) {

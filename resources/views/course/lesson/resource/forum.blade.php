@@ -582,9 +582,9 @@
                                             <label class="form-label text-secondary"> 
                                                 <i class="ph ph-paperclip me-2 text-primary"></i>Attachments <span class="text-muted">(Optional)</span>
                                             </label>
-                                            <input type="file" name="file" class="form-control file-input">
+                                            <input type="file" name="file" id="file" class="form-control file-input">
                                             <small class="text-muted d-block mt-2">
-                                                <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, JPG, PNG (Max 5MB)
+                                                <i class="ph ph-info me-1"></i>Supported formats: jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, ppt, pptx, xls, xlsx, csv (Max 10MB)
                                             </small>
                                         </div>
 
@@ -669,7 +669,7 @@
                                         <input type="hidden" name="file_name" id="file_name">
                                         <input type="hidden" name="file_type" id="file_type">
                                         <small class="text-muted d-block mt-2">
-                                            <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, PPTX, JPG, PNG (Max 10MB per file)
+                                            <i class="ph ph-info me-1"></i>Supported formats: jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, ppt, pptx, xls, xlsx, csv (Max 10MB per file)
                                         </small>
                                     </div>
                                 </div>
@@ -1015,6 +1015,49 @@
                 });
             });
 
+            document.addEventListener('change', function(event) {
+                // Check if the changed element is a file input
+                if (event.target && event.target.type === 'file') {
+                    const input = event.target;
+                    const file = input.files[0];
+                    const maxSize = 10 * 1024 * 1024; // 10MB
+                    
+                    const allowedExtensions = [
+                        'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 
+                        'doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 
+                        'zip', 'rar', '7z', 
+                        'ppt', 'pptx', 'xls', 'xlsx', 'csv'
+                    ];
+
+                    if (file) {
+                        const fileName = file.name;
+                        const fileExtension = fileName.split('.').pop().toLowerCase();
+
+                        // 1. Validate Extension
+                        if (!allowedExtensions.includes(fileExtension)) {
+                            alert("Invalid file format! Supported formats: " + allowedExtensions.join(', '));
+                            input.value = ""; 
+                            return;
+                        }
+
+                        // 2. Validate Size
+                        if (file.size > maxSize) {
+                            alert("File is too large! Maximum size allowed is 10MB.");
+                            input.value = ""; 
+                            return;
+                        }
+
+                        // 3. Populate Hidden Fields (Only if they exist in the same container)
+                        // Use 'closest' to find the hidden inputs relative to the current file picker
+                        const container = input.closest('div, form');
+                        const fileNameInput = container.querySelector('input[name="file_name"]');
+                        const fileTypeInput = container.querySelector('input[name="input_type"]'); // Check if your name is file_type or input_type
+
+                        if (fileNameInput) fileNameInput.value = fileName;
+                        if (fileTypeInput) fileTypeInput.value = file.type;
+                    }
+                }
+            });
 
             /* ---------- SORT REPLIES ---------- */
             const sortButtons = document.querySelectorAll('.sort-toggle');

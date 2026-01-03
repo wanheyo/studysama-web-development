@@ -156,7 +156,7 @@
                             <input type="hidden" name="file_name">
                             <input type="hidden" name="file_type">
                             <small class="text-muted d-block mt-2">
-                                <i class="ph ph-info me-1"></i>Supported formats: PDF, DOCX, PPTX, JPG, PNG (Max 10MB per file)
+                                <i class="ph ph-info me-1"></i>Supported formats: jpg, jpeg, png, gif, bmp, tiff, doc, docx, pdf, txt, rtf, odt, zip, rar, 7z, ppt, pptx, xls, xlsx, csv (Max 10MB per file)
                             </small>   
                         </div>
 

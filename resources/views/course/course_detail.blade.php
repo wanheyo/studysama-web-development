@@ -714,6 +714,16 @@
                     return;
                 }
 
+                // 2. CUSTOM FIX: Check for Star Rating if this is the review form
+                if (this.id === 'review-form') {
+                    const ratingInput = document.getElementById('rating-input');
+                    if (!ratingInput || !ratingInput.value) {
+                        e.preventDefault(); // Stop form submission
+                        alert("Please select a star rating before submitting.");
+                        return; // Stop the script here so spinner doesn't show
+                    }
+                }
+
                 // Get UI elements
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const cancelBtn = this.querySelector('.btn-cancel');

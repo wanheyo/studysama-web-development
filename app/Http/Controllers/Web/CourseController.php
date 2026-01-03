@@ -1375,10 +1375,7 @@ class CourseController extends Controller
         $course->save();
 
         // 2. Trigger Notification Service
-        // Only send notification if status is not 0 (Delete) - Adjust strictly if you want noti on delete too
-        if ($validated['status'] != 0) {
-            
-            $statusText = $validated['status'] == 1 ? 'Approved/Active' : 'In Review';
+        $statusText = $validated['status'] == 1 ? 'Approved' : ($validated['status'] == 2 ? 'In Review' : 'Deleted');
             $title = "Course Status Update";
             $content = "Your course \"{$course->name}\" status has been updated. Status: {$statusText}. Admin Comment: {$validated['comment']}.";
             
@@ -1390,7 +1387,6 @@ class CourseController extends Controller
                 $content,              // content (The admin comment)
                 $course->id            // parent_id
             );
-        }
 
         return response()->json([
             'success' => true,
