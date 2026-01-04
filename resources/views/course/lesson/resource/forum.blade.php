@@ -698,7 +698,7 @@
                             data-bs-dismiss="modal"
                             type="button"></button>
                 </div>
-                <form id="updateForumPostForm" method="POST">
+                <form id="updateForumPostForm" method="POST" class="ajax-reply-form">
                     @csrf
                     <div class="modal-body">
                         <div class="resent-form">
@@ -752,7 +752,7 @@
     <!-- replyEditModal Modal -->
     <div class="modal fade" id="replyEditModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <form id="updateReplyForm" method="POST">
+            <form id="updateReplyForm" method="POST" class="ajax-reply-form">
                 @csrf
                 <input type="hidden" name="reply_id" id="editReplyId">
                 <div class="modal-content">
