@@ -296,15 +296,18 @@ class AIController extends Controller
         ]);
 
         // --- START MODERATION CHECK ---
-        $textToCheck = $validatedData['text']?: '' . ' ' . $validatedData['path']?: '';
+        // Use null coalescing (??) to provide a default empty string if the key is missing
+        $textToCheck = ($validatedData['text'] ?? '') . ' ' . ($validatedData['path'] ?? '');
 
-        if ($this->checkToxicity($textToCheck)) {
-            return redirect()->back()
-                ->with('error', 'Your topic contains content that may be considered toxic or inappropriate. Please revise it.')
-                ->withInput();
+        if (!empty(trim($textToCheck))) {
+            if ($this->checkToxicity($textToCheck)) {
+                return redirect()->back()
+                    ->with('error', 'Your topic contains content that may be considered toxic or inappropriate. Please revise it.')
+                    ->withInput();
+            }
         }
         // --- END MODERATION CHECK ---
-
+        
         // dd($request->all());
 
         try {
@@ -668,12 +671,15 @@ class AIController extends Controller
         ]);
 
         // --- START MODERATION CHECK ---
-        $textToCheck = $validatedData['text']?: '' . ' ' . $validatedData['path']?: '';
+        // Use null coalescing (??) to provide a default empty string if the key is missing
+        $textToCheck = ($validatedData['text'] ?? '') . ' ' . ($validatedData['path'] ?? '');
 
-        if ($this->checkToxicity($textToCheck)) {
-            return redirect()->back()
-                ->with('error', 'Your topic contains content that may be considered toxic or inappropriate. Please revise it.')
-                ->withInput();
+        if (!empty(trim($textToCheck))) {
+            if ($this->checkToxicity($textToCheck)) {
+                return redirect()->back()
+                    ->with('error', 'Your topic contains content that may be considered toxic or inappropriate. Please revise it.')
+                    ->withInput();
+            }
         }
         // --- END MODERATION CHECK ---
 
@@ -993,12 +999,15 @@ class AIController extends Controller
         ]);
 
         // --- START MODERATION CHECK ---
-        $textToCheck = $validatedData['text']?: '' . ' ' . $validatedData['path']?: '';
+        // Use null coalescing (??) to provide a default empty string if the key is missing
+        $textToCheck = ($validatedData['text'] ?? '') . ' ' . ($validatedData['path'] ?? '');
 
-        if ($this->checkToxicity($textToCheck)) {
-            return redirect()->back()
-                ->with('error', 'Your topic contains content that may be considered toxic or inappropriate. Please revise it.')
-                ->withInput();
+        if (!empty(trim($textToCheck))) {
+            if ($this->checkToxicity($textToCheck)) {
+                return redirect()->back()
+                    ->with('error', 'Your topic contains content that may be considered toxic or inappropriate. Please revise it.')
+                    ->withInput();
+            }
         }
         // --- END MODERATION CHECK ---
 

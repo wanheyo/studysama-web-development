@@ -159,13 +159,59 @@
         </div>
         <!-- sign up end -->
     </div>
+
+    <style>
+        .swal2-toast {
+            width: auto !important;
+            max-width: 100% !important;
+            padding: 0.625em !important;
+        }
+    </style>
 </div>
 
 </body>
 @section('script')
+    <script>
+        $(document).ready(function() {
+
+            @if(session('success'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: "{{ session('success') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
+        
+            @if(session('error'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: "{{ session('error') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
+        });
+    </script>
+
     <!--js-->
     <script src="{{asset('assets/js/coming_soon.js')}}"></script>
 
     <!-- Bootstrap js-->
     <script src="{{asset('assets/vendor/bootstrap/bootstrap.bundle.min.js')}}"></script>
+
+    <!-- sweetalert js-->
+    <script src="{{asset('assets/vendor/sweetalert/sweetalert.js')}}"></script>
 @endsection

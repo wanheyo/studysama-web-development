@@ -171,7 +171,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="profile-tab profile-container">
-                                    <form class="app-form" method="POST" action="{{ route('user.edit_profile.put') }}" enctype="multipart/form-data">
+                                    <form class="app-form ajax-upload-form" method="POST" action="{{ route('user.edit_profile.put') }}" enctype="multipart/form-data">
                                         @csrf
                                         @method('PUT')
                                         <div class="image-details">
@@ -232,7 +232,7 @@
                                                         Full name
                                                         <span class="text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Required field">*</span>
                                                     </label>   
-                                                    <input class="form-control" placeholder="Your full name" type="text" maxlength="128" value="{{ auth()->user()->name }}" name="name" id="name">
+                                                    <input class="form-control" placeholder="Your full name" type="text" maxlength="128" value="{{ auth()->user()->name }}" name="name" id="name" required>
                                                     @error('name')
                                                         <small class="text-danger">{{ $message }}</small>
                                                     @enderror
@@ -2251,10 +2251,112 @@
             </div>
         </div>
         <!--setting app end -->
+
+        <div id="page-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 9999; backdrop-filter: blur(2px);">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                <h5 class="mt-3 text-dark fw-bold" id="overlay-text">Uploading...</h5>
+                <small class="text-muted">Please do not close this window</small>
+            </div>
+        </div>
+
+        <style>
+            .swal2-toast {
+                width: auto !important;
+                max-width: 100% !important;
+                padding: 0.625em !important;
+            }
+
+            .page-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent white */
+                z-index: 9999; /* High z-index to sit on top of everything */
+                cursor: wait; /* Show wait cursor */
+                display: none; /* Hidden by default */
+                backdrop-filter: blur(2px); /* Optional: slight blur effect */
+            }
+        </style>
     </div>
 @endsection
 
 @section('script')
+    <script>
+        $(document).ready(function() {
+
+            @if(session('success'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: "{{ session('success') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
+        
+            @if(session('error'))
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: "{{ session('error') }}",
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        width: 'auto',
+                    });
+                }, 100);
+            @endif
+
+            const uploadForms = document.querySelectorAll('.ajax-upload-form');
+            const overlay = document.getElementById('page-overlay');
+
+            uploadForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // Check if form is valid (HTML5 validation)
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.classList.add('was-validated');
+                        return;
+                    }
+
+                    // Get UI elements
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const cancelBtn = this.querySelector('.btn-cancel');
+                    
+                    // Disable buttons to prevent double-click
+                    if(submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+                    }
+                    
+                    if(cancelBtn) {
+                        cancelBtn.disabled = true;
+                    }
+
+                    // Show the global overlay
+                    if(overlay) {
+                        overlay.style.display = 'block';
+                    }
+
+                    // WE DO NOT PREVENT DEFAULT HERE. 
+                    // We let the browser submit the form naturally.
+                    // This ensures the Controller's redirect() works and Session Flash is sent.
+                });
+            });
+        });
+    </script>
+
     <!--customizer-->
     <div id="customizer"></div>
 

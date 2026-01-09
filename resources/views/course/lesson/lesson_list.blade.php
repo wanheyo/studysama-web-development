@@ -578,8 +578,6 @@
                         </div>
                     @endif
 
-
-
                     <!-- resourceDetailModal modal start -->
                     <div aria-hidden="true" aria-labelledby="resourceDetailModalLabel" class="modal fade" id="resourceDetailModal" tabindex="-1">
                         <div class="modal-dialog modal-xl">
@@ -720,7 +718,7 @@
 
                                                 @if(!$isTutor)
                                                 <!-- AI-Powered Study Tools -->
-                                                    <div class="card border">
+                                                    <div class="card border" id="aiStudyToolsSection">
                                                         <div class="card-header bg-primary">
                                                             <h6 class="fw-semibold text-white">
                                                                 <i class="ti ti-sparkles me-2"></i>AI-Powered Study Tools
@@ -2123,6 +2121,19 @@
                     reportBtn.setAttribute('data-resource-id', resourceData.idEncrypted);
                 }
 
+                // Show/hide AI Study Tools section
+                const aiSection = document.getElementById('aiStudyToolsSection');
+                if (aiSection) {
+                    const type = resourceData.type ? resourceData.type.toLowerCase() : '';
+    
+                    // Show if the type is 'pdf' OR 'link'
+                    if (type === 'pdf' || type === 'link') {
+                        aiSection.classList.remove('d-none');
+                    } else {
+                        aiSection.classList.add('d-none');
+                    }
+                }
+
                 // Set mcq button
                 const mcqBtn = document.getElementById('generateMCQBtn');
                 if (mcqBtn) {
@@ -2503,7 +2514,7 @@
                                     }
                                 } 
 
-                                // ✅ Update lesson summary
+                                // Update lesson summary
                                 let lessonStatus = document.getElementById("lesson-status");
                                 lessonStatus.textContent = (data.overview.completedLessons === data.overview.totalLessons) ? "Completed" : "Uncompleted";
                                 lessonStatus.className = `text-${data.overview.completedLessons === data.overview.totalLessons ? 'success' : 'secondary'} mb-0`;
@@ -2511,7 +2522,7 @@
                                 document.getElementById("lesson-count").textContent =
                                     `${data.overview.completedLessons} / ${data.overview.totalLessons}`;
 
-                                // ✅ Update resource summary
+                                // Update resource summary
                                 let resourceStatus = document.getElementById("resource-status");
                                 resourceStatus.textContent = (data.overview.completedResources === data.overview.totalResources) ? "Completed" : "Uncompleted";
                                 resourceStatus.className = `text-${data.overview.completedResources === data.overview.totalResources ? 'success' : 'secondary'} mb-0`;
@@ -3313,7 +3324,7 @@
                                 }
                             }
 
-                            // ✅ Update lesson summary
+                            // Update lesson summary
                             let lessonStatus = document.getElementById("lesson-status");
                             lessonStatus.textContent = (data.overview.completedLessons === data.overview.totalLessons) ? "Completed" : "Uncompleted";
                             lessonStatus.className = `text-${data.overview.completedLessons === data.overview.totalLessons ? 'success' : 'secondary'} mb-0`;
@@ -3321,7 +3332,7 @@
                             document.getElementById("lesson-count").textContent =
                                 `${data.overview.completedLessons} / ${data.overview.totalLessons}`;
 
-                            // ✅ Update resource summary
+                            // Update resource summary
                             let resourceStatus = document.getElementById("resource-status");
                             resourceStatus.textContent = (data.overview.completedResources === data.overview.totalResources) ? "Completed" : "Uncompleted";
                             resourceStatus.className = `text-${data.overview.completedResources === data.overview.totalResources ? 'success' : 'secondary'} mb-0`;

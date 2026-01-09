@@ -2,36 +2,77 @@
 
 namespace App\Http\Controllers\Web;
 
-use Illuminate\Validation\Rules\Password as PasswordRule;
+use Carbon\Carbon;
 use App\Models\User;
-use App\Models\UserPoint;
-use App\Models\UserFollow;
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\Comment;
 use App\Models\Resource;
+use App\Models\ForumPost;
 use App\Models\UserBadge;
+use App\Models\UserPoint;
+use App\Models\ForumReply;
 use App\Models\UserCourse;
+use App\Models\UserFollow;
 use App\Models\Certificate;
 use App\Models\ResourceFile;
-use App\Models\UserProgression;
-use App\Models\Comment;
-use App\Models\ForumPost;
-use App\Models\ForumReply;
 use Illuminate\Http\Request;
 use App\Models\UserActivityLog;
+use App\Models\UserProgression;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 
 class UserController extends Controller
 {
+    private function checkToxicity($text)
+    {
+        $apiKey = config('services.perspective.key');
+        $endpoint = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=' . $apiKey;
+
+        // DEBUG: Check if key is actually being read
+        // if (empty($apiKey)) {
+        //     dd('API Key is missing from config');
+        // }
+
+        try {
+            $response = Http::post($endpoint, [
+                'comment' => [
+                    'text' => $text,
+                ],
+                'languages' => ['en', 'id'], // Optional: Specify language or let it auto-detect
+                'requestedAttributes' => [
+                    'TOXICITY' => (object) [],
+                ],
+            ]);
+
+            // dd($response->json(), $response->status());
+
+            if ($response->successful()) {
+                $result = $response->json();
+                $score = $result['attributeScores']['TOXICITY']['summaryScore']['value'] ?? 0;
+
+                // Threshold: 0.7 (70%) is a common baseline. Adjust as needed.
+                return $score > 0.7;
+            }
+
+        } catch (\Exception $e) {
+            // Log API failure but don't block the user if the API is down
+            \Log::error('Perspective API Check Failed: ' . $e->getMessage());
+            return false;
+        }
+
+        return false;
+    }
+
     public function sign_in(Request $request)
     {
         $request->validate([
@@ -101,6 +142,19 @@ class UserController extends Controller
                     ->uncompromised() // Optional: checks if password was leaked in data breaches
             ],
         ]);
+
+        // --- START MODERATION CHECK ---
+        // Use null coalescing (??) to provide a default empty string if the key is missing
+        $textToCheck = ($validated['username'] ?? '');
+
+        if (!empty(trim($textToCheck))) {
+            if ($this->checkToxicity($textToCheck)) {
+                return redirect()->back()
+                    ->with('error', 'Your username contains content that may be considered toxic or inappropriate. Please revise it.')
+                    ->withInput();
+            }
+        }
+        // --- END MODERATION CHECK ---
 
         $user = User::create([
             'name' => $validated['username'],
@@ -304,6 +358,19 @@ class UserController extends Controller
             'social_links.*.link' => 'required_with:social_links|url|max:255',
         ]);
 
+        // --- START MODERATION CHECK ---
+        // Use null coalescing (??) to provide a default empty string if the key is missing
+        $textToCheck = ($validated['username'] ?? '') . ' ' . ($validated['name'] ?? '' ) . ' ' . ($validated['bio'] ?? '');
+
+        if (!empty(trim($textToCheck))) {
+            if ($this->checkToxicity($textToCheck)) {
+                return redirect()->back()
+                    ->with('error', 'Your profile contains content that may be considered toxic or inappropriate. Please revise it.')
+                    ->withInput();
+            }
+        }
+        // --- END MODERATION CHECK ---
+
         $user = auth()->user();
 
         // Profile Image Upload
@@ -325,7 +392,7 @@ class UserController extends Controller
             'phone_num' => $request->phone_num ? '+60' . $request->phone_num : null,
         ]);
 
-        // Save Social Links (using your model)
+        // Save Social Links
         if ($request->has('social_links')) {
             foreach ($request->social_links as $linkData) {
                 if (!empty($linkData['id'])) {
